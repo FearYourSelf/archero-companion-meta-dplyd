@@ -3,11 +3,11 @@ import React from 'react';
 import { Tier } from '../types';
 
 export const Badge: React.FC<{ tier: Tier }> = ({ tier }) => {
+  // Fix: Removed 'A+' as it is not part of the Tier union type defined in types.ts
   const colors: Record<Tier, string> = {
     'SSS': 'bg-red-600 text-yellow-100 border-yellow-400 border shadow-[0_0_12px_rgba(220,38,38,0.6)] font-black',
     'SS': 'bg-red-500 text-white border-red-300/30 border font-bold',
     'S': 'bg-orange-500 text-white shadow-md shadow-orange-900/20 font-bold',
-    'A+': 'bg-purple-600 text-white',
     'A': 'bg-purple-400 text-white',
     'B': 'bg-blue-500 text-white',
     'C': 'bg-blue-400 text-white',

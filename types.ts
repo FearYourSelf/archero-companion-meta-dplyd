@@ -1,6 +1,6 @@
 
-export type Tier = 'SSS' | 'SS' | 'S' | 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
-export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Armor';
+export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem';
 
 export interface BaseItem {
   id: string;
@@ -10,21 +10,23 @@ export interface BaseItem {
   category: GearCategory;
   isGodTier?: boolean;
   mythicPerk?: string;
-  hiddenMultiplier?: number;
+  trivia?: string;
+  drPercent?: string; // For armor table
+  uniqueEffect?: string; // For armor table
 }
 
 export interface Hero extends BaseItem {
-  type: string;
   globalBonus120: string;
-  assistSlots?: string[];
   bestSkin?: string;
+  evo4Star?: string;
+  bio?: string;
 }
 
 export interface ChatMessage {
+  id: string;
   role: 'user' | 'model';
   text: string;
   timestamp: number;
-  sources?: any[];
 }
 
 export interface CalcStats {

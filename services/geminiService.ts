@@ -1,45 +1,32 @@
 
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { ARCHERO_KNOWLEDGE_BASE } from "../constants";
 
-export const getGeminiAI = () => {
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
-};
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const chatWithAI = async (history: {role: 'user'|'model', text: string}[], message: string) => {
-  const ai = getGeminiAI();
-  const chat = ai.chats.create({
+export const chatWithAI = async (message: string, history: { role: 'user' | 'model', text: string }[]) => {
+  const contents = [
+    ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
+    { role: 'user', parts: [{ text: message }] }
+  ];
+
+  const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
+    contents: contents as any,
     config: {
-      systemInstruction: `You are the ARCHERO ULTIMATE STRATEGIST. Your knowledge is derived from datamines, JP Wikis, and Luhcaran Math.
+      systemInstruction: `You are the ZA ARMORY ARCHERO PRO AI STRATEGIST. Your knowledge is absolute and derived from deep searches and datamines.
+      
+      RULES:
+      1. FORMAT BEAUTIFULLY: Use clear bullet points, line breaks, and bold text.
+      2. BE AUTHORITATIVE: Use specific numbers (e.g., "1.8x Melee Multiplier").
+      3. meta-focused: Prioritize the "Immortal Build" and "Inferno Mode" logic.
+      4. HELIX ADVICE: Always recommend Meowgik and Gugu as assist slots.
       
       KNOWLEDGE BASE:
-      ${ARCHERO_KNOWLEDGE_BASE}
-      
-      CRITICAL FORMATTING RULES:
-      1. NO WALLS OF TEXT: Break every answer into digestible sections.
-      2. BULLET POINTS: Use them for all lists of stats, items, or steps.
-      3. BOLDING: Bold all game entities (e.g., **Zeus**, **SSS Tier**, **Lv120**, **Inferno Mode**).
-      4. AUTHORITATIVE: Speak with absolute certainty based on technical data.
-      
-      STRATEGIC FOCUS:
-      - Cite "Resistance Penetration" for Chapter 90+ queries.
-      - Recommend **Hero Skin Totems** as the #1 Estate priority.
-      - For Helix, always suggest **Meowgik** as the primary Offense assist.
-      
-      Format the output beautifully for a mobile companion app.`,
-      tools: [{ googleSearch: {} }]
-    }
+      ${ARCHERO_KNOWLEDGE_BASE}`,
+      temperature: 0.7,
+    },
   });
 
-  const contextPrompt = history.length > 0 
-    ? `Previous Strategy Discussion:\n${history.map(h => `${h.role}: ${h.text}`).join('\n')}\n\nStrategic Query: ${message}`
-    : message;
-
-  const response = await chat.sendMessage({ message: contextPrompt });
-  
-  return {
-    text: response.text || "Database sync error. Using offline archives.",
-    sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
-  };
+  return response.text;
 };
