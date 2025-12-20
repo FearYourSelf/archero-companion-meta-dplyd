@@ -1,6 +1,6 @@
 
-export type Tier = 'SSS' | 'SS' | 'S' | 'A+' | 'A' | 'B' | 'D' | 'F';
-export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Armor' | 'Dragon' | 'Relic';
+export type Tier = 'SSS' | 'SS' | 'S' | 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
+export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Armor' | 'Dragon' | 'Relic' | 'Egg' | 'Totem';
 
 export interface BaseItem {
   id: string;
@@ -11,6 +11,8 @@ export interface BaseItem {
   details?: string;
   synergy?: string;
   isGodTier?: boolean;
+  priority?: 'High' | 'Medium' | 'Low';
+  globalStatNote?: string;
 }
 
 export interface HeroStats {
@@ -23,6 +25,7 @@ export interface Hero extends BaseItem {
   stats: HeroStats;
   bestSkin?: string;
   evolutionNote?: string;
+  lv120Efficiency?: string;
 }
 
 export interface Ability {
@@ -36,6 +39,7 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   timestamp: number;
+  sources?: any[];
 }
 
 export interface CalcStats {
@@ -43,4 +47,9 @@ export interface CalcStats {
   critChance: number;
   critDmg: number;
   atkSpeed: number;
+}
+
+export interface TrainingStats {
+  currentStreak: number;
+  bestStreak: number;
 }
