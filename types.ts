@@ -1,6 +1,6 @@
 
 export type Tier = 'SSS' | 'SS' | 'S' | 'A+' | 'A' | 'B' | 'D' | 'F';
-export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Pet' | 'Armor' | 'Dragon' | 'Relic';
+export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Armor' | 'Dragon' | 'Relic';
 
 export interface BaseItem {
   id: string;
