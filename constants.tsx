@@ -5,98 +5,90 @@ export const HERO_DATA: Hero[] = [
   { 
     id: 'zeus', name: 'Zeus', tier: 'SSS', type: 'God Meta', 
     desc: 'Lightning God. Attacks deal Chain Lightning.', 
-    details: 'Thunder God\'s Wrath triggers with Celestial Set (Hammer + Band). Unbeatable in high PVP/PVE.',
+    details: 'MUST use with Celestial Set (Hammer + Band) for God-Tier synergy.',
     bestSkin: 'Celestial God', stats: { atk: 10, hp: 10 }, category: 'Hero', isGodTier: true 
   },
   { 
     id: 'wukong', name: 'Wukong', tier: 'SSS', type: 'End-Game Meta', 
     desc: 'Monkey King. Summons Rotating Staff & Clones.', 
-    details: 'Amazing utility at 0-1 Stars. God Tier scaling at 4+. Lv120 gives +8% Attack to ALL heroes.',
+    details: 'Utility God. Lv120 evolution gives +8% Global Attack to all heroes.',
     stats: { atk: 10, hp: 9 }, category: 'Hero', isGodTier: true 
   },
   { 
     id: 'arthur', name: 'King Arthur', tier: 'SSS', type: 'Melee Meta', 
-    desc: 'Excalibur Master. Massive AOE.', 
-    details: 'Sheathed/Unsheathed mechanic. Heals on kill. High survivability and damage reduction.',
+    desc: 'Excalibur Master. Heals on kill.', 
+    details: 'Highest sustain for end-game chapters. Massive AOE coverage.',
     stats: { atk: 10, hp: 10 }, category: 'Hero', isGodTier: true 
   },
-  { id: 'melinda', name: 'Melinda', tier: 'SSS', type: 'Premium DPS', desc: 'Best non-God DPS. Barrage skill.', bestSkin: 'Baker', stats: { atk: 10, hp: 8 }, category: 'Hero' },
-  { id: 'helix', name: 'Helix', tier: 'S', type: 'F2P King', desc: 'Rage ability. Damage increases as HP drops.', bestSkin: 'Coast Guard', stats: { atk: 8, hp: 10 }, category: 'Hero' },
+  { id: 'melinda', name: 'Melinda', tier: 'SSS', type: 'Premium DPS', desc: 'Best non-God Burst DPS.', details: 'Barrage skill scales with projectile count.', bestSkin: 'Baker', stats: { atk: 10, hp: 8 }, category: 'Hero' },
+  { id: 'helix', name: 'Helix', tier: 'S', type: 'F2P King', desc: 'Rage ability builds massive DPS.', details: '4-Star Evolution buffs Rage significantly. Best F2P investment.', bestSkin: 'Coast Guard', stats: { atk: 8, hp: 10 }, category: 'Hero' },
 ];
 
 export const GEAR_DATA: BaseItem[] = [
   // Weapons
-  { id: 'hammer', name: 'Celestial Might Hammer', tier: 'SSS', category: 'Weapon', desc: 'Zeus\'s weapon. Lightning AOE.', details: 'Triggers "Thunder God\'s Wrath" synergy with Celestial Band.', isGodTier: true },
-  { id: 'fist', name: 'Expedition Fist', tier: 'SSS', category: 'Weapon', desc: 'Melee/Ranged Hybrid. One Punch explosive stacks.', details: 'Melee hits build "One Punch" stacks; max stacks = massive AOE explosion.', synergy: 'Scales wildly with Melinda barrage.' },
-  { id: 'sword', name: 'Antiquated Sword', tier: 'SS', category: 'Weapon', desc: 'Whirlwind blocks projectiles.', details: 'High skill ceiling. Active Whirlwind provides 360-degree projectile defense.' },
-  { id: 'staff', name: 'Stalker Staff', tier: 'B', category: 'Weapon', desc: 'Tracking projectiles.', details: 'Normally low tier, but tracking makes it broken with specific skills.', synergy: "BEST: Diagonal Arrows (SSS God Tier). WORST: Front Arrow (DPS Loss)." },
-  { id: 'blade', name: 'Demon Blade', tier: 'S', category: 'Weapon', desc: 'Melee kills heal HP.', details: 'Melee attacks do 2x damage. Essential for stutter-stepping and wave healing.' },
-  { id: 'scythe', name: 'Death Scythe', tier: 'A', category: 'Weapon', desc: 'High knockback.', details: 'Hidden Stat: 30% HP Headshot (Insta-kill) chance on mobs.' },
-  
+  { id: 'fist', name: 'Expedition Fist', tier: 'SSS', category: 'Weapon', desc: 'Melee/Ranged Hybrid. One Punch explosive stacks.', details: 'The broken melee meta weapon. High burst and healing.' },
+  { id: 'hammer', name: 'Celestial Hammer', tier: 'SSS', category: 'Weapon', desc: 'Zeus weapon. Lightning AOE.', details: 'Required for Thunder God mode.' },
+  { id: 'sword', name: 'Antiquated Sword', tier: 'SS', category: 'Weapon', desc: 'Whirlwind blocks projectiles.', details: 'Active skill provides invincibility frame against bullets.' },
+  { id: 'staff', name: 'Stalker Staff', tier: 'B', category: 'Weapon', desc: 'Tracking homing projectiles.', details: 'Meta-dependent. Becomes God tier with specific skills.', synergy: "BEST: Diagonal Arrows. WORST: Front Arrow." },
+  { id: 'blade', name: 'Demon Blade', tier: 'S', category: 'Weapon', desc: 'Melee kills heal HP.', details: 'Best weapon for wave chapters (H10, H21).' },
+  { id: 'scythe', name: 'Death Scythe', tier: 'A', category: 'Weapon', desc: 'High knockback.', details: "Hidden Stat: 30% HP Headshot (Insta-kill) chance on mobs." },
+
   // Armor
-  { id: 'celestial_armor', name: 'Celestial Plate', tier: 'SSS', category: 'Armor', desc: 'God-tier set piece.', details: 'Part of the Celestial Set for Zeus synergy.', isGodTier: true },
-  { id: 'golden_chest', name: 'Golden Chestplate', tier: 'S', category: 'Armor', desc: 'Damage Reduction.', details: 'Highest flat damage reduction for wave tanking.' },
-  
+  { id: 'golden_chest', name: 'Golden Chestplate', tier: 'S', category: 'Armor', desc: 'Damage Resistance.', details: 'Best for high chapters where survival is impossible.' },
+  { id: 'phantom_cloak', name: 'Phantom Cloak', tier: 'S', category: 'Armor', desc: 'Freezes enemies.', details: 'Meta for Boss rush chapters (H14, H21).' },
+  { id: 'celestial_armor', name: 'Celestial Plate', tier: 'SSS', category: 'Armor', desc: 'Set piece for Zeus.', details: 'Part of the God-Tier Celestial set.', isGodTier: true },
+  { id: 'dex_vest', name: 'Vest of Dexterity', tier: 'B', category: 'Armor', desc: 'Outdated dodge armor.', details: 'Dodge meta is currently inferior to Damage Resistance.' },
+
   // Rings
-  { id: 'bull', name: 'Bull Ring', tier: 'SSS', category: 'Ring', desc: '10% Mob Damage Resistance.', details: 'Best in Slot for survival. Resistance > Attack in late game.' },
-  { id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', desc: '12% Projectile Resistance.', details: 'Essential for bullet-hell bosses. Note: PR is capped in H90+.' },
-  { id: 'celestial_band', name: 'Celestial Band', tier: 'SSS', category: 'Ring', desc: 'Zeus Synergy. Lightning Crit.', details: 'Mandatory piece for the Lightning God build.' },
-  
-  // Lockets
-  { id: 'bloodthirst_locket', name: 'Bloodthirst Locket', tier: 'S', category: 'Locket', desc: 'Heals % HP on kill.', details: 'Essential for Mob chapters and long wave chapters to sustain HP.' },
-  { id: 'angel_locket', name: 'Angel Locket', tier: 'S', category: 'Locket', desc: 'Chance to revive on death.', details: 'Best for Boss-only chapters where you might get one-shotted.' },
-  { id: 'bulletproof_locket', name: 'Bulletproof Locket', tier: 'A', category: 'Locket', desc: 'Reduces Projectile Damage.', details: 'Decent for ranged-heavy chapters.' },
-  
+  { id: 'bull_ring', name: 'Bull Ring', tier: 'SS', category: 'Ring', desc: '10% Dmg Resistance (Mobs).', details: 'Essential for progression. Never fodder these.' },
+  { id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', desc: '12% Projectile Resistance.', details: 'Crucial for bullet-hell bosses.' },
+  { id: 'celestial_band', name: 'Celestial Band', tier: 'S', category: 'Ring', desc: 'Essential for Zeus.', details: 'Required to complete Thunder God set.' },
+
+  // Books
+  { id: 'giants_contract', name: 'Giant\'s Contract', tier: 'SS', category: 'Book', desc: 'Shield + Melee buff.', details: 'Turns you into a giant with massive damage reduction.' },
+  { id: 'arcanum_time', name: 'Arcanum of Time', tier: 'SS', category: 'Book', desc: 'Time freeze burst.', details: 'Best for burning down bosses in seconds.' },
+  { id: 'enlightenment', name: 'Enlightenment', tier: 'S', category: 'Book', desc: 'AFK/Endless runs.', details: 'Generates free random skills over time.' },
+
   // Pets (Spirits)
-  { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Massive Hero Stat boosts.', details: 'The new meta pet. Boosts hero stats directly.' },
-  { id: 'cappy', name: 'Frothy Cappy', tier: 'SS', category: 'Pet', desc: 'Shield/Resist focus.', details: 'Provides damage reduction and protection shields.' },
-  { id: 'bat', name: 'Laser Bat', tier: 'S', category: 'Pet', desc: 'Shoots through walls.', details: 'F2P favorite. Reliability over damage. Bat projectiles never miss due to walls.' },
-  { id: 'owl', name: 'Noisy Owl', tier: 'A', category: 'Pet', desc: 'Knockback specialist.', details: 'Great for keeping melee mobs at a distance.' },
+  { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Massive Hero Stat boosts.', details: 'New meta pet. Actually provides useful scaling stats.' },
+  { id: 'cappy', name: 'Frothy Cappy', tier: 'SS', category: 'Pet', desc: 'Shield/Resist focus.', details: 'Defensive pet that protects the hero.' },
+  { id: 'bat', name: 'Laser Bat', tier: 'S', category: 'Pet', desc: 'Shoots through walls.', details: 'Classic F2P choice. Reliable damage that never misses.' },
 
   // Dragons
-  { id: 'magmar', name: 'Magmar', tier: 'SSS', category: 'Dragon', desc: 'Mana Consumption Reduced.', details: 'The #1 Dragon for competitive play. Allows skill spamming.' },
-  { id: 'necrogon', name: 'Necrogon', tier: 'SS', category: 'Dragon', desc: 'Projectile Resist Passive.', details: 'Crucial for Inferno mode PR passives.' },
-  
-  // Relics
-  { id: 'holy_grail', name: 'Holy Grail', tier: 'SSS', category: 'Relic', desc: '#1 Relic (Max HP %).', details: 'Radiant tier relic providing the highest HP scaling in game.', isGodTier: true },
-  { id: 'demon_king_eye', name: 'Demon King\'s Eye', tier: 'SSS', category: 'Relic', desc: 'Crit Rate & Dmg.', details: 'Radiant tier relic. Essential for end-game DPS builds.', isGodTier: true },
+  { id: 'magmar', name: 'Magmar', tier: 'SS', category: 'Dragon', desc: 'Reduces Mana cost.', details: 'The #1 Dragon statue for high-end play.' },
+  { id: 'necrogon', name: 'Necrogon', tier: 'S', category: 'Dragon', desc: 'Projectile Resistance Passive.', details: 'Critical for Inferno mode stat caps.' },
+  { id: 'geogon', name: 'Geogon', tier: 'S', category: 'Dragon', desc: 'Rock Shield (Invincibility).', details: 'Lifesaver for tricky mob rooms.' },
 ];
 
 export const ABILITIES_DATA: Ability[] = [
   { name: 'Ricochet', tier: 'SSS', desc: 'Bounces between enemies.', whenToPick: 'Mandatory for mobs.' },
-  { name: 'Diagonal Arrows', tier: 'SSS', desc: '3x Tracking arrows for Staff.', whenToPick: 'S-tier only with Stalker Staff. God tier synergy.' },
+  { name: 'Diagonal Arrows', tier: 'SSS', desc: 'Adds two side arrows.', whenToPick: 'S-tier with Staff. Good for melee.' },
   { name: 'Front Arrow +1', tier: 'SS', desc: '+1 Arrow, -25% Dmg.', whenToPick: 'Good for most. BAD for Staff.' },
 ];
 
 export const ARCHERO_KNOWLEDGE_BASE = `
-[JP WIKI - ULTIMATE ARCHERO 2025 META]
+[ARCHERO 2025 ULTIMATE STRATEGY]
 GODS:
-- Zeus (SSS): Lightning God. Use Celestial Hammer + Band for "Thunder God's Wrath".
-- Wukong (SSS): Monkey King. Lv120 = +8% global Attack. Excellent clones and utility.
-- Arthur (SSS): Excalibur AOE. Heals on kill. Massive sustain.
-
-INFERNO META (H90+):
-- Projectile Resistance (PR) is capped. Shift focus to Raw HP and Collision Resist.
-- Necrogon dragon is essential for PR passives.
-- Magmar is #1 Dragon for mana management.
+- Zeus (SSS): Needs Celestial Set. Chain Lightning is king.
+- Wukong (SSS): Clones and Rotating Staff provide defense.
+- Arthur (SSS): Best for melee wave pushing.
 
 WEAPON SYNERGIES:
-- Stalker Staff + Diagonal Arrows = SSS Tier.
-- Stalker Staff + Front Arrow = DPS LOSS (BAD).
-- Expedition Fist + Melinda = Highest burst potential.
+- Stalker Staff + Diagonal Arrows = God Tier (300% Dmg).
+- Stalker Staff + Front Arrow = DPS LOSS.
+- Death Scythe has hidden 30% Headshot chance.
 
-EQUIPMENT:
-- Bloodthirst Locket: Essential for wave chapters.
-- Angel Locket: Essential for boss chapters.
-- Laser Bat: Best utility pet (shoots through walls).
-- Empyrean Unicorn: Best end-game stat pet.
+INFERNO META (H90+):
+- Projectile Resistance is capped.
+- Switch focus to Raw HP and Collision Resistance.
+- Necrogon dragon is essential for PR passives.
 
 FARMING:
-- Gold: Up-Close Dangers (Daily).
-- Scrolls: H10/H21.
+- Gold: Up-Close Dangers (Always use Bull Rings).
+- Items: H10, H21 Boss Rush.
 `;
 
 export const MECHANICS = [
-  { title: 'Stutter Stepping', desc: 'Animation canceling for +35% speed. Rhythm: Attack -> Tap -> Attack.' },
-  { title: 'Inferno Resistance', desc: 'Endgame chapters (H90+) require Raw HP over capped PR stats.' },
+  { title: 'Stutter Stepping', desc: 'Cancel animation after firing to fire ~35% faster. Essential for high chapters.' },
+  { title: 'Resistance Caps', desc: 'Projectile Resistance is less effective in Inferno. Shift focus to Raw HP.' },
 ];
