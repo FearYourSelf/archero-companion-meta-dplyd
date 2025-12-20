@@ -1,6 +1,6 @@
 
 export type Tier = 'SSS' | 'SS' | 'S' | 'A+' | 'A' | 'B' | 'C' | 'D' | 'F';
-export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Armor' | 'Dragon' | 'Relic' | 'Egg' | 'Totem';
+export type GearCategory = 'Weapon' | 'Hero' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Armor';
 
 export interface BaseItem {
   id: string;
@@ -8,31 +8,16 @@ export interface BaseItem {
   tier: Tier;
   desc: string;
   category: GearCategory;
-  details?: string;
-  synergy?: string;
   isGodTier?: boolean;
-  priority?: 'High' | 'Medium' | 'Low';
-  globalStatNote?: string;
-}
-
-export interface HeroStats {
-  atk: number;
-  hp: number;
+  mythicPerk?: string;
+  hiddenMultiplier?: number;
 }
 
 export interface Hero extends BaseItem {
   type: string;
-  stats: HeroStats;
+  globalBonus120: string;
+  assistSlots?: string[];
   bestSkin?: string;
-  evolutionNote?: string;
-  lv120Efficiency?: string;
-}
-
-export interface Ability {
-  name: string;
-  tier: Tier;
-  desc: string;
-  whenToPick: string;
 }
 
 export interface ChatMessage {
@@ -47,9 +32,9 @@ export interface CalcStats {
   critChance: number;
   critDmg: number;
   atkSpeed: number;
+  weaponType: string;
 }
 
 export interface TrainingStats {
-  currentStreak: number;
   bestStreak: number;
 }

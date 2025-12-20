@@ -3,11 +3,10 @@ import React from 'react';
 import { Tier } from '../types';
 
 export const Badge: React.FC<{ tier: Tier }> = ({ tier }) => {
-  // Added missing 'C' tier color configuration to satisfy Record<Tier, string> requirement
   const colors: Record<Tier, string> = {
-    'SSS': 'bg-red-600 text-yellow-100 border-yellow-400 border shadow-[0_0_10px_rgba(234,179,8,0.4)]',
-    'SS': 'bg-red-500 text-white border-red-300 border-opacity-30 border',
-    'S': 'bg-orange-500 text-white',
+    'SSS': 'bg-red-600 text-yellow-100 border-yellow-400 border shadow-[0_0_12px_rgba(220,38,38,0.6)] font-black',
+    'SS': 'bg-red-500 text-white border-red-300/30 border font-bold',
+    'S': 'bg-orange-500 text-white shadow-md shadow-orange-900/20 font-bold',
     'A+': 'bg-purple-600 text-white',
     'A': 'bg-purple-400 text-white',
     'B': 'bg-blue-500 text-white',
@@ -16,47 +15,26 @@ export const Badge: React.FC<{ tier: Tier }> = ({ tier }) => {
     'F': 'bg-gray-800 text-gray-500',
   };
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-wider uppercase ${colors[tier] || 'bg-gray-500'}`}>
+    <span className={`px-2.5 py-1 rounded-lg text-[10px] tracking-widest uppercase shadow-sm ${colors[tier] || 'bg-gray-500'}`}>
       {tier}
     </span>
   );
 };
 
-export const ProgressBar: React.FC<{ value: number, max: number, color: 'red' | 'green' | 'blue' | 'orange' }> = ({ value, max, color }) => {
-  const colorMap = {
-    red: 'bg-red-500',
-    green: 'bg-green-500',
-    blue: 'bg-blue-500',
-    orange: 'bg-orange-500'
-  };
-  const percentage = (value / max) * 100;
-  return (
-    <div className="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-      <div 
-        className={`h-full ${colorMap[color]} transition-all duration-500 rounded-full`} 
-        style={{ width: `${percentage}%` }}
-      />
-    </div>
-  );
-};
-
 export const Card: React.FC<{ children: React.ReactNode; tier?: Tier; className?: string }> = ({ children, tier, className = '' }) => {
-  const isMythic = tier === 'SSS';
-  const isLowTier = tier && ['B', 'D', 'F'].includes(tier);
-
+  const isGod = tier === 'SSS';
   return (
     <div className={`
-      bg-gray-800/80 backdrop-blur-sm border rounded-2xl p-4 shadow-xl transition-all
-      ${isMythic ? 'border-red-500/50 shadow-red-900/20 ring-1 ring-red-500/20 animate-none hover:shadow-red-500/30' : 'border-gray-700/50'}
-      ${isLowTier ? 'opacity-60 grayscale-[0.3]' : 'opacity-100'}
+      bg-gray-800/50 backdrop-blur-md border rounded-[2rem] p-5 shadow-2xl transition-all duration-300 overflow-hidden
+      ${isGod ? 'border-yellow-500/30 ring-1 ring-yellow-500/10' : 'border-gray-700/50 hover:border-gray-600'}
       ${className}
     `}>
-      {isMythic && (
-        <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none">
-          <div className="absolute top-[-5px] right-[-5px] w-[30px] h-[30px] bg-red-600 rotate-45 transform origin-center opacity-20 blur-xl" />
-        </div>
+      {isGod && (
+        <div className="absolute -top-12 -right-12 w-32 h-32 bg-yellow-500/10 blur-[50px] pointer-events-none rounded-full" />
       )}
-      {children}
+      <div className="relative z-10">
+        {children}
+      </div>
     </div>
   );
 };
