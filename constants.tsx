@@ -1,3 +1,4 @@
+
 import { Hero, BaseItem } from './types';
 
 export const HERO_DATA: Hero[] = [
@@ -6,6 +7,7 @@ export const HERO_DATA: Hero[] = [
     desc: 'The Lightning Sovereign. Dominates the meta with unmatched base stats and chain lightning that ignores Damage Resistance.', 
     globalBonus120: '+8% Max HP (Global)', bestSkin: 'Thunder Overlord', evo4Star: 'Lightning chain +2',
     bio: 'Wielder of the heavens, Zeus brings divine wrath to the battlefield.',
+    trivia: 'First hero in Archero history to have a base damage multiplier exceeding 2.0x.',
     deepLogic: 'Zeus is the undisputed King of 2025. His lightning jumps ignore 15% of enemy damage resistance. Mandatory for end-game pushing Chapters 80+. His synergy with the Celestial Hammer is unmatched.',
     assistHeroes: ['Melinda', 'Wukong'],
     shardCost: '50 to unlock',
@@ -16,6 +18,7 @@ export const HERO_DATA: Hero[] = [
     desc: 'The Monkey King. DPS machine that relies on clones to overwhelm enemies and bypass high-defense mobs.', 
     globalBonus120: 'L120: +10% Max HP (Global)', bestSkin: 'Celestial Sage',
     bio: 'A trickster god who fought the heavens and won.',
+    trivia: 'Clones actually inherit "Front Arrow" and "Multishot" if the main body has them.',
     deepLogic: 'Clones inherit 100% of your Attack and benefit from your Crit Rate. In wave chapters, Wukong outperforms almost everyone except Zeus.',
     assistHeroes: ['Dragon Girl', 'Stella'],
     shardCost: '50 to unlock',
@@ -26,6 +29,7 @@ export const HERO_DATA: Hero[] = [
     desc: 'The Barrage Specialist. Higher damage output at lower HP levels makes her a clutch boss killer.', 
     globalBonus120: '+5% Global Atk', bestSkin: 'Baking Sweetie',
     bio: 'A high-born lady who prefers the thrill of the hunt to the ballroom.',
+    trivia: 'Her "Baking Sweetie" skin provides a hidden 5% projectile speed buff.',
     deepLogic: 'Melinda remains the gold standard for burst DPS. Her barrage counts as projectile damage, making her exceptionally strong with Brawler-style relics.',
     assistHeroes: ['Helix', 'Meowgik'],
     shardCost: '50 to unlock',
@@ -35,6 +39,7 @@ export const HERO_DATA: Hero[] = [
     id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', 
     desc: 'Explosive AOE damage through dragon breath. Exceptional for clearing dense rooms.', 
     globalBonus120: '+5% Crit Damage (Global)',
+    bio: 'Raised by drakes in the northern peaks, she is fire incarnate.',
     deepLogic: 'Her dragon breath applies a burn that reduces enemy healing. Essential for certain Hero Mode bosses with regeneration.',
     assistHeroes: ['Melinda', 'Stella']
   },
@@ -42,6 +47,8 @@ export const HERO_DATA: Hero[] = [
     id: 'helix', name: 'Helix', tier: 'S', category: 'Hero', 
     desc: 'The F2P Champion. Inherently gains "Fury" which increases Attack significantly as HP decreases.', 
     globalBonus120: '+5% Crit Chance (Global)', bestSkin: 'Bear Man',
+    bio: 'A tribal warrior whose strength grows with his wounds.',
+    trivia: 'Fury is the only ability that scales attack power linearly with missing HP percentage.',
     deepLogic: 'Fury grants +1.2% Attack for every 1% HP lost. At 1 HP, Helix is one of the hardest hitters in the game. Essential to pair with Meowgik assist for homing coverage.',
     assistHeroes: ['Meowgik', 'Gugu'],
     bestPairs: ['Demon Blade', 'Dragon Ring']
@@ -50,6 +57,7 @@ export const HERO_DATA: Hero[] = [
     id: 'meowgik', name: 'Meowgik', tier: 'S', category: 'Hero', 
     desc: 'Homing Spirit Specialist. Spirits can pass through walls and track enemies with 100% accuracy.', 
     globalBonus120: '+4% Atk (Global)', bestSkin: 'Chef Mew',
+    bio: 'A cat from another dimension with a penchant for magic and fish.',
     deepLogic: 'Spirit spawn rate is directly tied to Attack Speed. High speed builds (Bracelet/Locket) turn Meowgik into a constant stream of homing damage.',
     assistHeroes: ['Helix', 'Taranis']
   }
@@ -96,13 +104,27 @@ export const GEAR_DATA: BaseItem[] = [
     id: 'demon_blade', name: 'Demon Blade: Rain', tier: 'SS', category: 'Weapon', 
     desc: 'Classic meta choice. High melee damage and unique bleed effects.', 
     mythicPerk: 'Melee hits deal massive bleed damage over 5 seconds.',
+    trivia: 'Melee multiplier is actually 1.8x, but "Front Arrow" reduces the individual arrow damage without fully boosting melee.',
     deepLogic: 'Paired with Helix or Melinda, the melee hitbox is larger than it looks. Essential for clearing boss rushes where you can hug the boss.',
     bestPairs: ['Phantom Cloak', 'Bull Ring']
   },
   { 
     id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', 
     desc: 'The best defensive ring in the game. Provides 12% Projectile Resistance.', 
+    trivia: 'Projectile Resistance (PR) is capped at 75% in H90+, making other resists more valuable.',
     deepLogic: 'Two Mythic Dragon Rings are mandatory for the 75% Projectile Resistance cap in late-game chapters.'
+  },
+  {
+    id: 'c_bracer', name: 'Celestial Bracer', tier: 'SS', category: 'Bracelet',
+    desc: 'Superior offensive bracelet with shock-wave procs.',
+    deepLogic: 'Crucial for Inferno Mode (H90+) as Collision Resistance becomes more important than standard PR once caps are hit.',
+    rarityPerks: [{ rarity: 'Epic', effect: 'Collision Damage Resistance +10%' }]
+  },
+  {
+    id: 'p_cloak', name: 'Phantom Cloak', tier: 'SS', category: 'Armor',
+    desc: 'High projectile resistance and freezing counter-attack.',
+    deepLogic: 'Freezing enemies when hit provides crucial breathing room in boss fights.',
+    bestPairs: ['Demon Blade', 'Dragon Ring']
   }
 ];
 

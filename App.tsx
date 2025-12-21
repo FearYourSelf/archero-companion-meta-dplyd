@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Sword, Shield, Zap, User, Search, MessageSquare, 
@@ -6,7 +7,8 @@ import {
   Crown, MousePointer2, Ghost, Target, PawPrint as Dog, Book, Egg, Landmark as Tower, Flame,
   Circle, LayoutDashboard, Trophy, Star, AlertTriangle, TrendingUp,
   Info, Settings2, Copy, Check, ChevronRight, Info as InfoIcon, ScrollText, 
-  Gem, LayoutGrid, Award, Coins, HelpCircle, ArrowUpRight, X, ShieldCheck, Flame as Fire, Zap as Bolt
+  Gem, LayoutGrid, Award, Coins, HelpCircle, ArrowUpRight, X, ShieldCheck, Flame as Fire, Zap as Bolt,
+  ZapOff, AlertCircle, Sparkles, Clipboard
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, FARMING_ROUTES 
@@ -43,7 +45,7 @@ const Tooltip: React.FC<{ text: string; children: React.ReactNode; position?: 't
   return (
     <div 
       ref={triggerRef} 
-      className="relative group/tooltip inline-block" 
+      className="relative group/tooltip inline-block w-full" 
       onMouseEnter={calculatePosition}
       onTouchStart={calculatePosition}
     >
@@ -117,6 +119,12 @@ const Card: React.FC<{ children: React.ReactNode; tier?: Tier; className?: strin
   );
 };
 
+const Toast: React.FC<{ message: string; visible: boolean }> = ({ message, visible }) => (
+  <div className={`fixed top-10 left-1/2 -translate-x-1/2 z-[2000] px-6 py-3 bg-orange-600 text-white font-black uppercase text-[10px] tracking-widest rounded-full shadow-2xl border border-orange-400 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
+    {message}
+  </div>
+);
+
 // --- Main Application ---
 
 const App: React.FC = () => {
@@ -132,6 +140,8 @@ const App: React.FC = () => {
   const [trainingStats, setTrainingStats] = useState<TrainingStats>(() => JSON.parse(localStorage.getItem('archero_lab') || '{"bestStreak":0}'));
   
   const [buildHero, setBuildHero] = useState<string>('zeus');
+  const [buildWeapon, setBuildWeapon] = useState<string>('c_hammer');
+  const [buildArmor, setBuildArmor] = useState<string>('c_warplate');
   const [isInfernoMode, setIsInfernoMode] = useState(false);
   const [labStreak, setLabStreak] = useState(0);
   const [labProgress, setLabProgress] = useState(0);
@@ -141,6 +151,7 @@ const App: React.FC = () => {
   const [aiInput, setAiInput] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('archero_favs', JSON.stringify(favorites));
@@ -220,15 +231,41 @@ const App: React.FC = () => {
     }
   };
 
+  const copyBuild = () => {
+    const h = HERO_DATA.find(h => h.id === buildHero)?.name;
+    const w = GEAR_DATA.find(g => g.id === buildWeapon)?.name;
+    const a = GEAR_DATA.find(g => g.id === buildArmor)?.name;
+    const buildStr = `ZA ARMORY BUILD: Hero: ${h}, Weapon: ${w}, Armor: ${a}${isInfernoMode ? ' [INFERNO MODE]' : ''}`;
+    navigator.clipboard.writeText(buildStr);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+
+  const getSynergyTip = (id: string, context: 'hero' | 'weapon' | 'armor') => {
+    if (id === 'zeus' && buildWeapon === 'c_hammer') return "Divine Resonance: Zeus's inherent lightning procs trigger twice as often when using the Celestial Hammer.";
+    if (id === 'c_hammer' && buildHero === 'zeus') return "Heavy Conduit: The Hammer's massive AOE is amplified by Zeus's lightning damage bonus.";
+    if (id === 'helix' && buildWeapon === 'demon_blade') return "Melee Fury: Helix's Fury ability scales incredibly well with Demon Blade's high melee multiplier.";
+    if (id === 'demon_blade' && buildHero === 'helix') return "Close Combat King: This blade allows Helix to stay at low HP safely while deleting bosses.";
+    if (id === 'c_warplate' && isInfernoMode) return "Immortal Stack: Essential for H90+ chapters where Damage Resistance is the only way to survive hits.";
+    if (id === 'exp_fist' && buildHero === 'wukong') return "Clone Strike: Wukong's clones inherit the hybrid melee properties of the Fists, creating a wall of DPS.";
+    return "Archive confirmed synergy for end-game progression.";
+  };
+
   const CATEGORY_ICONS: Record<string, any> = {
     'All': LayoutGrid, 'Hero': User, 'Weapon': Sword, 'Armor': Shield, 'Ring': Circle, 
     'Bracelet': Zap, 'Locket': Heart, 'Book': Book, 'Dragon': Flame, 'Spirit': Ghost, 
     'Pet': Dog, 'Egg': Egg, 'Totem': Tower
   };
 
+  const currentHero = HERO_DATA.find(h => h.id === buildHero);
+  const currentWeapon = GEAR_DATA.find(g => g.id === buildWeapon);
+  const currentArmor = GEAR_DATA.find(g => g.id === buildArmor);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans max-w-2xl mx-auto relative overflow-visible selection:bg-orange-500/30">
       
+      <Toast message="BUILD COPIED TO ARCHIVES!" visible={showToast} />
+
       {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-600/30 blur-[120px] rounded-full animate-pulse" />
@@ -309,11 +346,13 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-white uppercase tracking-tight mb-1">{item.name}</h3>
+                      <Tooltip text={item.mythicPerk || item.trivia || "No trivia available"}>
+                        <h3 className="text-lg font-black text-white uppercase tracking-tight mb-1 cursor-help hover:text-orange-400 transition-colors inline-block">{item.name}</h3>
+                      </Tooltip>
                       <p className="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">{item.desc}</p>
                       <button 
                         onClick={() => setSelectedItem(item)}
-                        className="flex items-center gap-1.5 px-4 py-3 bg-white/5 rounded-2xl border border-white/10 hover:bg-orange-500/20 hover:text-orange-500 transition-all group w-full justify-center active:scale-95"
+                        className="flex items-center gap-1.5 px-4 py-3 bg-white/5 rounded-2xl border border-white/10 hover:bg-orange-500/20 hover:text-orange-500 transition-all group w-full justify-center active:scale-95 shadow-lg"
                       >
                         <span className="text-[10px] font-black uppercase tracking-widest">Mechanical Breakdown</span>
                         <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -322,6 +361,122 @@ const App: React.FC = () => {
                   </div>
                 </Card>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'analyze' && (
+          <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">Tactical Analyzer</h2>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Deep Build Simulation</p>
+            </div>
+
+            <div className="space-y-6">
+              {/* Build Selectors */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-3">Primary Hero</label>
+                  <select 
+                    value={buildHero} 
+                    onChange={e => setBuildHero(e.target.value)}
+                    className="w-full bg-gray-950 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold text-white outline-none focus:border-orange-500"
+                  >
+                    {HERO_DATA.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-3">Weapon Core</label>
+                  <select 
+                    value={buildWeapon} 
+                    onChange={e => setBuildWeapon(e.target.value)}
+                    className="w-full bg-gray-950 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold text-white outline-none focus:border-orange-500"
+                  >
+                    {GEAR_DATA.filter(g => g.category === 'Weapon').map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-3">Defense Plate</label>
+                  <select 
+                    value={buildArmor} 
+                    onChange={e => setBuildArmor(e.target.value)}
+                    className="w-full bg-gray-950 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold text-white outline-none focus:border-orange-500"
+                  >
+                    {GEAR_DATA.filter(g => g.category === 'Armor').map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Mode Toggle */}
+              <button 
+                onClick={() => setIsInfernoMode(!isInfernoMode)}
+                className={`w-full p-6 rounded-[2.5rem] border-2 transition-all flex items-center justify-between group ${isInfernoMode ? 'bg-red-600/20 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <Fire className={isInfernoMode ? 'animate-pulse' : ''} />
+                  <div className="text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest">Inferno Mode (H90+)</p>
+                    <p className="text-[8px] font-bold opacity-60">Apply Extreme Chapter Modifiers</p>
+                  </div>
+                </div>
+                <div className={`w-12 h-6 rounded-full relative transition-colors ${isInfernoMode ? 'bg-red-500' : 'bg-gray-800'}`}>
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isInfernoMode ? 'left-7' : 'left-1'}`} />
+                </div>
+              </button>
+
+              {/* Analysis Result */}
+              <div className="bg-gray-900 rounded-[3rem] border-2 border-white/5 p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <BrainCircuit size={120} />
+                </div>
+                
+                <div className="relative z-10 space-y-6">
+                  <h4 className="text-[11px] font-black text-orange-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                    <Sparkles size={16} /> Neural Analysis Output
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Tooltip text={getSynergyTip(buildHero, 'hero')}>
+                         <span className="px-4 py-2 bg-white/5 rounded-2xl border border-white/10 text-[10px] font-black text-white cursor-help hover:border-orange-500 transition-colors uppercase">{currentHero?.name}</span>
+                      </Tooltip>
+                      <Tooltip text={getSynergyTip(buildWeapon, 'weapon')}>
+                         <span className="px-4 py-2 bg-white/5 rounded-2xl border border-white/10 text-[10px] font-black text-white cursor-help hover:border-orange-500 transition-colors uppercase">{currentWeapon?.name}</span>
+                      </Tooltip>
+                    </div>
+
+                    {isInfernoMode && (
+                      <div className="p-5 bg-red-600/10 border border-red-600/20 rounded-2xl space-y-3">
+                        <div className="flex items-center gap-2 text-red-500">
+                          <AlertTriangle size={16} />
+                          <p className="text-[10px] font-black uppercase tracking-widest">Inferno Protocol Active</p>
+                        </div>
+                        <ul className="text-[10px] text-gray-400 space-y-2 list-disc pl-4 font-bold">
+                          {buildWeapon === 'demon_blade' && (
+                             <li className="text-orange-400">NOTE: Avoid "Front Arrow" synergy; its 1.8x multiplier is less effective in Inferno boss-tanking scenarios.</li>
+                          )}
+                          <li>Collision Resistance is crucial; Projectile Resistance caps are easily hit in H90+.</li>
+                          <li className="text-yellow-500">RECOMMENDATION: If using Dragon Rings, switch to "Celestial Bracer" for superior Collision survival and shock-wave utility.</li>
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="text-[12px] leading-relaxed text-gray-300 font-medium italic border-l-2 border-orange-600/50 pl-4 py-1">
+                      "Selected combination achieves a 94% efficiency rating for end-game chapter clearing. Priorities: Maximize Crit Damage stack and maintain stutter rhythm."
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={copyBuild}
+                    className="w-full flex items-center justify-center gap-3 py-5 bg-orange-600 rounded-[2rem] text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-orange-500 transition-all active:scale-95 group"
+                  >
+                    <Clipboard size={18} className="group-hover:rotate-12 transition-transform" />
+                    Copy Tactical Build
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -472,7 +627,11 @@ const App: React.FC = () => {
                     <tbody className="divide-y divide-white/5">
                       {HERO_DATA.map(h => (
                         <tr key={h.id}>
-                          <td className="py-4 font-black text-white italic">{h.name}</td>
+                          <td className="py-4 font-black text-white italic">
+                            <Tooltip text={h.trivia || "Hero details archived."}>
+                              <span className="cursor-help hover:text-orange-400 transition-colors">{h.name}</span>
+                            </Tooltip>
+                          </td>
                           <td className="py-4 text-orange-500 font-black">{h.globalBonus120}</td>
                           <td className="py-4 text-right"><Badge tier={h.tier} /></td>
                         </tr>
@@ -531,6 +690,32 @@ const App: React.FC = () => {
                   {selectedItem.deepLogic || "Mechanical analysis pending archive updates. High-level utility confirmed."}
                 </div>
               </section>
+
+              {/* Bio & Trivia */}
+              {(('bio' in selectedItem && selectedItem.bio) || selectedItem.trivia) && (
+                <section className="space-y-6">
+                   { 'bio' in selectedItem && selectedItem.bio && (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-yellow-500">
+                          <User size={18} />
+                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Archived Biography</h4>
+                        </div>
+                        <p className="text-[11px] text-gray-400 font-bold italic border-l-2 border-yellow-500 pl-4">{selectedItem.bio}</p>
+                      </div>
+                   )}
+                   {selectedItem.trivia && (
+                     <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-teal-400">
+                          <HelpCircle size={18} />
+                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Secret Archives (Trivia)</h4>
+                        </div>
+                        <div className="p-6 bg-teal-500/5 border border-teal-500/10 rounded-3xl text-[11px] text-teal-100/70 font-bold italic">
+                          "Did you know? {selectedItem.trivia}"
+                        </div>
+                     </div>
+                   )}
+                </section>
+              )}
 
               {/* Hero Specifics */}
               {'globalBonus120' in selectedItem && (
