@@ -1,6 +1,6 @@
 
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
-export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem';
+export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Jewel';
 
 export interface RarityPerk {
   rarity: 'Great' | 'Rare' | 'Epic' | 'Perfect Epic' | 'Legendary' | 'Ancient Legendary' | 'Mythic' | 'Titan Tales' | 'Chaos';
@@ -15,29 +15,38 @@ export interface BaseItem {
   category: GearCategory;
   isGodTier?: boolean;
   mythicPerk?: string;
-  trivia?: string;
-  deepLogic?: string; // High-level strategy
+  trivia?: string; // Mapped to "Did You Know?"
+  deepLogic?: string; // Mapped to "Strategist Insights"
   rarityPerks?: RarityPerk[];
-  bestPairs?: string[]; // Synergistic items
+  bestPairs?: string[]; // Mapped to "Synergistic Gear"
   drPercent?: string;
-  uniqueEffect?: string;
+  uniqueEffect?: string; // Special glow effect in UI
 }
 
 export interface Hero extends BaseItem {
   globalBonus120: string;
   bestSkin?: string;
   evo4Star?: string;
-  bio?: string; // Grandmaster V2.0 bio field
-  assistHeroes?: string[]; // Recommended Assist Slots
+  bio?: string; // Mapped to "Hero's Chronicle"
+  assistHeroes?: string[];
   shardCost?: string;
 }
 
-export interface SavedBuild {
+export interface Jewel {
   id: string;
   name: string;
-  heroId: string;
-  stats: CalcStats;
-  timestamp: number;
+  color: 'Red' | 'Blue' | 'Green' | 'Purple' | 'Yellow';
+  statPerLevel: string;
+  bonus16: string; // Hidden bonus at Level 16
+  bonus28: string; // Hidden bonus at Level 28
+}
+
+export interface Relic {
+  id: string;
+  name: string;
+  tier: 'Holy' | 'Radiant' | 'Faint';
+  effect: string;
+  setBonus?: string;
 }
 
 export interface ChatMessage {
