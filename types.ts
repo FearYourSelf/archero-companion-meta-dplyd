@@ -1,3 +1,4 @@
+
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
 export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem';
 
@@ -26,9 +27,17 @@ export interface Hero extends BaseItem {
   globalBonus120: string;
   bestSkin?: string;
   evo4Star?: string;
-  bio?: string;
+  bio?: string; // Grandmaster V2.0 bio field
   assistHeroes?: string[]; // Recommended Assist Slots
   shardCost?: string;
+}
+
+export interface SavedBuild {
+  id: string;
+  name: string;
+  heroId: string;
+  stats: CalcStats;
+  timestamp: number;
 }
 
 export interface ChatMessage {

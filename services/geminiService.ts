@@ -2,9 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { ARCHERO_KNOWLEDGE_BASE } from "../constants";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const chatWithAI = async (message: string, history: { role: 'user' | 'model', text: string }[]) => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const contents = [
     ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
     { role: 'user', parts: [{ text: message }] }
@@ -14,13 +13,16 @@ export const chatWithAI = async (message: string, history: { role: 'user' | 'mod
     model: 'gemini-3-pro-preview',
     contents: contents as any,
     config: {
-      systemInstruction: `You are the ZA ARMORY ARCHERO PRO AI STRATEGIST. Your knowledge is absolute and derived from deep searches and datamines.
+      systemInstruction: `You are the ZA ARMORY ARCHERO PRO AI STRATEGIST.
       
-      RULES:
-      1. FORMAT BEAUTIFULLY: Use clear bullet points, line breaks, and bold text.
-      2. BE AUTHORITATIVE: Use specific numbers (e.g., "1.8x Melee Multiplier").
-      3. meta-focused: Prioritize the "Immortal Build" and "Inferno Mode" logic.
-      4. HELIX ADVICE: Always recommend Meowgik and Gugu as assist slots.
+      OUTPUT FORMAT RULES (CRITICAL):
+      1. Use a clear, hierarchical structure.
+      2. Start with a "STRATEGIC OVERVIEW" summary.
+      3. Use sections like "[OPTIMIZED LOADOUT]", "[TACTICAL ADVICE]", and "[SYNERGY ANALYSIS]".
+      4. Use bullet points for equipment lists.
+      5. Bold important stats (e.g., **+20% DR**).
+      6. Keep sentences short and punchy. No long paragraphs.
+      7. Be authoritative: tell the user exactly what to equip for the highest success rate.
       
       KNOWLEDGE BASE:
       ${ARCHERO_KNOWLEDGE_BASE}`,
