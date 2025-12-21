@@ -1,6 +1,10 @@
-
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
 export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem';
+
+export interface RarityPerk {
+  rarity: 'Great' | 'Rare' | 'Epic' | 'Perfect Epic' | 'Legendary' | 'Ancient Legendary' | 'Mythic' | 'Titan Tales' | 'Chaos';
+  effect: string;
+}
 
 export interface BaseItem {
   id: string;
@@ -11,8 +15,11 @@ export interface BaseItem {
   isGodTier?: boolean;
   mythicPerk?: string;
   trivia?: string;
-  drPercent?: string; // For armor table
-  uniqueEffect?: string; // For armor table
+  deepLogic?: string; // High-level strategy
+  rarityPerks?: RarityPerk[];
+  bestPairs?: string[]; // Synergistic items
+  drPercent?: string;
+  uniqueEffect?: string;
 }
 
 export interface Hero extends BaseItem {
@@ -20,6 +27,8 @@ export interface Hero extends BaseItem {
   bestSkin?: string;
   evo4Star?: string;
   bio?: string;
+  assistHeroes?: string[]; // Recommended Assist Slots
+  shardCost?: string;
 }
 
 export interface ChatMessage {
