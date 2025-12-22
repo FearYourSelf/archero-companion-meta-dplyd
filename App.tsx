@@ -438,8 +438,8 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3">
             <Trophy className="text-orange-500 w-8 h-8" />
             <div>
-              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER V6.3</h1>
-              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">Archero Strategic Protocol</p>
+              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV Armory GRANDMASTER</h1>
+              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZV Armory Clan Strategic Companion</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
