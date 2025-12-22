@@ -1,6 +1,7 @@
 
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
-export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Jewel';
+// Added 'Glyph' to GearCategory to support the full range of equipment categories used in constants.tsx
+export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Jewel' | 'Glyph';
 
 export interface RarityPerk {
   rarity: 'Great' | 'Rare' | 'Epic' | 'Perfect Epic' | 'Legendary' | 'Ancient Legendary' | 'Mythic' | 'Titan Tales' | 'Chaos';
@@ -47,6 +48,10 @@ export interface Relic {
   tier: 'Holy' | 'Radiant' | 'Faint';
   effect: string;
   setBonus?: string;
+  iconType?: 'Sword' | 'Shield' | 'Scroll' | 'Gem' | 'Eye' | 'Book' | 'Cup' | 'Arrow';
+  stars?: string[];
+  lore?: string;
+  source?: string;
 }
 
 export interface ChatMessage {
