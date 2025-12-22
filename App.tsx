@@ -12,34 +12,18 @@ import {
   CheckCircle2, Swords, Calendar, Construction, ArrowRightLeft, RefreshCw, HelpCircle as HelpIcon,
   Compass, Box, Disc, Timer, ZapOff, Fingerprint, Map, Sparkle, Bug, AlertCircle, Bot,
   HeartHandshake, Volume2, VolumeX, BarChart3, Scan, ShieldCheck, Zap as Bolt, Eye, Scroll, Wine, ArrowUp,
-  Lock, FunctionSquare, Variable, ChevronDown, Hammer, Coins, Archive
+  Lock, FunctionSquare, Variable, ChevronDown, Hammer, Coins, Archive, Package, History,
+  Clock, Gauge, UserCircle2, Zap as Spark, ChevronDown as ArrowDown, Droplets, Binary,
+  Lightbulb, Link2, Ghost as Spook, Database, Cpu, Radio, Radar, Fingerprint as ScanIcon,
+  Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
+  ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon
 } from 'lucide-react';
 import { 
-  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, FARMING_ROUTES, DRAGON_DATA, GLYPH_DATA 
+  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, DragonInfo
 } from './constants';
 import { chatWithAI } from './services/geminiService';
 import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic } from './types';
 import { Badge, Card } from './components/UI';
-
-// --- Tactical Glossary for Context-Aware Tooltips ---
-const GLOSSARY: Record<string, string> = {
-  'ATK': 'Attack Power: The core stat determining your raw damage output before multipliers.',
-  'Base ATK': 'The fundamental attack value shown on your character screen without in-game battle buffs.',
-  'DR': 'Damage Resistance: Percentage reduction of incoming damage. Capped at ~75% for most mechanics.',
-  'Crit Dmg': 'Critical Damage: The multiplier applied to your damage during a critical strike (e.g., 400% = 4x damage).',
-  'Crit %': 'Critical Chance: The percentage probability that an attack will result in a critical hit.',
-  'Atk SPD': 'Attack Speed: Increases the frequency of your attacks, significantly boosting DPS and stutter-stepping efficiency.',
-  'Stutter Stepping': 'Moving briefly after firing to cancel the recovery animation, allowing for a 30-40% increase in fire rate.',
-  'Immunity Formula': 'The build logic of stacking Proj Resistance to 100% using 2x Dragon Rings, L120 passives, and Bulletproof Locket.',
-  'DR Cap': 'Damage Reduction Cap: The internal limit Archero places on stacking resistance (usually around 75-80%).',
-  'Melee-hybrid': 'A playstyle using weapons like Expedition Fist or Demon Blade that switch between ranged and high-damage melee.',
-  'Resonance': 'Synergy bonuses unlocked when specific item types or dragon rarities are equipped together.',
-  'Magestone': 'Resource used for Dragon skills. Regeneration speed is tied to standing still and dragon resonance.',
-  'Refine Essence': 'Resource obtained from smelting high-rarity gear, used to upgrade equipment slots permanently.',
-  'Titan Node': 'Advanced equipment upgrade levels (Titan Tales) that provide massive final damage multipliers.',
-  'Proj Resist': 'Projectile Resistance: Reduces damage taken specifically from ranged enemies and bosses.',
-  'Collision Resist': 'Collision Resistance: Reduces damage taken from physical contact with enemies.',
-};
 
 // --- Fuzzy Match Logic ---
 const fuzzyMatch = (str: string, pattern: string): boolean => {
@@ -53,7 +37,70 @@ const fuzzyMatch = (str: string, pattern: string): boolean => {
   return true;
 };
 
-// --- Synth Audio Engine ---
+// --- Custom Styled Select Component ---
+const CustomSelect: React.FC<{ 
+  options: { id: string; name: string; subtitle?: string }[]; 
+  value: string; 
+  onChange: (val: string) => void; 
+  placeholder?: string;
+  className?: string;
+}> = ({ options, value, onChange, placeholder = "Select...", className = "" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const selected = options.find(o => o.id === value);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    // Fix: renamed removeAccessListener to removeEventListener
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className={`relative ${className}`}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-6 py-4 bg-gray-900/80 border border-white/10 rounded-2xl text-xs font-black text-white uppercase italic transition-all hover:border-orange-500/30"
+      >
+        <span className="truncate">{selected ? selected.name : placeholder}</span>
+        <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-[110%] left-0 w-full z-[1000] bg-gray-950/95 backdrop-blur-3xl border border-white/10 rounded-2xl py-2 shadow-4xl max-h-[300px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-2">
+          {options.map(opt => (
+            <button 
+              key={opt.id}
+              onClick={() => { onChange(opt.id); setIsOpen(false); }}
+              className={`w-full px-6 py-3 text-left hover:bg-orange-600/10 transition-colors border-b border-white/5 last:border-0 ${value === opt.id ? 'text-orange-500' : 'text-gray-400'}`}
+            >
+              <p className="text-[11px] font-black uppercase italic">{opt.name}</p>
+              {opt.subtitle && <p className="text-[8px] font-bold opacity-50 uppercase tracking-widest mt-0.5">{opt.subtitle}</p>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RelicIcon: React.FC<{ type?: string; className?: string }> = ({ type, className }) => {
+  switch (type) {
+    case 'Sword': return <Sword className={className} />;
+    case 'Shield': return <Shield className={className} />;
+    case 'Scroll': return <Scroll className={className} />;
+    case 'Gem': return <Gem className={className} />;
+    case 'Eye': return <Eye className={className} />;
+    case 'Book': return <Book className={className} />;
+    case 'Cup': return <Wine className={className} />;
+    case 'Arrow': return <ArrowUp className={className} />;
+    default: return <Box className={className} />;
+  }
+};
+
 const SFX = {
   ctx: null as AudioContext | null,
   init() {
@@ -65,7 +112,6 @@ const SFX = {
     const gain = this.ctx.createGain();
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-
     const now = this.ctx.currentTime;
     if (type === 'click') {
       osc.type = 'sine';
@@ -99,213 +145,50 @@ const SFX = {
   }
 };
 
-// --- Improved Global Mouse-Following Tooltip ---
-const Tooltip: React.FC<{ text: string; children: React.ReactNode; className?: string }> = ({ text, children, className = "" }) => {
-  const [visible, setVisible] = useState(false);
-  const [coords, setCoords] = useState({ x: 0, y: 0 });
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  const updatePosition = (e: React.MouseEvent | React.TouchEvent) => {
-    let clientX, clientY;
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
-    const offset = 18;
-    const margin = 20;
-    let x = clientX + offset;
-    let y = clientY + offset;
-
-    if (tooltipRef.current) {
-      const { offsetWidth: w, offsetHeight: h } = tooltipRef.current;
-      if (x + w > window.innerWidth - margin) x = clientX - w - offset;
-      if (y + h > window.innerHeight - margin) y = clientY - h - offset;
-      if (x < margin) x = margin;
-      if (y < margin) y = margin;
-    }
-    setCoords({ x, y });
-  };
-
-  return (
-    <div 
-      onMouseEnter={() => setVisible(true)}
-      onMouseMove={updatePosition}
-      onMouseLeave={() => setVisible(false)}
-      onTouchStart={(e) => { setVisible(true); updatePosition(e); }}
-      onTouchEnd={() => setVisible(false)}
-      className={`inline-flex items-center justify-center cursor-help ${className}`}
-    >
-      {children}
-      {visible && createPortal(
-        <div 
-          ref={tooltipRef}
-          style={{ 
-            position: 'fixed', 
-            left: `${coords.x}px`, 
-            top: `${coords.y}px`, 
-            pointerEvents: 'none', 
-            zIndex: 9999,
-            transform: 'translate3d(0,0,0)' 
-          }}
-          className="px-4 py-2.5 bg-gray-950/98 border border-orange-500/50 text-white text-[10px] font-black rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-100 ring-1 ring-white/10 max-w-[200px] uppercase tracking-wider text-center"
-        >
-          {text}
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-};
-
-const TOUR_STEPS = [
-  { tab: 'meta', target: '[data-tour="search"]', title: 'Tactical Archive', content: 'Search the entire Archero database. Use the Crown icon to filter for only SSS Meta entries.' },
-  { tab: 'tracker', target: '[data-tour="global-stats"]', title: 'Global Synthesis', content: 'Aggregates all passive L120 bonuses. Sync your heroes to see your account potential.' },
-  { tab: 'formula', target: '[data-tour="formula-core"]', title: 'Formula Matrix', content: 'Advanced damage calculation. Manually enter your attributes to see your true hit potential.' },
-  { tab: 'dragons', target: '[data-tour="dragon-sockets"]', title: 'Dragon Resonance', content: 'Socket your dragons here. Ensuring one of each type (Atk, Def, Bal) maximizes Magestone output.' },
-  { tab: 'refine', target: '[data-tour="refine-utility"]', title: 'Refinement Protocol', content: 'The ultimate guide to gear recycling. Use the Smelt Calculator to predict your essence yield.' },
-  { tab: 'vs', target: '[data-tour="gear-compare"]', title: 'Comparison Matrix', content: 'Decision core for high-tier upgrades. Side-by-side analysis for Titan and Mythic paths.' },
-  { tab: 'analyze', target: '[data-tour="sim-card"]', title: 'Neural Synthesis', content: 'Our AI engine simulates your build. It takes 10-15s to generate a detailed strategic report.' },
-  { tab: 'immunity', target: '[data-tour="immunity-display"]', title: 'Guard Protocol', content: 'Track your path to 100% Projectile Immunity. Mandatory for Hero Chapter survival.' },
-  { tab: 'farming', target: '[data-tour="farming-list"]', title: 'Resource Hub', content: 'Optimized drop routes. We monitor live drop anomalies across all Hero chapters.' },
-  { tab: 'dps', target: '[data-tour="dps-card"]', title: 'Burst Calculator', content: 'Real-time calculation of your effective DPS including Crit and Speed modifiers.' },
-  { tab: 'jewels', target: '[data-tour="jewel-grid"]', title: 'Jewel Vault', content: 'Access hidden bonuses for Level 16 and 28 jewel thresholds across all gear slots.' },
-  { tab: 'relics', target: '[data-tour="relic-grid"]', title: 'Relic Sync', content: 'Track Holy and Radiant relics. Set synergies provide massive hidden power boosts.' },
-  { tab: 'estate', target: '[data-tour="estate-core"]', title: 'Estate Logistics', content: 'Manage resource production and personnel allocation for passive resource generation.' },
-  { tab: 'ai', target: '[data-tour="oracle-input"]', title: 'Neural Oracle', content: 'Direct strategic uplink. Ask for evolution priority, build advice, or meta trends.' }
-];
-
-const WalkthroughBubble: React.FC<{ 
-  stepIndex: number; 
-  onNext: () => void; 
-  onBack: () => void; 
-  onClose: () => void;
-  onSkip: () => void;
-}> = ({ stepIndex, onNext, onBack, onClose, onSkip }) => {
-  const [pos, setPos] = useState({ top: 0, left: 0, opacity: 0 });
-  const bubbleRef = useRef<HTMLDivElement>(null);
-  const step = TOUR_STEPS[stepIndex];
-
-  useLayoutEffect(() => {
-    const update = () => {
-      const target = document.querySelector(step.target);
-      if (!target || !bubbleRef.current) return;
-      const rect = target.getBoundingClientRect();
-      const bubble = bubbleRef.current.getBoundingClientRect();
-      const margin = 20;
-      let top = rect.bottom + 15;
-      let left = rect.left + (rect.width / 2) - (bubble.width / 2);
-      if (left < margin) left = margin;
-      if (left + bubble.width > window.innerWidth - margin) left = window.innerWidth - bubble.width - margin;
-      if (top + bubble.height > window.innerHeight - margin) top = rect.top - bubble.height - 15;
-      if (top < margin) top = margin;
-      setPos({ top, left, opacity: 1 });
-    };
-    const t = setTimeout(update, 500);
-    window.addEventListener('resize', update);
-    return () => { clearTimeout(t); window.removeEventListener('resize', update); };
-  }, [stepIndex, step.tab]);
-
-  return createPortal(
-    <>
-      <div 
-        ref={bubbleRef}
-        style={{ 
-          position: 'fixed', top: pos.top, left: pos.left, opacity: pos.opacity, zIndex: 9999, 
-          pointerEvents: pos.opacity ? 'auto' : 'none', 
-          transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)' 
-        }}
-        className="w-[92vw] max-w-[340px] bg-gray-950 border-2 border-orange-500/60 rounded-[2rem] p-6 shadow-[0_40px_100px_rgba(0,0,0,1)] ring-1 ring-white/10"
-      >
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-base font-black text-white uppercase italic flex items-center gap-2 tracking-tight shrink-0"><Sparkles className="text-orange-500 shrink-0" size={18}/>{step.title}</h3>
-          <button onClick={onSkip} className="text-[10px] font-black text-gray-600 hover:text-orange-500 transition-all uppercase tracking-widest px-2 py-1 bg-white/5 rounded-lg">Skip All</button>
-        </div>
-        <p className="text-[12px] text-gray-400 font-medium leading-relaxed mb-8">{step.content}</p>
-        <div className="flex justify-between items-center">
-          <div className="flex gap-1.5">
-            {TOUR_STEPS.map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === stepIndex ? 'w-6 bg-orange-500' : 'w-1 bg-white/10'}`} />
-            ))}
-          </div>
-          <div className="flex gap-3">
-            <button onClick={onBack} disabled={stepIndex === 0} className="p-2.5 bg-white/5 rounded-xl text-gray-400 disabled:opacity-5 hover:bg-white/10 transition-colors"><ChevronLeft size={20}/></button>
-            <button onClick={onNext} className="px-5 py-2.5 bg-orange-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-orange-500 shadow-xl shadow-orange-950/50 transition-all flex items-center gap-2 whitespace-nowrap">
-              {stepIndex < TOUR_STEPS.length - 1 ? 'Forward' : 'Done'} <ChevronRight size={14}/>
-            </button>
-          </div>
-        </div>
-      </div>
-      {document.querySelector(step.target) && createPortal(
-        <div 
-          style={{
-            position: 'fixed',
-            top: `${document.querySelector(step.target)!.getBoundingClientRect().top - 6}px`,
-            left: `${document.querySelector(step.target)!.getBoundingClientRect().left - 6}px`,
-            width: `${document.querySelector(step.target)!.getBoundingClientRect().width + 12}px`,
-            height: `${document.querySelector(step.target)!.getBoundingClientRect().height + 12}px`,
-            zIndex: 9998, pointerEvents: 'none',
-          }}
-          className="border-2 border-orange-500 rounded-2xl animate-pulse ring-4 ring-orange-500/10 shadow-[0_0_30px_rgba(249,115,22,0.3)]"
-        />,
-        document.body
-      )}
-    </>,
-    document.body
-  );
-};
-
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'meta' | 'tracker' | 'analyze' | 'dps' | 'vs' | 'relicVs' | 'immunity' | 'lab' | 'jewels' | 'relics' | 'farming' | 'ai' | 'estate' | 'formula' | 'dragons' | 'refine'>('meta');
+  const [activeTab, setActiveTab] = useState<'meta' | 'tracker' | 'analyze' | 'dps' | 'vs' | 'immunity' | 'lab' | 'jewels' | 'relics' | 'farming' | 'ai' | 'formula' | 'dragons' | 'refine'>('meta');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<GearCategory | 'All'>('All');
   const [relicTierFilter, setRelicTierFilter] = useState<'All' | 'Holy' | 'Radiant' | 'Faint'>('All');
   const [sssOnly, setSssOnly] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<BaseItem | Hero | null>(null);
-  const [selectedRelic, setSelectedRelic] = useState<Relic | null>(null);
-  const [showDebug, setShowDebug] = useState(false);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [maintenanceToast, setMaintenanceToast] = useState(false);
   
-  const scrollContainerRef = useRef<HTMLElement>(null);
-  const headerScrollRef = useRef<HTMLDivElement>(null);
-  const navScrollRef = useRef<HTMLDivElement>(null);
-  // Fixed ReferenceError: 'ref' is not defined. Initialized scrollLeft and scrollTop to 0 for the initial ref value.
-  const dragRef = useRef({ isDragging: false, moved: false, startX: 0, startY: 0, lastX: 0, lastTime: Date.now(), velocity: 0, scrollLeft: 0, scrollTop: 0, mode: 'both' as 'both' | 'horizontal', targetRef: null as any });
-  const inertiaRef = useRef<number | null>(null);
-
+  // Persistence States
   const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean }>>(() => JSON.parse(localStorage.getItem('archero_v6_tracker') || '{}'));
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => JSON.parse(localStorage.getItem('archero_v6_chat') || '[]'));
   const [calcStats, setCalcStats] = useState<CalcStats>(() => JSON.parse(localStorage.getItem('archero_v6_stats') || '{"baseAtk":75000,"critChance":45,"critDmg":420,"atkSpeed":60,"weaponType":"Expedition Fist"}'));
-  
+  const [fInputs, setFInputs] = useState({ baseAtk: 60000, atkPercent: 75, weaponDmgPercent: 15, critDmg: 380 });
+  const [dragons, setDragons] = useState({ slot1: DRAGON_DATA[0].id, slot2: DRAGON_DATA[1].id, slot3: DRAGON_DATA[2].id });
+  const [smeltItem, setSmeltItem] = useState<'Epic' | 'PE' | 'Legendary' | 'AL' | 'Mythic'>('Legendary');
+  const [smeltQty, setSmeltQty] = useState(1);
   const [vsItemA, setVsItemA] = useState<string>(GEAR_DATA[0]?.id || '');
   const [vsItemB, setVsItemB] = useState<string>(GEAR_DATA[1]?.id || GEAR_DATA[0]?.id || '');
-  
-  const [vsRelicA, setVsRelicA] = useState<string>(RELIC_DATA[0]?.id || '');
-  const [vsRelicB, setVsRelicB] = useState<string>(RELIC_DATA[1]?.id || RELIC_DATA[0]?.id || '');
-  
   const [immunitySetup, setImmunitySetup] = useState({ rings: 2, atreus120: true, onir120: true, locket: true, necrogon: false });
-  const [estateWorkers, setEstateWorkers] = useState(10);
   const [simResult, setSimResult] = useState<string | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [buildHero, setBuildHero] = useState<string>(HERO_DATA[0]?.id || '');
   const [aiInput, setAiInput] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [tourStep, setTourStep] = useState<number | null>(null);
-  const [labStreak, setLabStreak] = useState(0);
-  const [bestLabStreak, setBestLabStreak] = useState(Number(localStorage.getItem('archero_lab_streak') || 0));
-  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [isSimMenuOpen, setIsSimMenuOpen] = useState(false);
 
-  const [fInputs, setFInputs] = useState({ baseAtk: 60000, atkPercent: 75, weaponDmgPercent: 15, critDmg: 380 });
-  const [dragons, setDragons] = useState({ slot1: DRAGON_DATA[0]?.id || '', slot2: DRAGON_DATA[1]?.id || '', slot3: DRAGON_DATA[2]?.id || '' });
-  const [smeltItem, setSmeltItem] = useState<'Epic' | 'PE' | 'Legendary' | 'AL' | 'Mythic'>('Legendary');
-  const [smeltQty, setSmeltQty] = useState(1);
+  // Filter States
+  const [farmingSearch, setFarmingSearch] = useState('');
+  const [farmingCategory, setFarmingCategory] = useState<'All' | FarmingRoute['resource']>('All');
+  const [expandedFarmingId, setExpandedFarmingId] = useState<string | null>(null);
+  const [jewelSimLevel, setJewelSimLevel] = useState<number>(10);
+  const [jewelFilterSlot, setJewelFilterSlot] = useState<string>('All');
+
+  // Refs
+  const scrollContainerRef = useRef<HTMLElement>(null);
+  const navScrollRef = useRef<HTMLDivElement>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const farmFilterScrollRef = useRef<HTMLDivElement>(null);
+  const relicFilterScrollRef = useRef<HTMLDivElement>(null);
+  const jewelFilterScrollRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ isDragging: false, moved: false, startX: 0, startY: 0, lastX: 0, lastTime: Date.now(), velocity: 0, scrollLeft: 0, scrollTop: 0, mode: 'both' as 'both' | 'horizontal', targetRef: null as any });
 
   const playSfx = (type: 'click' | 'hover' | 'tab' | 'msg' | 'error') => {
     if (soundEnabled) {
@@ -314,32 +197,8 @@ const App: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "'") { e.preventDefault(); setShowDebug(prev => !prev); }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const hasSeenTour = localStorage.getItem('archero_v6_tour_complete');
-    if (!hasSeenTour) {
-      const timer = setTimeout(() => {
-        setTourStep(0);
-        addLog("Initiating first-time tactical walkthrough...");
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const addLog = (msg: string) => {
-    setDebugLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 49)]);
-  };
-
   const handleDragStart = (e: React.MouseEvent, ref: React.RefObject<HTMLElement | null>, mode: 'both' | 'horizontal' = 'both') => {
     if (!ref.current) return;
-    if (inertiaRef.current) cancelAnimationFrame(inertiaRef.current);
     const target = e.target as HTMLElement;
     if (target.closest('button, input, select, textarea, a')) return;
     ref.current.style.scrollBehavior = 'auto';
@@ -352,16 +211,12 @@ const App: React.FC = () => {
     if (e.buttons !== 1) { handleDragEnd(); return; }
     const ref = d.targetRef.current;
     const now = Date.now();
-    const dt = now - d.lastTime;
     const dx = (e.pageX - d.startX) * 1.5; 
-    const dy = (e.pageY - d.startY) * 1.5;
-    const v = dt > 0 ? (e.pageX - d.lastX) / dt : 0;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+    if (Math.abs(dx) > 3) {
       if (!d.moved) d.moved = true;
       e.preventDefault();
       if (d.mode === 'horizontal') ref.scrollLeft = d.scrollLeft - dx;
-      else { ref.scrollLeft = d.scrollLeft - dx; ref.scrollTop = d.scrollTop - dy; }
-      d.lastX = e.pageX; d.lastTime = now; d.velocity = v;
+      d.lastX = e.pageX; d.lastTime = now;
     }
   };
 
@@ -369,69 +224,31 @@ const App: React.FC = () => {
     const d = dragRef.current;
     if (d.isDragging) {
       const ref = d.targetRef?.current;
-      if (ref) {
-        if (d.mode === 'horizontal' && Math.abs(d.velocity) > 0.15) applyInertia(ref, d.velocity);
-        else ref.style.scrollBehavior = 'smooth';
-      }
+      if (ref) ref.style.scrollBehavior = 'smooth';
       d.isDragging = false;
     }
   };
 
-  const applyInertia = (ref: HTMLElement, velocity: number) => {
-    let currentV = velocity * 18;
-    const friction = 0.94;
-    const step = () => {
-      if (Math.abs(currentV) < 0.1) { ref.style.scrollBehavior = 'smooth'; return; }
-      ref.scrollLeft -= currentV; currentV *= friction;
-      inertiaRef.current = requestAnimationFrame(step);
-    };
-    inertiaRef.current = requestAnimationFrame(step);
-  };
-
   useLayoutEffect(() => {
-    const bars = [headerScrollRef.current, navScrollRef.current];
-    const cleanupFns: (() => void)[] = [];
+    const bars = [navScrollRef.current, categoryScrollRef.current, farmFilterScrollRef.current, relicFilterScrollRef.current, jewelFilterScrollRef.current];
     bars.forEach(bar => {
       if (!bar) return;
       const onWheel = (e: WheelEvent) => {
-        if (Math.abs(e.deltaY) > 0) {
+        if (Math.abs(e.deltaY) > 0 || Math.abs(e.deltaX) > 0) {
           e.preventDefault();
-          if (inertiaRef.current) cancelAnimationFrame(inertiaRef.current);
           bar.style.scrollBehavior = 'smooth';
-          bar.scrollBy({ left: e.deltaY * 4.5, behavior: 'smooth' });
+          const scrollAmt = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+          bar.scrollBy({ left: scrollAmt * 4.5, behavior: 'smooth' });
         }
       };
       bar.addEventListener('wheel', onWheel, { passive: false });
-      cleanupFns.push(() => bar.removeEventListener('wheel', onWheel));
     });
     window.addEventListener('mouseup', handleDragEnd);
-    return () => { cleanupFns.forEach(fn => fn()); window.removeEventListener('mouseup', handleDragEnd); };
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => { localStorage.setItem('archero_v6_tracker', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
   useEffect(() => { localStorage.setItem('archero_v6_chat', JSON.stringify(chatHistory)); }, [chatHistory]);
   useEffect(() => { localStorage.setItem('archero_v6_stats', JSON.stringify(calcStats)); }, [calcStats]);
-  useEffect(() => { if (labStreak > bestLabStreak) setBestLabStreak(labStreak); }, [labStreak]);
-  useEffect(() => { localStorage.setItem('archero_lab_streak', bestLabStreak.toString()); }, [bestLabStreak]);
-
-  useEffect(() => {
-    if (tourStep !== null) {
-      const targetTab = TOUR_STEPS[tourStep].tab as any;
-      if (targetTab !== 'lab') {
-        setActiveTab(targetTab);
-      }
-      if (navScrollRef.current) {
-        const icon = navScrollRef.current.querySelector(`[data-tab-id="${TOUR_STEPS[tourStep].tab}"]`);
-        if (icon) icon.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-    }
-  }, [tourStep]);
-
-  useEffect(() => {
-    if (activeTab === 'ai') {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatHistory, activeTab]);
 
   const calculateGlobalStats = () => {
     const totals: Record<string, number> = {};
@@ -449,6 +266,11 @@ const App: React.FC = () => {
     return totals;
   };
 
+  const formulaResult = useMemo(() => {
+    const { baseAtk, atkPercent, weaponDmgPercent, critDmg } = fInputs;
+    return Math.round(baseAtk * (1 + atkPercent/100) * (1 + weaponDmgPercent/100) * (critDmg/100));
+  }, [fInputs]);
+
   const calculatedDPS = useMemo(() => {
     const { baseAtk, critChance, critDmg, atkSpeed } = calcStats;
     return Math.round(baseAtk * (1 + (critChance / 100 * (critDmg / 100))) * (1 + (atkSpeed / 100)));
@@ -458,19 +280,13 @@ const App: React.FC = () => {
     return (immunitySetup.rings * 13.8) + (immunitySetup.atreus120 ? 7 : 0) + (immunitySetup.onir120 ? 10 : 0) + (immunitySetup.locket ? 15 : 0) + (immunitySetup.necrogon ? 7.5 : 0);
   }, [immunitySetup]);
 
-  const formulaResult = useMemo(() => {
-    const { baseAtk, atkPercent, weaponDmgPercent, critDmg } = fInputs;
-    return Math.round(baseAtk * (1 + atkPercent/100) * (1 + weaponDmgPercent/100) * (critDmg/100));
-  }, [fInputs]);
-
   const dragonSynergy = useMemo(() => {
     const selected = [
       DRAGON_DATA.find(d => d.id === dragons.slot1),
       DRAGON_DATA.find(d => d.id === dragons.slot2),
       DRAGON_DATA.find(d => d.id === dragons.slot3)
     ];
-    const types = selected.map(s => s?.type).filter(Boolean);
-    const uniqueTypes = new Set(types);
+    const uniqueTypes = new Set(selected.map(s => s?.type).filter(Boolean));
     return uniqueTypes.size === 3;
   }, [dragons]);
 
@@ -479,30 +295,13 @@ const App: React.FC = () => {
     return (baseline[smeltItem] || 0) * smeltQty;
   }, [smeltItem, smeltQty]);
 
-  const runSimulation = async () => {
-    playSfx('click');
-    setIsSimulating(true); setSimResult(null);
-    const hero = HERO_DATA.find(h => h.id === buildHero);
-    const prompt = `Perform an ADVANCED ARCHERO TACTICAL SYNTHESIS for hero ${hero?.name} at ${calcStats.baseAtk} Attack. 
-    Structure your output as follows:
-    # BUILD ARCHITECTURE (Short summary)
-    ## CORE EQUIPMENT (List mandatory slots)
-    ## STRATEGIC DEPTH (Advanced mechanics)
-    ## NEXT-LEVEL PRIORITY (Upgrades to focus on)
-    Use # for main headers, ## for subheaders, and **Bold** for gear names. Use - for bullet points. Keep it professional yet encouraging.`;
-    
-    try {
-      addLog(`Initiating neural sim for ${hero?.name}...`);
-      const response = await chatWithAI(prompt, []);
-      setSimResult(response || 'Simulation timeout.');
-      addLog("Sim result received.");
-    } catch (e) { 
-      const errMsg = e instanceof Error ? e.message : String(e);
-      addLog(`Sim Error: ${errMsg}`);
-      setSimResult('Neural core error. Uplink severed.'); 
-    }
-    finally { setIsSimulating(false); }
-  };
+  const filteredFarming = useMemo(() => {
+    return FARMING_ROUTES.filter(route => {
+      const matchesSearch = fuzzyMatch(route.resource + route.chapter, farmingSearch);
+      const matchesCategory = farmingCategory === 'All' || route.resource === farmingCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [farmingSearch, farmingCategory]);
 
   const handleAiSend = async () => {
     if (!aiInput.trim()) return;
@@ -511,50 +310,48 @@ const App: React.FC = () => {
     setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'user', text: msg, timestamp: Date.now() }]);
     setIsAiLoading(true);
     try {
-      addLog(`Uplink: Sending query to Tactical Mentor...`);
       const response = await chatWithAI(msg, chatHistory.map(h => ({ role: h.role, text: h.text })));
       setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response || 'Mentor offline.', timestamp: Date.now() }]);
-      addLog("Oracle response successful.");
     } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
-      addLog(`Oracle Error: ${errMsg}`);
-      let friendlyError = `Archives Offline. (System: ${errMsg.substring(0, 50)}...)`;
-      if (errMsg.toLowerCase().includes('leaked') || errMsg.includes('403')) {
-        friendlyError = "SYSTEM BLOCKED: Your API key is leaked. Contact support to restore uplink.";
-      }
-      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: friendlyError, timestamp: Date.now() }]);
+      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Archived offline.", timestamp: Date.now() }]);
     } finally { setIsAiLoading(false); }
   };
 
-  const executeClearChat = () => {
+  const runSimulation = async () => {
     playSfx('click');
-    setChatHistory([]);
-    setIsConfirmingClear(false);
-    addLog("Tactical archives cleared.");
+    setIsSimMenuOpen(false);
+    setIsSimulating(true); 
+    setSimResult(null);
+    const hero = HERO_DATA.find(h => h.id === buildHero);
+    const prompt = `Advanced synthesis for ${hero?.name} at ${calcStats.baseAtk} Atk. Structure with headers and bold gear. Focus on synergy. 10-15s max. Include BEST build: Weapon, Armor, Rings, Bracelet, Locket, Book.`;
+    try {
+      const response = await chatWithAI(prompt, []);
+      setSimResult(response || 'Simulation timeout.');
+    } catch (e) { setSimResult('Neural core error.'); }
+    finally { setIsSimulating(false); }
   };
 
-  const filteredData = useMemo(() => {
-    return [...HERO_DATA, ...GEAR_DATA].filter(item => {
-      const matchesSearch = fuzzyMatch(item.name, searchQuery);
-      const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
-      const matchesSss = !sssOnly || item.tier === 'SSS';
-      return matchesSearch && matchesCategory && matchesSss;
-    }).sort((a, b) => {
-      // Prioritize items that start with the query
-      const aStarts = a.name.toLowerCase().startsWith(searchQuery.toLowerCase());
-      const bStarts = b.name.toLowerCase().startsWith(searchQuery.toLowerCase());
-      if (aStarts && !bStarts) return -1;
-      if (!aStarts && bStarts) return 1;
-      return 0;
-    });
-  }, [searchQuery, categoryFilter, sssOnly]);
+  const copySimResult = () => {
+    if (simResult) {
+      navigator.clipboard.writeText(simResult);
+      playSfx('click');
+      setIsSimMenuOpen(false);
+      alert('Report copied to clipboard!');
+    }
+  };
 
-  const searchSuggestions = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return [...HERO_DATA, ...GEAR_DATA]
-      .filter(item => fuzzyMatch(item.name, searchQuery))
-      .slice(0, 5);
-  }, [searchQuery]);
+  const exportSimResult = () => {
+    if (simResult) {
+      const element = document.createElement("a");
+      const file = new Blob([simResult], {type: 'text/plain'});
+      element.href = URL.createObjectURL(file);
+      element.download = `Archero_Synthesis_${buildHero}_${Date.now()}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      playSfx('click');
+      setIsSimMenuOpen(false);
+    }
+  };
 
   const handleTabChange = (tab: typeof activeTab) => {
     if (tab === 'lab') {
@@ -568,801 +365,631 @@ const App: React.FC = () => {
     if (scrollContainerRef.current) scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const renderMessageText = (text: string, isModel: boolean) => {
-    return text.split('\n').map((line, idx) => {
-      const trimmed = line.trim();
-      if (!trimmed) return <div key={idx} className="h-2" />;
-      if (trimmed.startsWith('# ')) return <h2 key={idx} className="text-base font-black text-orange-500 uppercase italic mt-4 mb-2 tracking-tight">{trimmed.replace(/^#\s/, '')}</h2>;
-      if (trimmed.startsWith('## ')) return <h3 key={idx} className="text-[13px] font-black text-gray-400 uppercase italic mt-3 mb-1">{trimmed.replace(/^##\s/, '')}</h3>;
-      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-        const content = trimmed.replace(/^[*-\s]+/, '');
-        return (
-          <div key={idx} className="flex gap-2 mb-1 pl-1">
-            <span className="text-orange-500 font-black">•</span>
-            <span className="flex-1">{formatInline(content)}</span>
-          </div>
-        );
-      }
-      if (trimmed.toUpperCase().includes('MENTOR\'S SECRET:')) {
-        return (
-          <div key={idx} className="my-6 p-6 bg-gradient-to-br from-orange-600/15 via-orange-500/5 to-transparent border border-orange-500/30 rounded-[2.5rem] animate-in slide-in-from-left-4 shadow-xl ring-1 ring-orange-500/20">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 bg-orange-600 rounded-lg shadow-lg"><Sparkles size={16} className="text-white" /></div>
-              <span className="text-[11px] font-black text-orange-500 uppercase tracking-[0.2em]">Mentor's Secret</span>
-            </div>
-            <span className="text-[13px] italic text-gray-100 leading-relaxed font-semibold">{formatInline(trimmed.replace(/^MENTOR'S SECRET:\s*/i, ''))}</span>
-          </div>
-        );
-      }
-      return <p key={idx} className="mb-2.5 leading-relaxed">{formatInline(trimmed)}</p>;
+  const displayOrder: GearCategory[] = ['Hero', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book', 'Spirit', 'Dragon', 'Pet', 'Relic', 'Jewel', 'Totem', 'Egg', 'Glyph'];
+  const categoryIcons: Record<string, any> = { 'All': LayoutGrid, 'Hero': User, 'Weapon': Sword, 'Armor': Shield, 'Ring': Circle, 'Locket': Target, 'Bracelet': Zap, 'Book': Book, 'Spirit': Ghost, 'Dragon': Flame, 'Pet': Dog, 'Egg': Egg, 'Totem': Tower, 'Relic': Box, 'Jewel': Disc, 'Glyph': Layers };
+  const categoryEmojis: Record<string, string> = { 'Hero': '🦸', 'Weapon': '⚔️', 'Armor': '🛡️', 'Ring': '💍', 'Bracelet': '⚡', 'Locket': '🎯', 'Book': '📖', 'Spirit': '👻', 'Dragon': '🐉', 'Pet': '🐾', 'Relic': '🏺', 'Jewel': '💎', 'Totem': '🏛️', 'Egg': '🥚', 'Glyph': '➰' };
+
+  const filteredJewels = useMemo(() => JEWEL_DATA.filter(j => jewelFilterSlot === 'All' || j.slots.includes(jewelFilterSlot)), [jewelFilterSlot]);
+  const filteredRelics = useMemo(() => RELIC_DATA.filter(r => relicTierFilter === 'All' || r.tier === relicTierFilter), [relicTierFilter]);
+  const filteredData = useMemo(() => {
+    const adaptedJewels = JEWEL_DATA.map(j => ({ ...j, category: 'Jewel' as GearCategory, tier: 'S' as Tier, desc: j.lore || j.statType }));
+    const adaptedRelics = RELIC_DATA.map(r => ({ ...r, category: 'Relic' as GearCategory, tier: 'S' as Tier, desc: r.effect }));
+    return [...HERO_DATA, ...GEAR_DATA, ...adaptedJewels, ...adaptedRelics].filter(item => {
+      const matchesSearch = fuzzyMatch(item.name, searchQuery);
+      const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+      const matchesSss = !sssOnly || item.tier === 'SSS';
+      return matchesSearch && matchesCategory && matchesSss;
     });
-  };
+  }, [searchQuery, categoryFilter, sssOnly]);
 
-  const formatInline = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-black text-orange-500 shadow-orange-500/10 drop-shadow-sm">{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-  };
-
-  const vsItemVerdict = useMemo(() => {
-    const itemA = GEAR_DATA.find(i => i.id === vsItemA);
-    const itemB = GEAR_DATA.find(i => i.id === vsItemB);
-    const tierWeight: Record<string, number> = { 'SSS': 100, 'SS': 80, 'S': 60, 'A': 40, 'B': 30, 'C': 20, 'D': 10, 'F': 0 };
-    const scoreA = tierWeight[itemA?.tier || 'F'];
-    const scoreB = tierWeight[itemB?.tier || 'F'];
-    if (scoreA > scoreB) return { winner: itemA?.name, reason: `Rank gap: ${itemA?.tier} superior to ${itemB?.tier}. ${itemA?.name} offers significantly higher base multipliers and late-game scaling.` };
-    if (scoreB > scoreA) return { winner: itemB?.name, reason: `Rank gap: ${itemB?.tier} superior to ${itemA?.tier}. ${itemB?.name} is the meta choice for this slot compared to ${itemA?.name}.` };
-    return { winner: 'Situational', reason: 'Equal tier items. Choosing between them depends on your current chapter mechanics (e.g. boss density vs mob waves).' };
-  }, [vsItemA, vsItemB]);
-
-  const RelicIcon: React.FC<{ type?: Relic['iconType']; className?: string }> = ({ type, className }) => {
-    switch (type) {
-      case 'Sword': return <Sword className={className} />;
-      case 'Shield': return <Shield className={className} />;
-      case 'Scroll': return <Scroll className={className} />;
-      case 'Gem': return <Gem className={className} />;
-      case 'Eye': return <Eye className={className} />;
-      case 'Book': return <BookOpen className={className} />;
-      case 'Cup': return <Wine className={className} />;
-      case 'Arrow': return <ArrowUp className={className} />;
-      default: return <Sparkle className={className} />;
+  const getJewelColorClasses = (color: string) => {
+    switch (color) {
+      case 'Red': return 'from-red-600/40 via-red-950/20 text-red-500 border-red-500/30';
+      case 'Blue': return 'from-blue-600/40 via-blue-950/20 text-blue-500 border-blue-500/30';
+      case 'Green': return 'from-green-600/40 via-green-950/20 text-green-500 border-green-500/30';
+      case 'Purple': return 'from-purple-600/40 via-purple-950/20 text-purple-500 border-purple-500/30';
+      default: return 'from-gray-600/40 via-gray-950/20 border-white/10 text-gray-500';
     }
-  };
-
-  const filteredRelics = useMemo(() => {
-    if (relicTierFilter === 'All') return RELIC_DATA;
-    return RELIC_DATA.filter(r => r.tier === relicTierFilter);
-  }, [relicTierFilter]);
-
-  const completeTour = () => {
-    localStorage.setItem('archero_v6_tour_complete', 'true');
-    setTourStep(null);
-    addLog("Tactical walkthrough completed. Protocol saved.");
   };
 
   return (
     <div className="h-screen w-full bg-[#030712] text-gray-100 flex flex-col font-sans max-w-3xl mx-auto relative overflow-hidden border-x border-white/5 shadow-4xl">
       
-      {showDebug && (
-        <div className="fixed top-0 left-0 w-full h-[30vh] bg-black/95 z-[3000] border-b border-orange-500/30 p-4 font-mono text-[10px] text-orange-400 overflow-y-auto no-scrollbar pointer-events-none">
-          <div className="flex justify-between items-center mb-2 border-b border-orange-500/10 pb-1">
-            <span className="flex items-center gap-2 font-black uppercase tracking-widest"><Bug size={12}/> Diagnostic Terminal</span>
-            <span className="text-[8px] opacity-40">Ctrl + ' to hide</span>
-          </div>
-          {debugLogs.map((log, i) => <div key={i} className="mb-0.5">{log}</div>)}
-        </div>
-      )}
-
       {maintenanceToast && (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] animate-in fade-in zoom-in duration-300 pointer-events-none">
-          <div className="px-12 py-8 bg-gray-950/95 border-2 border-orange-500/60 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,1)] ring-1 ring-white/10 flex flex-col items-center gap-4">
-             <div className="w-16 h-16 bg-orange-600/20 rounded-full flex items-center justify-center border border-orange-500/30">
-                <AlertTriangle className="text-orange-500 animate-pulse" size={32} />
-             </div>
-             <p className="text-xl font-black text-white italic uppercase tracking-tighter text-center leading-none">Under Maintenance</p>
-             <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest text-center">indefinitely until i fix it</p>
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] animate-in fade-in zoom-in duration-300 pointer-events-none text-center">
+          <div className="px-12 py-8 bg-gray-950/95 border-2 border-orange-500/60 rounded-[3rem] shadow-4xl flex flex-col items-center gap-4">
+             <AlertTriangle className="text-orange-500 animate-pulse" size={32} />
+             <p className="text-xl font-black text-white italic uppercase tracking-tighter">Under Maintenance</p>
           </div>
         </div>
-      )}
-
-      {tourStep !== null && (
-        <WalkthroughBubble 
-          stepIndex={tourStep}
-          onNext={() => tourStep < TOUR_STEPS.length - 1 ? setTourStep(tourStep + 1) : completeTour()}
-          onBack={() => setTourStep(Math.max(0, tourStep - 1))}
-          onClose={() => setTourStep(null)}
-          onSkip={completeTour}
-        />
       )}
 
       <header className="bg-gray-950/95 backdrop-blur-3xl border-b border-white/5 p-5 shrink-0 z-[100]">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Trophy className="text-orange-500 w-8 h-8 drop-shadow-[0_0_15px_rgba(249,115,22,0.6)]" />
+            <Trophy className="text-orange-500 w-8 h-8" />
             <div>
-              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZA ARMORY GRANDMASTER</h1>
-              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">Advanced Tactical Hub</p>
+              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER V6.3</h1>
+              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">Archero Strategic Protocol</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Tooltip text="Toggle Interface SFX">
-              <button onClick={() => { setSoundEnabled(!soundEnabled); playSfx('click'); }} className="p-3.5 bg-white/5 text-gray-500 hover:text-white rounded-2xl transition-all border border-white/5 hover:border-white/10 active:scale-90">
-                {soundEnabled ? <Volume2 size={18}/> : <VolumeX size={18}/>}
-              </button>
-            </Tooltip>
-            <Tooltip text="Tactical Walkthrough">
-              <button onClick={() => { setTourStep(0); playSfx('click'); }} className="p-3.5 bg-white/5 text-orange-500 hover:text-white rounded-2xl transition-all border border-white/5 hover:border-orange-500/20 active:scale-90"><HelpIcon size={18} /></button>
-            </Tooltip>
-            <Tooltip text="Back to Archive">
-              <button onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setActiveTab('meta'); playSfx('click'); }} className="p-3.5 bg-white/5 text-gray-500 hover:text-white rounded-2xl transition-all border border-white/5 hover:border-white/10 active:scale-90"><Archive size={18} /></button>
-            </Tooltip>
+            <button onClick={() => playSfx('click')} className="p-3 bg-white/5 text-orange-500 rounded-xl hover:bg-white/10 transition-all border border-white/5"><HelpCircle size={16}/></button>
+            <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-3 bg-white/5 text-gray-500 rounded-xl border border-white/5">
+                {soundEnabled ? <Volume2 size={16}/> : <VolumeX size={16}/>}
+            </button>
+            <button onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setActiveTab('meta'); playSfx('click'); }} className="p-3 bg-white/5 text-gray-500 rounded-xl transition-all border border-white/5"><RefreshCw size={16} /></button>
           </div>
         </div>
-        
-        {activeTab === 'meta' && (
-          <div data-tour="search" className="space-y-4 animate-in slide-in-from-top-2 relative">
-            <div className="flex items-center gap-3">
-              <div className="relative group flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-orange-500 transition-colors" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="Scanning fuzzy data..." 
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all" 
-                  value={searchQuery} 
-                  onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }} 
-                  onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                />
-                
-                {showSuggestions && searchSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-gray-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl z-[200] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    {searchSuggestions.map(item => (
-                      <button 
-                        key={item.id} 
-                        onClick={() => { setSearchQuery(item.name); setShowSuggestions(false); playSfx('click'); }}
-                        className="w-full px-5 py-3 flex items-center justify-between hover:bg-orange-500/10 transition-colors text-left"
-                      >
-                        <span className="text-xs font-bold text-gray-200">{item.name}</span>
-                        <Badge tier={item.tier} />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <Tooltip text={sssOnly ? "SSS Restricted" : "Show All Tiers"}>
-                <button onClick={() => { setSssOnly(!sssOnly); playSfx('click'); }} className={`p-4 rounded-2xl border transition-all active:scale-90 ${sssOnly ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-600'}`}><Crown size={20} /></button>
-              </Tooltip>
-            </div>
-            <div ref={headerScrollRef} onMouseDown={(e) => handleDragStart(e, headerScrollRef, 'horizontal')} onMouseMove={handleDragMove} className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 draggable-content smooth-scroll snap-x-container whitespace-nowrap">
-              {['All', 'Hero', 'Weapon', 'Armor', 'Ring', 'Locket', 'Dragon', 'Pet', 'Relic', 'Egg', 'Totem', 'Glyph'].map(cat => (
-                <Tooltip key={cat} text={`Filter by ${cat}`}>
-                  <button onClick={() => { setCategoryFilter(cat as any); playSfx('click'); }} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex-shrink-0 border ${categoryFilter === cat ? 'bg-orange-600 text-white border-orange-400 shadow-md' : 'bg-white/5 text-gray-500 border-white/5 hover:text-gray-300'}`}>{cat}</button>
-                </Tooltip>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'relics' && (
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 draggable-content smooth-scroll snap-x-container whitespace-nowrap animate-in slide-in-from-top-2">
-            {['All', 'Holy', 'Radiant', 'Faint'].map(tier => (
-              <Tooltip key={tier} text={`Show ${tier} Relics`}>
-                <button 
-                  onClick={() => { setRelicTierFilter(tier as any); playSfx('tab'); }}
-                  className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase transition-all border ${relicTierFilter === tier ? 'bg-orange-600 text-white border-orange-400 shadow-lg' : 'bg-white/5 text-gray-500 border-white/5 hover:text-gray-300'}`}
-                >
-                  {tier}
-                </button>
-              </Tooltip>
-            ))}
-          </div>
-        )}
       </header>
 
-      <main ref={scrollContainerRef} onMouseDown={(e) => handleDragStart(e, scrollContainerRef, 'both')} onMouseMove={handleDragMove} className="flex-1 overflow-y-auto px-5 py-8 draggable-content no-scrollbar pb-40 scroll-smooth relative">
-        {activeTab === 'meta' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredData.map(item => (
-              <Card key={item.id} tier={item.tier}>
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge tier={item.tier} />
-                    <span className="text-[8px] font-black text-gray-500 uppercase">{item.category}</span>
+      <main ref={scrollContainerRef} className="flex-1 overflow-y-auto no-scrollbar pb-40 scroll-smooth relative">
+        {/* STICKY UPPER TOOLBARS */}
+        {(activeTab === 'meta' || activeTab === 'farming' || activeTab === 'relics' || activeTab === 'jewels') && (
+          <div className="sticky top-0 z-[200] bg-gray-950/90 backdrop-blur-xl border-b border-white/5 px-5 py-4 space-y-4">
+             {activeTab === 'meta' && (
+               <>
+                <div className="flex items-center gap-3">
+                  <div className="relative group flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+                    <input type="text" placeholder="Search archives..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
-                  <h3 className="text-base font-black text-white uppercase italic tracking-tighter mb-1">{item.name}</h3>
-                  <p className="text-[10px] text-gray-400 mb-2 line-clamp-2 h-[30px]">{item.desc}</p>
-                  <Tooltip text={`View details for ${item.name}`}>
-                    <button onClick={(e) => { e.stopPropagation(); setSelectedItem(item); playSfx('click'); }} className="w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-orange-500 transition-all active:scale-95">Archive Protocol</button>
-                  </Tooltip>
                 </div>
-              </Card>
-            ))}
+                <div ref={categoryScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x draggable-content touch-pan-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, categoryScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                  {['All', ...displayOrder].map(cat => {
+                    const Icon = categoryIcons[cat] || Package;
+                    return (
+                      <button key={cat} onClick={() => { setCategoryFilter(cat as any); playSfx('click'); }} className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${categoryFilter === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>
+                        <Icon size={12} /> {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+               </>
+             )}
+             {/* Sub-tab Toolbars */}
+             {activeTab === 'farming' && (
+                <div className="space-y-4">
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={16} />
+                    <input type="text" placeholder="Search chapters or resources..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-2.5 pl-11 pr-4 text-[10px] font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" value={farmingSearch} onChange={(e) => setFarmingSearch(e.target.value)} />
+                  </div>
+                  <div ref={farmFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, farmFilterScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                    {['All', 'Gear', 'Gold', 'Shards', 'Jewels', 'Runes', 'Exp'].map(cat => (
+                      <button key={cat} onClick={() => { setFarmingCategory(cat as any); playSfx('click'); }} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${farmingCategory === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{cat}</button>
+                    ))}
+                  </div>
+                </div>
+             )}
+             {activeTab === 'relics' && (
+                <div ref={relicFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, relicFilterScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                  {['All', 'Holy', 'Radiant', 'Faint'].map(t => (
+                    <button key={t} onClick={() => { setRelicTierFilter(t as any); playSfx('click'); }} className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{t} Archive</button>
+                  ))}
+                </div>
+             )}
+             {activeTab === 'jewels' && (
+                <div ref={jewelFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, jewelFilterScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                  {['All', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Spellbook'].map(slot => (
+                    <button key={slot} onClick={() => { setJewelFilterSlot(slot); playSfx('click'); }} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${jewelFilterSlot === slot ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{slot} Sockets</button>
+                  ))}
+                </div>
+             )}
           </div>
         )}
 
-        {activeTab === 'tracker' && (
-          <div className="space-y-6 animate-in fade-in">
-            <div data-tour="global-stats" className="p-6 bg-orange-600/10 border border-orange-500/20 rounded-[2rem]">
-              <h4 className="text-[10px] font-black text-orange-500 uppercase mb-4 flex items-center gap-2 tracking-widest">
-                <Tooltip text={GLOSSARY['Resonance']}><Activity size={14}/></Tooltip> Integrated Global Synthesis
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(calculateGlobalStats()).map(([stat, val]) => (
-                  <div key={stat} className="p-4 bg-black/40 rounded-2xl border border-white/5 backdrop-blur-md">
-                    <Tooltip text={GLOSSARY[stat] || `Passive bonus for ${stat}`}>
-                      <p className="text-[8px] font-black text-gray-500 uppercase">{stat}</p>
-                    </Tooltip>
-                    <p className="text-xl font-black text-white">+{val}%</p>
+        <div className="px-5 py-6 space-y-8">
+          {/* TAB CONTENT: META */}
+          {activeTab === 'meta' && (
+            <div className="space-y-12">
+               {displayOrder.map(cat => {
+                  if (categoryFilter !== 'All' && categoryFilter !== cat) return null;
+                  const items = filteredData.filter(i => i.category === cat);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={cat} className="space-y-6">
+                      <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] border-l-4 border-orange-600 pl-4 italic flex items-center gap-3">
+                        <span className="text-xl">{categoryEmojis[cat]}</span> {cat}S
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {items.map(item => (
+                          <div key={item.id} onClick={() => { setSelectedItem(item); playSfx('click'); }} className="cursor-pointer group">
+                            <Card tier={item.tier} className="hover:scale-[1.02] transition-all">
+                                <Badge tier={item.tier} />
+                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mt-3 group-hover:text-orange-500 transition-colors">{item.name}</h3>
+                                <p className="text-[10px] text-gray-500 mt-2 line-clamp-2">{item.desc}</p>
+                            </Card>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+               })}
+            </div>
+          )}
+
+          {/* TAB CONTENT: TRACKER (SYNC) */}
+          {activeTab === 'tracker' && (
+            <div className="space-y-6 animate-in fade-in">
+              <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem]">
+                <h4 className="text-[10px] font-black text-orange-500 uppercase mb-6 flex items-center gap-2 tracking-[0.3em]"><Activity size={14}/> Account Sync Protocol</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(calculateGlobalStats()).map(([stat, val]) => (
+                    <div key={stat} className="p-5 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-md">
+                      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat}</p>
+                      <p className="text-2xl font-black text-white italic">+{val}%</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {HERO_DATA.map(h => (
+                  <div key={h.id} className="p-4 bg-gray-900/60 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-orange-500/20 transition-all">
+                    <div className="flex items-center gap-3"><Badge tier={h.tier} /><span className="text-xs font-black text-white italic uppercase tracking-tighter">{h.name}</span></div>
+                    <button onClick={() => { setUnlockedHeroes(p => ({...p, [h.id]: { lv120: !p[h.id]?.lv120 }})); playSfx('click'); }} className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${unlockedHeroes[h.id]?.lv120 ? 'bg-orange-600 text-white shadow-lg' : 'bg-white/5 text-gray-600 hover:text-gray-400'}`}>{unlockedHeroes[h.id]?.lv120 ? 'Active' : 'L120'}</button>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {HERO_DATA.map(h => (
-                <div key={h.id} className="p-4 bg-gray-900/60 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-orange-500/20 transition-all">
-                  <div className="flex items-center gap-3"><Badge tier={h.tier} /><span className="text-xs font-black text-white italic uppercase tracking-tighter">{h.name}</span></div>
-                  <Tooltip text={`Toggle L120 bonus for ${h.name}`}>
-                    <button onClick={(e) => { e.stopPropagation(); setUnlockedHeroes(prev => ({ ...prev, [h.id]: { lv120: !prev[h.id]?.lv120 } })); playSfx('click'); }} className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${unlockedHeroes[h.id]?.lv120 ? 'bg-orange-600 text-white shadow-lg' : 'bg-white/5 text-gray-600 hover:text-gray-400'}`}>{unlockedHeroes[h.id]?.lv120 ? 'Sync Active' : 'Sync L120'}</button>
-                  </Tooltip>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'formula' && (
-          <div data-tour="formula-core" className="space-y-8 animate-in fade-in pb-12">
-            <div className="p-6 bg-blue-600/10 border border-blue-500/30 rounded-3xl flex items-center gap-5 ring-1 ring-blue-500/10 shadow-xl">
-              <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center shrink-0"><Info className="text-blue-500" size={24} /></div>
-              <p className="text-[11px] text-blue-400 font-black uppercase tracking-widest leading-relaxed">Attention Archer: The calculation below requires manual data entry from your in-game Character attributes screen. Ensure all multipliers are active before inputting.</p>
-            </div>
-
-            <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative group ring-1 ring-white/5">
-              <div className="absolute inset-0 bg-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <p className="text-[12px] font-black text-gray-600 uppercase mb-5 tracking-[0.2em]">Effective Hybrid Multiplier</p>
-              <div className="text-9xl font-black text-white italic tracking-tighter drop-shadow-2xl">{formulaResult.toLocaleString()}</div>
-              <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Single Hit Capacity (Base)</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-6">
-              {[
-                { k: 'baseAtk', l: 'Base ATK', t: GLOSSARY['Base ATK'] },
-                { k: 'atkPercent', l: 'ATK %', t: GLOSSARY['ATK'] },
-                { k: 'weaponDmgPercent', l: 'Weapon Dmg %', t: 'Final multiplier applied to weapon damage.' },
-                { k: 'critDmg', l: 'Crit Dmg %', t: GLOSSARY['Crit Dmg'] }
-              ].map(s => (
-                <div key={s.k} className="p-10 bg-gray-900/60 border border-white/5 rounded-[3.5rem] focus-within:border-orange-500/40 transition-all shadow-xl">
-                  <Tooltip text={s.t}>
+          {/* TAB CONTENT: FORMULA */}
+          {activeTab === 'formula' && (
+            <div className="space-y-8 animate-in fade-in pb-12">
+              <div className="p-6 bg-amber-600/10 border border-amber-500/20 rounded-3xl flex items-start gap-4">
+                <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                <p className="text-[11px] font-medium text-amber-100/80 leading-relaxed italic">
+                  <span className="font-black text-amber-500 uppercase tracking-wider block mb-1">Manual Calibration:</span> 
+                  You must manually input your hero attributes from the character screen for the calculator to function correctly.
+                </p>
+              </div>
+              <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5">
+                <p className="text-[12px] font-black text-gray-600 uppercase mb-5 tracking-[0.2em]">Effective Multiplier</p>
+                <div className="text-9xl font-black text-white italic tracking-tighter">{formulaResult.toLocaleString()}</div>
+                <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Base Damage Capacity</p>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                {[
+                  { k: 'baseAtk', l: 'Base ATK' },
+                  { k: 'atkPercent', l: 'ATK %' },
+                  { k: 'weaponDmgPercent', l: 'Weapon Dmg %' },
+                  { k: 'critDmg', l: 'Crit Dmg %' }
+                ].map(s => (
+                  <div key={s.k} className="p-10 bg-gray-900/60 border border-white/5 rounded-[3.5rem] focus-within:border-orange-500/40 transition-all">
                     <label className="text-[11px] font-black text-gray-600 uppercase block mb-4 tracking-widest">{s.l}</label>
-                  </Tooltip>
-                  <input 
-                    type="number" 
-                    value={fInputs[s.k as keyof typeof fInputs]} 
-                    onChange={e => { setFInputs(p => ({ ...p, [s.k]: Number(e.target.value) })); playSfx('click'); }} 
-                    className="bg-transparent text-white text-5xl font-black outline-none w-full tabular-nums" 
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'dragons' && (
-          <div data-tour="dragon-sockets" className="space-y-12 animate-in fade-in pb-12">
-            <div className={`p-10 rounded-[4rem] border-2 text-center transition-all shadow-4xl relative overflow-hidden ${dragonSynergy ? 'bg-green-600/10 border-green-500/40 text-green-500' : 'bg-red-600/10 border-red-500/40 text-red-500'}`}>
-              <div className="absolute inset-0 opacity-10 pointer-events-none">
-                <Flame className="w-full h-full scale-150 rotate-12" />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center justify-center gap-4 mb-4">
-                  {dragonSynergy ? <ShieldCheck size={32} className="animate-bounce" /> : <ZapOff size={32} className="animate-pulse" />}
-                  <p className="text-3xl font-black uppercase italic tracking-tighter">
-                    {dragonSynergy ? 'Perfect Resonance' : 'Resonance Failed'}
-                  </p>
-                </div>
-                <p className="text-[11px] font-black uppercase tracking-[0.4em]">
-                  {dragonSynergy ? 'Configuration Optimal: All types aligned.' : 'Logic Warning: Inefficient type overlap detected.'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex justify-center gap-8 py-10">
-              {['slot1', 'slot2', 'slot3'].map((slot, idx) => {
-                const dragon = DRAGON_DATA.find(d => d.id === dragons[slot as keyof typeof dragons]);
-                return (
-                  <div key={slot} className="flex flex-col items-center gap-4 group">
-                    <Tooltip text={`Modify Dragon Socket ${idx + 1}`}>
-                      <div className="relative">
-                        <div className={`w-32 h-32 rounded-[2.5rem] border-4 flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-2xl ${
-                          dragon?.type === 'Attack' ? 'border-red-500/40 bg-red-950/20 text-red-500' :
-                          dragon?.type === 'Defense' ? 'border-blue-500/40 bg-blue-950/20 text-blue-500' :
-                          'border-green-500/40 bg-green-950/20 text-green-500'
-                        }`}>
-                          <Flame size={48} className={dragonSynergy ? 'animate-pulse' : ''} />
-                          <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-xl bg-gray-900 border border-white/10 flex items-center justify-center text-white text-[10px] font-black shadow-lg">
-                            {idx + 1}
-                          </div>
-                        </div>
-                        <select 
-                          value={dragons[slot as keyof typeof dragons]} 
-                          onChange={e => { setDragons(p => ({ ...p, [slot]: e.target.value })); playSfx('click'); }}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        >
-                          {DRAGON_DATA.map(d => <option key={d.id} value={d.id}>{d.name} ({d.type})</option>)}
-                        </select>
-                      </div>
-                    </Tooltip>
-                    <p className="text-[10px] font-black text-white uppercase italic tracking-widest">{dragon?.name}</p>
-                    <Badge tier={dragon?.type === 'Attack' ? 'SS' : dragon?.type === 'Defense' ? 'S' : 'A'} />
+                    <input type="number" value={(fInputs as any)[s.k]} onChange={e => setFInputs(p => ({ ...p, [s.k]: Number(e.target.value) }))} className="bg-transparent text-white text-5xl font-black outline-none w-full tabular-nums" />
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem] shadow-xl">
-               <h4 className="text-[11px] font-black text-orange-500 uppercase mb-6 tracking-widest flex items-center gap-3"><Info size={16}/> Synergy Logic</h4>
-               <p className="text-[12px] font-medium text-gray-400 leading-relaxed italic">By socketing one of each type (Attack, Defense, Balance), you unlock the **Global <Tooltip text={GLOSSARY['Magestone']}>Magestone Overclock</Tooltip>**. This allows for 25% faster mana regeneration when standing still.</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'refine' && (
-          <div data-tour="refine-utility" className="space-y-12 animate-in fade-in pb-12">
-            <div className="p-10 bg-gray-950 border border-white/10 rounded-[4rem] shadow-4xl relative overflow-hidden ring-1 ring-white/5">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-600 to-red-600"></div>
-              <h3 className="text-3xl font-black text-white italic uppercase mb-10 tracking-tighter flex items-center gap-4"><Hammer className="text-orange-500" /> Smelt Efficiency Protocol</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-2">Target Gear Rarity</label>
-                    <Tooltip text="Select the quality of gear you are smelting">
-                      <select 
-                        value={smeltItem} 
-                        onChange={e => { setSmeltItem(e.target.value as any); playSfx('click'); }}
-                        className="w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-6 text-sm font-black text-white outline-none focus:ring-1 focus:ring-orange-500/50 appearance-none shadow-xl cursor-pointer"
-                      >
-                        {['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => <option key={r} value={r} className="bg-gray-950">{r}</option>)}
-                      </select>
-                    </Tooltip>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-2">Quantity</label>
-                    <Tooltip text="Number of items to smelt">
-                      <div className="flex items-center gap-4">
-                        <button onClick={() => { setSmeltQty(q => Math.max(1, q - 1)); playSfx('click'); }} className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl text-xl font-black">-</button>
-                        <div className="flex-1 bg-black/40 border border-white/10 rounded-xl py-4 text-center text-xl font-black tabular-nums">{smeltQty}</div>
-                        <button onClick={() => { setSmeltQty(q => q + 1); playSfx('click'); }} className="w-12 h-12 bg-orange-600 border border-orange-400 rounded-xl text-xl font-black shadow-lg shadow-orange-950/50">+</button>
-                      </div>
-                    </Tooltip>
-                  </div>
-                </div>
-
-                <div className="p-10 bg-orange-600/10 border border-orange-500/30 rounded-[3rem] flex flex-col items-center justify-center text-center shadow-inner">
-                  <p className="text-[11px] font-black text-orange-500 uppercase mb-4 tracking-[0.2em]">Estimated <Tooltip text={GLOSSARY['Refine Essence']}>Refine Essence</Tooltip></p>
-                  <div className="flex items-center gap-4">
-                    <Coins className="text-orange-500" size={32} />
-                    <span className="text-6xl font-black text-white italic drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</span>
-                  </div>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase mt-6 tracking-widest">Protocol Verified</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-               <h4 className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-3"><Variable className="text-orange-500" /> Refinement Logic Trace</h4>
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {[
-                   { l: 'Lvl 1-10', d: 'Base ATK / HP increments. 2x Essence cost.' },
-                   { l: 'PE Unlock', d: 'Slot resonance enables first Glyph socket.' },
-                   { l: 'Chaos Path', d: 'Mandatory refinement for 100k+ ATK builds.' }
-                 ].map((trace, i) => (
-                   <Tooltip key={i} text="Refinement Stage Details">
-                     <div className="p-6 bg-white/5 border border-white/5 rounded-3xl hover:border-orange-500/20 transition-all cursor-default">
-                       <p className="text-[10px] font-black text-orange-400 uppercase mb-2 italic tracking-tighter">{trace.l}</p>
-                       <p className="text-[11px] font-bold text-gray-300 leading-snug">{trace.d}</p>
-                     </div>
-                   </Tooltip>
-                 ))}
-               </div>
-            </div>
-
-            <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[3rem] shadow-xl">
-              <h4 className="text-[10px] font-black text-gray-500 uppercase mb-6 tracking-widest flex items-center gap-2"><Disc size={16}/> Socketable Glyph Database</h4>
-              <div className="space-y-3">
-                {GLYPH_DATA.map((g, idx) => (
-                  <Tooltip key={idx} text={`Details for ${g.name}`}>
-                    <div className="p-5 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-orange-500/40 transition-all">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-orange-600/10 border border-orange-500/20 rounded-xl flex items-center justify-center text-orange-500"><Sparkle size={18} /></div>
-                          <div><p className="text-sm font-black text-white italic uppercase leading-none">{g.name}</p><p className="text-[10px] text-gray-500 mt-1 font-medium italic">{g.desc}</p></div>
-                       </div>
-                       <Badge tier={g.slot === 'Weapon' ? 'SSS' : g.slot === 'Armor' ? 'SS' : 'S'} />
-                    </div>
-                  </Tooltip>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'vs' && (
-          <div data-tour="gear-compare" className="space-y-8 animate-in fade-in pb-12">
-            <div className="p-6 bg-gray-900/80 border border-white/5 rounded-[2.5rem] flex items-center gap-6 ring-1 ring-white/5 shadow-xl">
-              <div className="w-16 h-16 rounded-full bg-orange-600/10 flex items-center justify-center border border-orange-500/20 shrink-0">
-                <BarChart3 className="text-orange-500" size={32} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-[12px] font-black text-white uppercase italic tracking-wider">Comparison Verdict</p>
-                <p className="text-[11px] text-gray-400 font-medium leading-relaxed">
-                  <span className="text-orange-500 font-bold uppercase tracking-tight">Recommendation:</span> {vsItemVerdict.winner === 'Situational' ? vsItemVerdict.winner : <span className="text-white italic">{vsItemVerdict.winner}</span>} - {vsItemVerdict.reason}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[ {id: vsItemA, setter: setVsItemA, list: GEAR_DATA, label: 'Gear A'}, {id: vsItemB, setter: setVsItemB, list: GEAR_DATA, label: 'Gear B'} ].map((slot, idx) => {
-                const item = slot.list.find(i => i.id === slot.id);
-                return (
-                  <div key={idx} className="space-y-6 flex flex-col">
-                    <Tooltip text={`Select ${slot.label}`}>
-                      <div className="relative group">
-                        <select 
-                          value={slot.id} 
-                          onChange={e => { slot.setter(e.target.value); playSfx('click'); }} 
-                          className="w-full bg-black/60 border border-white/10 rounded-[1.5rem] py-5 px-6 text-sm font-black text-white outline-none ring-1 ring-white/5 focus:ring-orange-500/50 appearance-none shadow-xl cursor-pointer hover:bg-black/80 transition-colors"
-                        >
-                          {slot.list.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                        </select>
-                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-orange-500 rotate-90 pointer-events-none" size={20} />
-                      </div>
-                    </Tooltip>
-                    {item && (
-                      <Card tier={item.tier} className="flex-1 border-2 border-white/5 flex flex-col !p-0 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-500">
-                        <div className="p-6 border-b border-white/5 bg-white/2">
-                          <div className="flex items-center justify-between mb-4">
-                            <Badge tier={item.tier}/>
-                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{item.category}</span>
-                          </div>
-                          <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">{item.name}</h3>
-                          <p className="text-[11px] font-medium text-gray-400 mt-3 italic line-clamp-2 h-8">{item.desc}</p>
-                        </div>
-                        
-                        <div className="p-6 space-y-6 flex-1">
-                          {item.mythicPerk && (
-                            <div className="p-4 bg-orange-600/5 border border-orange-500/20 rounded-2xl shadow-inner">
-                              <p className="text-[9px] font-black text-orange-500 uppercase mb-2 flex items-center gap-2 tracking-widest"><Trophy size={14}/> <Tooltip text={GLOSSARY['Titan Node']}>Titan Node</Tooltip></p>
-                              <p className="text-[11px] font-bold text-gray-100 leading-relaxed italic">"{item.mythicPerk}"</p>
-                            </div>
-                          )}
-
-                          {item.deepLogic && (
-                            <div className="p-4 bg-blue-600/5 border border-blue-500/20 rounded-2xl shadow-inner">
-                              <p className="text-[9px] font-black text-blue-500 uppercase mb-2 flex items-center gap-2 tracking-widest"><Scan size={14}/> Logic Core</p>
-                              <p className="text-[11px] font-bold text-gray-300 leading-relaxed italic">{item.deepLogic.split('\n')[0]}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {item.bestPairs && item.bestPairs.length > 0 && (
-                          <div className="p-6 bg-black/40 border-t border-white/5">
-                            <p className="text-[8px] font-black text-gray-600 uppercase mb-3 tracking-[0.2em]">Synergy Match</p>
-                            <div className="flex flex-wrap gap-2">
-                              {item.bestPairs.map(p => <span key={p} className="text-[10px] font-bold text-orange-400 bg-orange-400/5 px-3 py-1 rounded-xl border border-orange-400/10 shadow-lg">{p}</span>)}
-                            </div>
-                          </div>
-                        )}
-                      </Card>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'analyze' && (
-          <div data-tour="sim-card" className="space-y-6 animate-in fade-in min-h-[500px] pb-12 flex flex-col items-center">
-            <div className="w-full p-2 bg-gradient-to-br from-orange-600/40 via-blue-600/20 to-purple-600/40 rounded-[3rem] shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-white/5">
-              <div className="bg-[#020617]/95 border border-white/10 p-8 sm:p-10 rounded-[2.8rem] space-y-8 relative overflow-hidden backdrop-blur-3xl">
-                <div className="absolute -top-10 -right-10 p-12 opacity-[0.03] pointer-events-none select-none">
-                  <BrainCircuit size={240}/>
-                </div>
-                
-                <div className="relative z-10 text-center">
-                  <div className="inline-flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-[1.2rem] bg-orange-600 flex items-center justify-center shadow-lg border-t border-white/20">
-                      <Sparkles className="text-white" size={24}/>
+          {/* TAB CONTENT: DRAGONS */}
+          {activeTab === 'dragons' && (
+            <div className="space-y-10 animate-in fade-in pb-12">
+               <div className={`p-10 rounded-[3.5rem] border transition-all ${dragonSynergy ? 'bg-orange-600/10 border-orange-500/40' : 'bg-gray-900/40 border-white/5'} shadow-2xl`}>
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h4 className="text-xl font-black text-white uppercase italic tracking-tight flex items-center gap-3"><Flame size={24} className={dragonSynergy ? 'text-orange-500' : 'text-gray-600'}/> Magestone Core</h4>
+                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-1">{dragonSynergy ? "Resonance Optimized" : "Incomplete Synchronization"}</p>
                     </div>
-                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tight">Neural Synthesis</h4>
-                  </div>
-                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] leading-none">Architecture Engine v6.0</p>
-                </div>
-                
-                <div className="space-y-6 relative z-10">
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-orange-500 uppercase ml-4 tracking-[0.2em] flex items-center justify-center gap-2">
-                      <Scan size={16} className="animate-pulse" /> Targeted Analysis
-                    </label>
-                    <Tooltip text="Select target hero for tactical simulation">
-                      <div className="relative group max-w-sm mx-auto">
-                        <select 
-                          value={buildHero} 
-                          onChange={e => { setBuildHero(e.target.value); playSfx('click'); }} 
-                          className="w-full bg-black/90 border border-white/10 rounded-[1.8rem] py-6 px-8 text-xl font-black text-white outline-none focus:border-orange-500/50 appearance-none shadow-[inset_0_2px_10px_rgba(0,0,0,0.8)] cursor-pointer text-center group-hover:bg-black transition-all"
-                        >
-                          {HERO_DATA.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-                        </select>
-                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-orange-500 rotate-90 pointer-events-none" size={24} />
-                      </div>
-                    </Tooltip>
-                  </div>
-                </div>
-
-                <div className="space-y-6 relative z-10">
-                  <div className="max-w-md mx-auto flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl shadow-inner ring-1 ring-white/5">
-                    <Timer size={20} className="text-orange-500 shrink-0" />
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
-                      Synthesis cycle requires <span className="text-orange-500">10-15s</span> of multi-threaded processing.
-                    </p>
+                    {dragonSynergy && <Sparkles className="text-orange-500 animate-pulse" size={24} />}
                   </div>
                   
-                  <Tooltip text="Begin synthesis protocol">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); runSimulation(); }} 
-                      disabled={isSimulating} 
-                      className="w-full max-w-md mx-auto py-6 px-12 bg-gradient-to-r from-orange-600 to-red-600 rounded-[2rem] text-[12px] font-black uppercase text-white shadow-[0_15px_40px_rgba(234,88,12,0.4)] hover:shadow-orange-500/50 active:scale-[0.96] transition-all flex items-center justify-center gap-3 disabled:opacity-20 border-t border-white/20 group overflow-hidden whitespace-nowrap"
-                    >
-                      {isSimulating ? (
-                        <><Loader2 className="animate-spin" size={20} /> Processing Build...</>
-                      ) : (
-                        <><Bolt size={20} className="group-hover:animate-bounce" fill="currentColor"/> Initiate Protocol</>
-                      )}
-                    </button>
-                  </Tooltip>
-                </div>
-              </div>
-            </div>
-            {simResult && (
-              <div className="w-full p-8 sm:p-12 bg-gray-900/80 border border-orange-500/30 rounded-[3.5rem] shadow-4xl animate-in slide-in-from-bottom-10 backdrop-blur-3xl ring-1 ring-white/10 mt-6 overflow-hidden">
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b border-white/10">
-                  <ShieldCheck className="text-green-500" size={28} />
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">Synthesis Report Compiled</span>
-                </div>
-                <div className="text-gray-200 text-[14px] font-medium leading-[1.8] space-y-6">
-                  {renderMessageText(simResult, true)}
-                </div>
-                <div className="mt-12 pt-8 border-t border-white/5 flex justify-center">
-                  <div className="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-3">
-                    <Info size={14} className="text-orange-500" /> Advanced Simulation Verified
+                  <div className="grid grid-cols-1 gap-6">
+                    {['slot1', 'slot2', 'slot3'].map((slot, i) => {
+                      const selected = DRAGON_DATA.find(d => d.id === (dragons as any)[slot]);
+                      return (
+                        <div key={slot} className="p-6 bg-black/40 rounded-[2.5rem] border border-white/5 flex flex-col gap-4">
+                          <CustomSelect 
+                            options={DRAGON_DATA.map(d => ({ id: d.id, name: d.name, subtitle: d.type }))}
+                            value={(dragons as any)[slot]}
+                            onChange={(val) => setDragons(p => ({...p, [slot]: val}))}
+                            placeholder={`Assign Dragon Socket ${i+1}`}
+                          />
+                          {selected && (
+                            <div className="px-2 space-y-2 animate-in fade-in slide-in-from-left-2">
+                               <p className="text-[11px] font-bold text-orange-400 italic">Skill: {selected.skill}</p>
+                               <p className="text-[9px] text-gray-500 leading-relaxed font-medium">{selected.lore}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
+               </div>
+               <div className="p-8 bg-black/20 rounded-[3rem] border border-white/5">
+                 <p className="text-[10px] font-black text-gray-600 uppercase mb-4 flex items-center gap-2"><Lightbulb size={12}/> Pro Tip</p>
+                 <p className="text-[11px] text-gray-400 italic leading-relaxed">Ensure one of each type (Attack, Defense, Balance) is socketed. This triggers the unique Magestone Resonance, doubling your base mana regeneration rate.</p>
+               </div>
+            </div>
+          )}
+
+          {/* TAB CONTENT: REFINE */}
+          {activeTab === 'refine' && (
+            <div className="space-y-10 animate-in fade-in pb-12">
+               <div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
+                  <Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} />
+                  <p className="text-[11px] font-black text-gray-500 uppercase mb-4 tracking-[0.4em]">Integrated Essence Output</p>
+                  <div className="text-9xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div>
+                  <div className="mt-12 grid grid-cols-2 gap-4">
+                    <CustomSelect 
+                      options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))}
+                      value={smeltItem}
+                      onChange={(v) => setSmeltItem(v as any)}
+                    />
+                    <div className="relative group">
+                      <input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase">QTY</span>
+                    </div>
+                  </div>
+               </div>
+               <div className="space-y-4">
+                 <h5 className="px-4 text-[10px] font-black text-orange-500 uppercase tracking-widest italic">Smelt Optimization Tips</h5>
+                 <div className="grid grid-cols-1 gap-3">
+                   {REFINE_TIPS.map((tip, i) => (
+                     <div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl flex items-start gap-4">
+                       <ShieldCheck className="text-orange-500 mt-1 shrink-0" size={16} />
+                       <p className="text-[11px] text-gray-300 font-medium italic leading-relaxed">{tip}</p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+            </div>
+          )}
+
+          {/* TAB CONTENT: ANALYZE (SIM) */}
+          {activeTab === 'analyze' && (
+            <div className="flex flex-col min-h-full animate-in fade-in pb-24 space-y-10">
+               {/* HUD HEADER */}
+               <div className={`transition-all duration-700 relative ${simResult ? 'p-8 bg-blue-900/10 border border-blue-500/20 rounded-[3rem]' : 'p-16 bg-gray-950 border-2 border-blue-500/20 rounded-[4rem] shadow-4xl'}`}>
+                  {!simResult && <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-blue-500/5 opacity-20 pointer-events-none animate-pulse"></div>}
+                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                    <ScanIcon size={simResult ? 100 : 200} className="animate-pulse" />
+                  </div>
+                  
+                  <div className={`relative z-10 flex flex-col items-center text-center ${simResult ? 'gap-4' : 'gap-10'}`}>
+                    <div className={`transition-all duration-700 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center border border-blue-500/20 shadow-inner ${simResult ? 'w-16 h-16' : 'w-32 h-32'}`}>
+                      <BrainCircuit size={simResult ? 24 : 64} className="text-blue-500 animate-pulse" />
+                    </div>
+                    
+                    <div>
+                      <h4 className={`${simResult ? 'text-lg' : 'text-3xl'} font-black text-white uppercase italic tracking-tighter transition-all duration-700`}>Strategic Synthesis</h4>
+                      {!simResult && <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mt-3 italic">Neural Network V6.3 Uplink</p>}
+                    </div>
+
+                    <div className={`w-full max-w-sm transition-all ${simResult ? 'flex gap-4' : 'space-y-6'}`}>
+                      <CustomSelect 
+                        options={HERO_DATA.map(h => ({ id: h.id, name: h.name, subtitle: h.tier }))}
+                        value={buildHero}
+                        onChange={(val) => setBuildHero(val)}
+                        placeholder="Select Hero Target..."
+                        className="flex-1"
+                      />
+                      <button 
+                        onClick={runSimulation} 
+                        disabled={isSimulating} 
+                        className={`transition-all duration-500 bg-blue-600 text-white font-black uppercase rounded-3xl hover:bg-blue-500 flex items-center justify-center gap-4 disabled:opacity-30 shadow-xl active:scale-95 ${simResult ? 'px-6 py-2 text-[10px]' : 'w-full py-6 text-[14px]'}`}
+                      >
+                        {isSimulating ? <Loader2 size={18} className="animate-spin"/> : <Zap size={18} className="fill-current"/>}
+                        <span>{isSimulating ? 'Processing...' : simResult ? 'RE-SYNTH' : 'INITIATE ANALYSIS'}</span>
+                      </button>
+                    </div>
+
+                    {!simResult && (
+                      <div className="flex items-center gap-4 p-5 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-xl">
+                        <Timer className="text-blue-500" size={20} />
+                        <div className="text-left">
+                          <p className="text-[11px] font-black text-white uppercase tracking-wider">Computation Threshold</p>
+                          <p className="text-[9px] font-bold text-gray-500 italic mt-0.5">Report generation requires 10-15 seconds of GPU load.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+               </div>
+
+               {/* REPORT DISPLAY */}
+               {simResult ? (
+                 <div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-700 pb-20">
+                    <div className="flex items-center justify-between px-6 relative">
+                       <div className="flex items-center gap-3">
+                          <Pulse size={16} className="text-blue-500 animate-pulse" />
+                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Neural Output: Finalizing Build Path</span>
+                       </div>
+                       
+                       <div className="relative">
+                          <button 
+                            onClick={() => setIsSimMenuOpen(!isSimMenuOpen)}
+                            className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-blue-500"
+                          >
+                            <MoreHorizontal size={20} />
+                          </button>
+                          {isSimMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-gray-950 border border-white/10 rounded-2xl py-2 shadow-4xl z-[200] animate-in fade-in slide-in-from-top-2">
+                               <button onClick={copySimResult} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                                  <Copy size={14} /> <span>Copy to Clipboard</span>
+                               </button>
+                               <button onClick={exportSimResult} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                                  <FileText size={14} /> <span>Export as .txt</span>
+                               </button>
+                            </div>
+                          )}
+                       </div>
+                    </div>
+                    
+                    <div className="p-12 bg-gray-900/60 border-l-4 border-l-blue-500 border-y border-r border-white/5 rounded-r-[4rem] rounded-l-[1.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden ring-1 ring-white/5">
+                       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+                       
+                       <div className="text-[16px] text-gray-200 leading-[2.2] italic whitespace-pre-wrap font-medium relative z-10 selection:bg-blue-500/30">
+                          {simResult.split('\n').map((line, idx) => {
+                             if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-black text-white uppercase italic tracking-tighter mb-8 border-b border-blue-500/20 pb-4">{line.replace('# ', '')}</h1>;
+                             if (line.startsWith('## ')) return <h2 key={idx} className="text-xl font-black text-blue-400 uppercase tracking-widest mt-10 mb-6">{line.replace('## ', '')}</h2>;
+                             if (line.startsWith('- ')) return <div key={idx} className="flex gap-4 mb-3"><span className="text-blue-500 mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span><span className="text-gray-300 font-medium">{line.replace('- ', '')}</span></div>;
+                             return <p key={idx} className="mb-4">{line}</p>;
+                          })}
+                       </div>
+
+                       <div className="mt-12 pt-10 border-t border-white/5 flex items-center justify-between opacity-50 relative z-10">
+                          <div className="flex items-center gap-2">
+                             <Terminal size={14} className="text-blue-500" />
+                             <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Checksum: VERIFIED</span>
+                          </div>
+                          <p className="text-[8px] font-bold text-gray-600">© 2025 GRANDMASTER CORE</p>
+                       </div>
+                    </div>
+                 </div>
+               ) : !isSimulating && (
+                 <div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-20 animate-in fade-in duration-1000 delay-500">
+                    <Radar size={80} className="text-gray-500 mb-8 animate-ping" style={{animationDuration: '4s'}} />
+                    <div className="space-y-2">
+                      <p className="text-sm font-black uppercase tracking-[0.5em] text-gray-400">Deep Search Inactive</p>
+                      <p className="text-[10px] font-bold text-gray-600 italic">Target selection required for tactical projection.</p>
+                    </div>
+                 </div>
+               )}
+
+               {isSimulating && (
+                 <div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in">
+                    <div className="relative">
+                       <Loader2 size={120} className="text-blue-500/20 animate-spin" />
+                       <BrainCircuit size={48} className="text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                    </div>
+                    <div className="mt-12 text-center space-y-4">
+                       <p className="text-xl font-black italic text-white uppercase tracking-tighter">Synthesizing Tactical Matrix</p>
+                       <div className="flex items-center justify-center gap-2">
+                          <span className="w-12 h-1 bg-blue-500/20 rounded-full overflow-hidden">
+                             <div className="h-full bg-blue-500 w-1/2 animate-[shimmer_2s_infinite]"></div>
+                          </span>
+                          <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Core Cycles: {Math.floor(Date.now()/1000)%99}%</p>
+                       </div>
+                    </div>
+                 </div>
+               )}
+            </div>
+          )}
+
+          {/* TAB CONTENT: GUARD (IMMUNITY) */}
+          {activeTab === 'immunity' && (
+            <div className="space-y-8 animate-in fade-in pb-12">
+              <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5">
+                <p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p>
+                <div className={`text-9xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div>
+                <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p>
               </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'immunity' && (
-          <div className="space-y-6 animate-in fade-in pb-12">
-            <div data-tour="immunity-display" className="p-12 bg-gray-900/80 border border-white/5 rounded-[4rem] text-center shadow-4xl relative overflow-hidden ring-1 ring-white/5">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
-              <p className="text-[11px] font-black text-gray-500 uppercase mb-4 italic tracking-widest">
-                <Tooltip text={GLOSSARY['Immunity Formula']}>Projectile Immunity Meter</Tooltip>
-              </p>
-              <div className="text-8xl font-black text-white italic mb-8 tracking-tighter drop-shadow-2xl">{totalImmunity.toFixed(1)}%</div>
-              <div className="w-full h-6 bg-black/50 rounded-full overflow-hidden border border-white/10 p-1.5 shadow-inner">
-                <div className="h-full bg-gradient-to-r from-orange-800 to-orange-500 transition-all duration-1000 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.4)]" style={{ width: `${Math.min(totalImmunity, 100)}%` }}></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) },
+                  { label: 'Atreus Level 120 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) },
+                  { label: 'Onir Level 120 (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) },
+                  { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, locket: v})) },
+                ].map((row, i) => (
+                  <div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between">
+                     <span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>
+                     {row.hasOwnProperty('val') ? (
+                       <input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />
+                     ) : (
+                       <button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>
+                         {row.check && <CheckCircle2 size={14}/>}
+                       </button>
+                     )}
+                  </div>
+                ))}
               </div>
-              <p className="text-[12px] text-orange-500 font-black uppercase tracking-[0.3em] mt-6">{totalImmunity >= 100 ? 'INVULNERABLE TO PROJECTILES' : 'CALIBRATING ARMOR'}</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { label: 'Dual Dragon Rings (+27.6%)', key: 'rings', t: GLOSSARY['Proj Resist'] },
-                { label: 'Atreus L120 (+7%)', key: 'atreus120', t: 'Global L120 passive.' },
-                { label: 'Onir L120 (+10%)', key: 'onir120', t: 'Global L120 passive.' },
-                { label: 'Bulletproof Titan (+15%)', key: 'locket', t: 'Locket conditional resistance.' },
-                { label: 'Necrogon Dragon (+7.5%)', key: 'necrogon', t: 'Passive dragon shield bonus.' }
-              ].map(opt => (
-                <Tooltip key={opt.key} text={opt.t}>
-                  <button onClick={(e) => { e.stopPropagation(); setImmunitySetup(s => ({ ...s, [opt.key]: !s[opt.key as keyof typeof s] })); playSfx('click'); }} className={`w-full p-7 border rounded-[2rem] text-[11px] font-black uppercase transition-all flex justify-between items-center ${immunitySetup[opt.key as keyof typeof immunitySetup] ? 'bg-orange-600/20 text-orange-400 border-orange-500/40 shadow-lg' : 'bg-white/5 text-gray-600 border-white/5 hover:bg-white/10'}`}>
-                    <span>{opt.label}</span>
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center border-2 transition-all ${immunitySetup[opt.key as keyof typeof immunitySetup] ? 'bg-orange-600 border-orange-400 text-white' : 'border-white/10 bg-black/40 text-transparent'}`}><CheckCircle2 size={18}/></div>
-                  </button>
-                </Tooltip>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'farming' && (
-          <div data-tour="farming-list" className="space-y-4 animate-in fade-in pb-12">
-            <div className="text-center mb-10"><h2 className="text-2xl font-black text-white uppercase italic tracking-widest">Optimized Drop Zones</h2><p className="text-[11px] text-orange-500 font-bold uppercase tracking-[0.3em] mt-3">Verified Chapter Yields</p></div>
-            {FARMING_ROUTES.map((route, i) => (
-              <div key={i} className="p-7 bg-gray-900/60 border border-white/10 rounded-[3rem] flex items-center justify-between gap-6 group hover:border-orange-500/40 transition-all shadow-xl ring-1 ring-white/5">
-                <div className="flex items-center gap-8">
-                  <div className="w-20 h-20 rounded-[2.2rem] bg-orange-600/10 border border-orange-500/20 flex items-center justify-center text-orange-500 font-black text-2xl shadow-inner ring-1 ring-orange-500/5">{route.chapter.match(/\d+/)?.[0] || '?' }</div>
-                  <div><p className="text-lg font-black text-white uppercase italic tracking-tight leading-none">{route.resource}</p><p className="text-[11px] font-black text-orange-500 uppercase tracking-widest mt-3">{route.chapter}</p><p className="text-[11px] text-gray-500 mt-2 font-medium italic opacity-80">{route.note}</p></div>
+          {/* TAB CONTENT: BURST (DPS) */}
+          {activeTab === 'dps' && (
+             <div className="space-y-8 animate-in fade-in pb-12">
+               <div className="p-6 bg-amber-600/10 border border-amber-500/20 rounded-3xl flex items-start gap-4">
+                 <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                 <p className="text-[11px] font-medium text-amber-100/80 leading-relaxed italic">
+                   <span className="font-black text-amber-500 uppercase tracking-wider block mb-1">Manual Calibration:</span> 
+                   Type in your specific hero stats from the inventory screen. Automated sync does not include skill-modifiers.
+                 </p>
+               </div>
+               <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5">
+                 <p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projected Effective DPS</p>
+                 <div className="text-9xl font-black text-white italic tracking-tighter">{calculatedDPS.toLocaleString()}</div>
+                 <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Integrated Combat Potency</p>
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { k: 'baseAtk', l: 'Raw ATK' },
+                    { k: 'critChance', l: 'Crit Chance %' },
+                    { k: 'critDmg', l: 'Crit Dmg %' },
+                    { k: 'atkSpeed', l: 'Atk Speed %' }
+                  ].map(s => (
+                    <div key={s.k} className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem]">
+                       <label className="text-[10px] font-black text-gray-600 uppercase block mb-2">{s.l}</label>
+                       <input type="number" value={(calcStats as any)[s.k]} onChange={e => setCalcStats(p => ({...p, [s.k]: Number(e.target.value)}))} className="bg-transparent text-white text-3xl font-black outline-none w-full" />
+                    </div>
+                  ))}
+               </div>
+             </div>
+          )}
+
+          {/* TAB CONTENT: FARMING */}
+          {activeTab === 'farming' && (
+            <div className="space-y-6 pb-12 animate-in fade-in">
+              {filteredFarming.length === 0 ? (
+                <div className="text-center py-20 opacity-30">
+                  <Compass size={48} className="mx-auto mb-4 animate-spin-slow" />
+                  <p className="text-xs font-black uppercase tracking-widest">No routes found in sector</p>
                 </div>
-                <ChevronRight size={24} className="text-gray-700 group-hover:text-orange-500 transition-colors" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'dps' && (
-          <div data-tour="dps-card" className="space-y-8 animate-in fade-in pb-12">
-            <div className="p-5 bg-blue-600/10 border border-blue-500/30 rounded-3xl flex items-center gap-5 ring-1 ring-blue-500/10">
-              <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center shrink-0"><Info className="text-blue-500" size={24} /></div>
-              <p className="text-[11px] text-blue-400 font-black uppercase tracking-widest leading-relaxed">System Calibration: Enter your exact in-game stats manually to calculate real-time effective burst DPS.</p>
+              ) : (
+                filteredFarming.map((route) => {
+                  const efficiencyColor = route.efficiency === 'SSS' ? 'text-red-500 border-red-500/20 bg-red-500/5' : route.efficiency === 'SS' ? 'text-orange-500 border-orange-500/20 bg-orange-500/5' : 'text-blue-500 border-blue-500/20 bg-blue-500/5';
+                  return (
+                    <div key={route.id} className={`bg-gray-900/40 backdrop-blur-md border border-white/10 rounded-[2.5rem] overflow-hidden transition-all duration-500 ${expandedFarmingId === route.id ? 'ring-2 ring-orange-500/30 shadow-4xl scale-[1.01]' : 'hover:border-white/20'}`}>
+                      <button onClick={() => { setExpandedFarmingId(expandedFarmingId === route.id ? null : route.id); playSfx('click'); }} className="w-full p-6 flex items-center justify-between group relative overflow-hidden">
+                        <div className="flex items-center gap-6 text-left relative z-10">
+                          <div className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center font-black border transition-colors ${efficiencyColor}`}>
+                            <span className="text-[10px] uppercase opacity-60">Eff</span>
+                            <span className="text-xl leading-none">{route.efficiency}</span>
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${route.difficulty === 'Hero' ? 'border-red-500 text-red-500' : 'border-blue-500 text-blue-500'}`}>{route.difficulty}</span>
+                              <p className="text-lg font-black text-white uppercase italic tracking-tighter">{route.chapter}</p>
+                            </div>
+                            <div className="flex items-center gap-4 mt-1">
+                               <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{route.resource}</p>
+                               <span className="w-1 h-1 bg-gray-700 rounded-full"></span>
+                               <p className="text-[9px] font-medium text-gray-500 italic">Est. {route.avgTime}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 relative z-10">
+                           <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-black/40 rounded-xl border border-white/5">
+                             <User size={12} className="text-gray-500" />
+                             <span className="text-[9px] font-black text-gray-300 uppercase">{route.bestHero}</span>
+                           </div>
+                           <ChevronDown size={20} className={`text-gray-700 transition-transform duration-500 ${expandedFarmingId === route.id ? 'rotate-180 text-orange-500' : ''}`} />
+                        </div>
+                      </button>
+                      
+                      {expandedFarmingId === route.id && (
+                        <div className="p-8 space-y-8 bg-black/40 border-t border-white/5 animate-in slide-in-from-top-4 duration-300">
+                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                 <p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Efficiency</p>
+                                 <p className="text-xs font-black text-white italic">{route.efficiency} Rank</p>
+                              </div>
+                              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                 <p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Loot Projection</p>
+                                 <p className="text-xs font-black text-white italic">{route.lootRate}</p>
+                              </div>
+                              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                 <p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Avg Duration</p>
+                                 <p className="text-xs font-black text-white italic">{route.avgTime}</p>
+                              </div>
+                              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                 <p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Tactical Asset</p>
+                                 <p className="text-xs font-black text-white italic">{route.bestHero}</p>
+                              </div>
+                           </div>
+                           <div className="space-y-6">
+                              <div className="space-y-2">
+                                 <h5 className="flex items-center gap-2 text-[10px] font-black text-orange-500 uppercase tracking-widest"><MapPin size={12}/> Tactical Briefing</h5>
+                                 <p className="text-xs text-gray-300 leading-relaxed italic font-medium bg-black/20 p-4 rounded-2xl border border-white/5">{route.strategy}</p>
+                              </div>
+                              <div className="space-y-2">
+                                 <h5 className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest"><Lightbulb size={12}/> Mentor's Pro-Tip</h5>
+                                 <div className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl text-[11px] text-blue-100/80 italic font-bold">
+                                    {route.proTip}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
+          )}
 
-            <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative group ring-1 ring-white/5">
-              <div className="absolute inset-0 bg-orange-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <p className="text-[12px] font-black text-gray-600 uppercase mb-5 tracking-[0.2em]">Effective Burst Potential</p>
-              <div className="text-9xl font-black text-white italic tracking-tighter drop-shadow-2xl">{calculatedDPS.toLocaleString()}</div>
-              <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Damage per Second Estimate</p>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              {[ 
-                { k: 'baseAtk', l: 'ATK', t: GLOSSARY['Base ATK'] }, 
-                { k: 'critChance', l: 'Crit %', t: GLOSSARY['Crit %'] }, 
-                { k: 'critDmg', l: 'Crit Dmg %', t: GLOSSARY['Crit Dmg'] }, 
-                { k: 'atkSpeed', l: 'Atk SPD %', t: GLOSSARY['Atk SPD'] } 
-              ].map(s => (
-                <div key={s.k} className="p-10 bg-gray-900/60 border border-white/5 rounded-[3.5rem] focus-within:border-orange-500/40 transition-all shadow-xl">
-                  <Tooltip text={s.t}>
-                    <label className="text-[11px] font-black text-gray-600 uppercase block mb-4 tracking-widest">{s.l}</label>
-                  </Tooltip>
-                  <input type="number" value={calcStats[s.k as keyof CalcStats] as number} onChange={e => { setCalcStats(p => ({ ...p, [s.k]: Number(e.target.value) })); playSfx('click'); }} className="bg-transparent text-white text-5xl font-black outline-none w-full tabular-nums" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'jewels' && (
-          <div data-tour="jewel-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in pb-12">
-            {JEWEL_DATA.map(j => (
-              <Card key={j.id} className="bg-gray-950/80 border-white/10 ring-1 ring-white/5 p-8">
-                <div className="flex justify-between items-center mb-8">
-                   <h3 className="text-2xl font-black text-white italic uppercase tracking-tight">{j.name}</h3>
-                   <span className="text-[11px] font-black text-gray-500 px-5 py-2.5 bg-white/5 rounded-2xl border border-white/5">{j.statPerLevel} / LV</span>
-                </div>
-                <div className="space-y-5">
-                  <div className="p-7 bg-white/5 rounded-[2rem] border border-white/5 shadow-inner"><p className="text-[10px] font-black text-gray-600 uppercase mb-3 tracking-widest">LV 16 Threshold</p><p className="text-[14px] font-bold text-white italic leading-snug">{j.bonus16}</p></div>
-                  <div className="p-7 bg-orange-600/10 border border-orange-500/30 rounded-[2rem] shadow-lg"><p className="text-[10px] font-black text-orange-500 uppercase mb-3 tracking-widest">LV 28 Threshold</p><p className="text-[14px] font-black text-white italic leading-snug">{j.bonus28}</p></div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'relics' && (
-          <div data-tour="relic-grid" className="space-y-12 animate-in fade-in pb-12">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          {/* TAB CONTENT: RELICS */}
+          {activeTab === 'relics' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pb-12">
               {filteredRelics.map(r => (
-                <div 
-                  key={r.id} 
-                  onClick={() => { setSelectedRelic(r); playSfx('click'); }}
-                  className={`
-                    relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center
-                    ${r.tier === 'Holy' ? 'bg-orange-600/5 border-orange-500/20 hover:bg-orange-600/10' : 
-                      r.tier === 'Radiant' ? 'bg-purple-600/5 border-purple-500/20 hover:bg-purple-600/10' : 
-                      'bg-blue-600/5 border-blue-500/20 hover:bg-blue-600/10'}
-                  `}
-                >
-                  <div className={`
-                    w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12
-                    ${r.tier === 'Holy' ? 'bg-orange-600/20 border-orange-500/30 text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)]' : 
-                      r.tier === 'Radiant' ? 'bg-purple-600/20 border-purple-500/30 text-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 
-                      'bg-blue-600/20 border-blue-500/30 text-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]'}
-                  `}>
+                <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${r.tier === 'Holy' ? 'bg-orange-600/5 border-orange-500/20' : 'bg-blue-600/5 border-blue-500/20'}`}>
+                  <div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${r.tier === 'Holy' ? 'bg-orange-600/20 border-orange-500/30 text-orange-500' : 'bg-blue-600/20 border-blue-500/30 text-blue-500'}`}>
                     <RelicIcon type={r.iconType} className="w-8 h-8" />
                   </div>
                   <p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p>
-                  <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{r.tier}</p>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {activeTab === 'ai' && (
-          <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-8 duration-500 pb-12">
-            <div className="flex items-center justify-between mb-8 px-2">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-[1.4rem] bg-orange-600/10 border border-orange-500/20 flex items-center justify-center shadow-inner ring-1 ring-orange-500/5">
-                  <HeartHandshake size={28} className="text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-white uppercase italic tracking-tighter leading-none">Tactical Mentor</h2>
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Mentor Connected</span>
-                  </div>
-                </div>
+          )}
+          {activeTab === 'jewels' && (
+            <div className="space-y-8 animate-in fade-in pb-12">
+              <div className="p-8 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] flex flex-col gap-6 shadow-2xl">
+                 <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400"><Binary size={24}/></div>
+                     <div><h3 className="text-xl font-black text-white uppercase italic tracking-tight">Jewel Laboratory</h3></div>
+                   </div>
+                   <div className="px-4 py-2 bg-black/40 border border-white/5 rounded-xl text-center"><p className="text-sm font-black text-blue-400">LV {jewelSimLevel}</p></div>
+                 </div>
+                 <input type="range" min="1" max="40" value={jewelSimLevel} onChange={(e) => setJewelSimLevel(parseInt(e.target.value))} className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-blue-500" />
               </div>
-              <div className="flex items-center gap-2">
-                {isConfirmingClear ? (
-                  <div className="flex items-center gap-2 animate-in slide-in-from-right-2">
-                    <button onClick={() => { setIsConfirmingClear(false); playSfx('click'); }} className="p-3 bg-white/5 rounded-xl text-xs font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors border border-white/5">Cancel</button>
-                    <button onClick={executeClearChat} className="p-3 bg-red-600 rounded-xl text-xs font-black text-white uppercase tracking-widest shadow-lg shadow-red-950/40 border border-red-400/50 flex items-center gap-2"><Trash2 size={14}/> Clear Now</button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredJewels.map(j => (
+                  <div key={j.id} onClick={() => { setSelectedItem({...j, category: 'Jewel'}); playSfx('click'); }} className="cursor-pointer group relative">
+                    <div className={`p-8 bg-gradient-to-br ${getJewelColorClasses(j.color)} rounded-[3rem] border border-white/10 shadow-2xl transition-all duration-500 hover:scale-[1.03] active:scale-95 flex flex-col gap-6 h-full`}>
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-4">
+                             <div className="w-14 h-14 bg-black/40 rounded-[1.4rem] border border-white/10 flex items-center justify-center transition-transform duration-500"><Gem size={28} /></div>
+                             <div><h4 className="text-xl font-black text-white uppercase italic tracking-tighter leading-none">{j.name}</h4></div>
+                          </div>
+                        </div>
+                    </div>
                   </div>
-                ) : (
-                  <Tooltip text="Purge Session Archives">
-                    <button onClick={(e) => { e.stopPropagation(); setIsConfirmingClear(true); playSfx('click'); }} className="p-3.5 bg-white/5 rounded-2xl text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all border border-white/5 group active:scale-95"><Trash2 size={20} className="group-hover:rotate-12 transition-transform" /></button>
-                  </Tooltip>
+                ))}
+              </div>
+            </div>
+          )}
+          {activeTab === 'ai' && (
+            <div className="flex flex-col h-[65vh] animate-in fade-in">
+              <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pb-10">
+                {chatHistory.length === 0 && (
+                  <div className="p-12 text-center space-y-6">
+                    <div className="w-24 h-24 bg-orange-600/10 border border-orange-500/20 rounded-full flex items-center justify-center mx-auto text-orange-500 animate-pulse"><Bot size={48} /></div>
+                    <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Tactical Uplink Established</h3>
+                    <p className="text-xs text-gray-400 leading-relaxed italic max-w-sm mx-auto">"Hello there, fellow archer! I'm your tactical mentor. Ask me anything about gear, boss patterns, or meta evolutions."</p>
+                  </div>
                 )}
+                {chatHistory.map(msg => (
+                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-6 rounded-[2.5rem] ${msg.role === 'user' ? 'bg-orange-600 text-white rounded-tr-none' : 'bg-gray-900 border border-white/5 text-gray-100 rounded-tl-none'}`}>
+                      <p className="text-[13px] leading-[1.8] font-medium italic whitespace-pre-wrap">{msg.text}</p>
+                    </div>
+                  </div>
+                ))}
+                {isAiLoading && (
+                  <div className="flex justify-start">
+                    <div className="p-6 bg-gray-900/40 rounded-3xl rounded-tl-none border border-white/5 animate-pulse flex items-center gap-4">
+                      <Loader2 className="text-orange-500 animate-spin" size={16} />
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Synchronizing neural data...</span>
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+              <div className="p-4 bg-gray-950/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] flex items-center gap-3">
+                <input type="text" placeholder="Inquire tactical advice..." className="flex-1 bg-transparent text-sm font-bold text-white outline-none px-4" value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSend()} />
+                <button onClick={handleAiSend} disabled={isAiLoading || !aiInput.trim()} className="p-4 bg-orange-600 text-white rounded-2xl hover:bg-orange-500 transition-all disabled:opacity-30"><Send size={18}/></button>
               </div>
             </div>
-
-            <div className="flex-1 overflow-y-auto space-y-12 mb-8 no-scrollbar pr-1 min-h-[450px]">
-              {chatHistory.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full opacity-60 text-center px-10 py-12 animate-in fade-in zoom-in-95">
-                  <div className="w-24 h-24 rounded-[2rem] bg-orange-600/5 border border-orange-500/10 flex items-center justify-center mb-8 relative">
-                    <div className="absolute inset-0 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
-                    <Bot size={56} className="text-orange-500 relative z-10 animate-bounce [animation-duration:4s]" />
-                  </div>
-                  <p className="text-base font-black uppercase tracking-[0.3em] leading-loose text-white mb-2">Mentor Protocol: Ready</p>
-                  <p className="text-[11px] font-bold text-gray-500 uppercase max-w-xs leading-relaxed tracking-wider">Hello Archer! I'm here to help you refine your gear and conquer those Hero Chapters. What's on your mind?</p>
-                </div>
-              )}
-              {chatHistory.map((msg) => (
-                <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-6 duration-500`}>
-                  <div className={`flex items-center gap-3 mb-3 px-4`}>
-                    {msg.role === 'model' ? (
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-950/50 ring-2 ring-orange-400/20"><HeartHandshake size={16} className="text-white"/></div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-orange-500">Supportive Mentor</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-gray-500">Elite Archer</span>
-                        <div className="w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center border border-white/10 shadow-lg ring-2 ring-white/5"><User size={16} className="text-gray-400"/></div>
-                      </div>
-                    )}
-                  </div>
-                  <div className={`max-w-[94%] px-8 py-7 select-text shadow-2xl leading-[1.8] text-[14px] relative group ${msg.role === 'user' ? 'bg-orange-600 text-white rounded-l-[2rem] rounded-tr-[2rem] rounded-br-lg font-bold ring-1 ring-white/10 shadow-orange-950/40' : 'bg-gray-900/60 text-gray-200 border border-white/10 backdrop-blur-3xl rounded-r-[2rem] rounded-tl-[2rem] rounded-bl-lg font-medium ring-1 ring-white/5'}`}>
-                    <div className="whitespace-pre-wrap break-words">{renderMessageText(msg.text, msg.role === 'model')}</div>
-                    <div className="absolute -bottom-8 opacity-0 group-hover:opacity-60 transition-all duration-300 text-[9px] font-black text-gray-600 uppercase tracking-[0.2em] py-1 px-2">Synced • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                  </div>
-                </div>
-              ))}
-              {isAiLoading && (
-                <div className="flex flex-col items-start animate-in fade-in slide-in-from-bottom-2 duration-300 ml-2">
-                  <div className="flex items-center gap-3 mb-3 px-2">
-                    <div className="w-8 h-8 rounded-xl bg-orange-600/10 border border-orange-500/30 flex items-center justify-center animate-spin"><Loader2 size={16} className="text-orange-500" /></div>
-                    <span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] animate-pulse">Mentor is reflecting...</span>
-                  </div>
-                  <div className="bg-gray-900/40 border border-white/5 backdrop-blur-sm rounded-r-[2rem] rounded-tl-[2rem] rounded-bl-lg w-[240px] h-16 flex items-center gap-2 px-8">
-                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-bounce [animation-delay:-0.3s] shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
-                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-bounce [animation-delay:-0.15s] shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
-                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-bounce shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} className="h-12" />
-            </div>
-
-            <div data-tour="oracle-input" className="flex gap-4 bg-gray-950/90 backdrop-blur-3xl border border-white/10 p-4 rounded-[3rem] shadow-4xl sticky bottom-0 z-[100] ring-1 ring-white/10 animate-in slide-in-from-bottom-12 duration-700">
-              <div className="flex-1 bg-white/5 rounded-2xl flex items-center px-6 group focus-within:ring-2 focus-within:ring-orange-500/30 transition-all border border-transparent focus-within:border-orange-500/20">
-                <input type="text" placeholder="Ask the mentor a tactical question..." className="w-full bg-transparent text-[14px] font-bold outline-none text-white h-14" value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSend()} />
-              </div>
-              <Tooltip text="Transmit Query">
-                <button onClick={(e) => { e.stopPropagation(); handleAiSend(); }} disabled={!aiInput.trim() || isAiLoading} className="bg-orange-600 w-14 h-14 rounded-[1.5rem] hover:bg-orange-500 transition-all shadow-xl shadow-orange-950/40 active:scale-90 flex items-center justify-center border-t border-white/20 disabled:opacity-20 disabled:grayscale ring-1 ring-orange-400/20"><Send size={24} className="text-white translate-x-0.5 -translate-y-0.5"/></button>
-              </Tooltip>
-            </div>
-          </div>
-        )}
-        <div className="h-32 w-full shrink-0" />
+          )}
+        </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full z-[500] bg-gray-950/98 backdrop-blur-3xl border-t border-white/5 p-4 flex flex-col items-center">
-        <div ref={navScrollRef} onMouseDown={(e) => handleDragStart(e, navScrollRef, 'horizontal')} onMouseMove={handleDragMove} className="w-full max-w-3xl overflow-x-auto no-scrollbar draggable-content smooth-scroll snap-x-container flex items-center gap-2 px-4">
+      <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950/98 backdrop-blur-3xl border-t border-white/5 p-4 flex flex-col items-center shadow-2xl">
+        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x" onMouseDown={(e) => handleDragStart(e, navScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
           {[
             { id: 'meta', icon: LayoutGrid, label: 'Archive' },
             { id: 'tracker', icon: Target, label: 'Sync' },
@@ -1370,158 +997,234 @@ const App: React.FC = () => {
             { id: 'dragons', icon: Flame, label: 'Dragons' },
             { id: 'refine', icon: Wrench, label: 'Refine' },
             { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' },
-            { id: 'relicVs', icon: Layers, label: 'Relic Vs' },
             { id: 'analyze', icon: BrainCircuit, label: 'Sim' },
             { id: 'immunity', icon: Shield, label: 'Guard' },
-            { id: 'lab', icon: FlaskConical, label: 'Lab', isMaintenance: true },
             { id: 'farming', icon: Map, label: 'Farming' },
             { id: 'dps', icon: Calculator, label: 'Burst' },
             { id: 'jewels', icon: Disc, label: 'Jewel' },
             { id: 'relics', icon: Box, label: 'Relic' },
-            { id: 'estate', icon: Tower, label: 'Estate' },
-            { id: 'ai', icon: MessageSquare, label: 'Oracle' },
+            { id: 'ai', icon: MessageSquare, label: 'Grandmaster' },
           ].map(t => (
-            <Tooltip key={t.id} text={t.isMaintenance ? "Lab Maintenance" : `Switch to ${t.label}`}>
-              <button 
-                data-tab-id={t.id} onClick={() => handleTabChange(t.id as any)}
-                className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 group snap-center-item relative 
-                  ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10 shadow-lg' : 'text-gray-500 hover:text-gray-300'}
-                  ${t.isMaintenance ? 'opacity-30 grayscale saturate-0' : ''}
-                `}
-              >
-                <t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} />
-                {t.isMaintenance && (
-                  <div className="absolute top-2 right-2">
-                    <Lock size={10} className="text-gray-400" />
-                  </div>
-                )}
-                <span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span>
-              </button>
-            </Tooltip>
+            <button key={t.id} onClick={() => handleTabChange(t.id as any)} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}>
+              <t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} />
+              <span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span>
+            </button>
           ))}
         </div>
       </nav>
 
+      {/* INSPECTOR MODAL - COMPREHENSIVE VIEW */}
       {selectedItem && (
-        <div className="fixed inset-0 z-[2000] flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => { setSelectedItem(null); playSfx('click'); }} />
-          <div className="relative w-full bg-[#030712] border-t border-orange-500/30 rounded-t-[4rem] p-8 sm:p-14 max-h-[95vh] overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-32 shadow-4xl ring-1 ring-white/5">
-            <div className="flex items-start justify-between mb-12">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3"><Badge tier={selectedItem.tier} /><span className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em]">{selectedItem.category} PROTOCOL</span>{selectedItem.isGodTier && <div className="flex items-center gap-1 text-yellow-500 font-black text-[9px] uppercase"><Star size={10} fill="currentColor"/> God Tier</div>}</div>
-                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2>
-              </div>
-              <Tooltip text="Close Archive"><button onClick={() => { setSelectedItem(null); playSfx('click'); }} className="p-5 bg-white/5 rounded-full border border-white/10 active:scale-90 transition-transform hover:bg-white/10 hover:border-white/20"><X size={32}/></button></Tooltip>
-            </div>
-            <div className="space-y-12 pb-24">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {selectedItem.mythicPerk && (
-                  <div className="p-7 bg-orange-600/5 border border-orange-500/20 rounded-[2.5rem] shadow-inner ring-1 ring-orange-500/10"><p className="text-[10px] font-black text-orange-500 uppercase mb-4 flex items-center gap-2 tracking-widest"><Trophy size={16}/> Awakening Node (Titan)</p><p className="text-[14px] font-bold text-white leading-relaxed italic">"{selectedItem.mythicPerk}"</p></div>
-                )}
-                {(selectedItem as Hero).globalBonus120 && (
-                  <div className="p-7 bg-blue-500/5 border border-blue-500/20 rounded-[2.5rem] ring-1 ring-blue-500/10"><p className="text-[10px] font-black text-blue-500 uppercase mb-4 flex items-center gap-2 tracking-widest"><Award size={16}/> Synthesis Sync (L120)</p><p className="text-3xl font-black text-white italic">{(selectedItem as Hero).globalBonus120}</p><p className="text-[10px] text-gray-500 mt-2 font-black uppercase tracking-widest">Global Passive Boost</p></div>
-                )}
-                {(selectedItem as Hero).evo4Star && (
-                  <div className="p-7 bg-purple-500/5 border border-purple-500/20 rounded-[2.5rem] ring-1 ring-purple-500/10"><p className="text-[10px] font-black text-purple-500 uppercase mb-4 flex items-center gap-2 tracking-widest"><Sparkles size={16}/> 4-Star Evolution</p><p className="text-[14px] font-bold text-gray-200">{(selectedItem as Hero).evo4Star}</p></div>
-                )}
-                {selectedItem.uniqueEffect && (
-                  <div className="p-7 bg-green-500/5 border border-green-500/20 rounded-[2.5rem] ring-1 ring-green-500/10"><p className="text-[10px] font-black text-green-500 uppercase mb-4 flex items-center gap-2 tracking-widest"><FlaskConical size={16}/> Unique Attribute</p><p className="text-[14px] font-bold text-gray-100">{selectedItem.uniqueEffect}</p></div>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {selectedItem.deepLogic && (
-                  <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] relative overflow-hidden group ring-1 ring-white/5 shadow-2xl">
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity"><BrainCircuit size={120}/></div>
-                    <h4 className="text-[11px] font-black text-orange-500 uppercase mb-8 flex items-center gap-3 tracking-[0.3em]"><ScrollText size={20}/> Strategist Insights</h4>
-                    <div className="text-[14px] text-gray-300 font-medium leading-[2] italic select-text space-y-6">{selectedItem.deepLogic.split('\n').map((l, i) => <p key={i} className="flex gap-4 items-start"><span className="text-orange-600 font-black mt-1">>></span><span>{l.replace(/^•\s*/, '')}</span></p>)}</div>
-                  </div>
-                )}
-                <div className="space-y-8">
-                  {selectedItem.bestPairs && selectedItem.bestPairs.length > 0 && (
-                    <div className="p-8 bg-white/5 border border-white/10 rounded-[3rem] ring-1 ring-white/5">
-                      <h4 className="text-[10px] font-black text-gray-500 uppercase mb-6 tracking-[0.2em] flex items-center gap-2"><Swords size={16}/> Tactical Synergies</h4>
-                      <div className="flex flex-wrap gap-3">{selectedItem.bestPairs.map((pair, idx) => <div key={idx} className="px-5 py-3 bg-gray-900 border border-white/10 rounded-2xl text-[12px] font-bold text-white italic shadow-lg ring-1 ring-orange-500/10">{pair}</div>)}</div>
-                    </div>
-                  )}
-                  {selectedItem.trivia && (
-                    <div className="p-8 bg-blue-900/5 border border-blue-500/10 rounded-[3rem] italic ring-1 ring-blue-500/5"><p className="text-[10px] font-black text-blue-500 uppercase mb-4 tracking-widest flex items-center gap-2"><Info size={16}/> Archive Trivia</p><p className="text-[13px] text-gray-400 leading-relaxed font-medium">"{selectedItem.trivia}"</p></div>
-                  )}
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => setSelectedItem(null)} />
+          <div className="relative w-full max-w-2xl bg-[#030712] border border-white/10 rounded-[3.5rem] p-8 sm:p-14 max-h-[92vh] overflow-y-auto no-scrollbar animate-in zoom-in-95 shadow-4xl ring-1 ring-white/5">
+            <button onClick={() => setSelectedItem(null)} className="absolute top-10 right-10 p-5 bg-white/5 rounded-full border border-white/10 active:scale-90 transition-transform z-20 hover:bg-white/10"><X size={32}/></button>
+            
+            <div className="space-y-12">
+              {/* Header Info */}
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge tier={selectedItem.tier} />
+                  <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-600/5 px-3 py-1 rounded-lg border border-orange-500/10">{selectedItem.category} Protocols</span>
+                  {selectedItem.isGodTier && <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest bg-yellow-400/5 px-3 py-1 rounded-lg border border-yellow-400/20 flex items-center gap-1"><Sparkles size={12}/> Divine Grade</span>}
                 </div>
+                <h2 className="text-5xl sm:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2>
+                <p className="text-[15px] text-gray-400 font-medium italic opacity-90 leading-relaxed max-w-lg">{selectedItem.desc}</p>
               </div>
-              {selectedItem.rarityPerks && selectedItem.rarityPerks.length > 0 && (
-                <div className="p-10 bg-gray-950 border border-white/5 rounded-[4rem] shadow-inner ring-1 ring-white/5">
-                  <h4 className="text-[10px] font-black text-gray-500 uppercase mb-8 tracking-[0.3em] flex items-center gap-3"><Layers size={16}/> Rarity Evolution Path</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{selectedItem.rarityPerks.map((perk, pidx) => <div key={pidx} className="p-5 bg-white/5 border border-white/5 rounded-3xl group hover:border-orange-500/20 transition-all"><p className="text-[9px] font-black text-orange-400 uppercase mb-2 tracking-widest italic">{perk.rarity}</p><p className="text-[12px] font-bold text-gray-300 leading-snug">{perk.effect}</p></div>)}</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {selectedRelic && (
-        <div className="fixed inset-0 z-[2000] flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => { setSelectedRelic(null); playSfx('click'); }} />
-          <div className="relative w-full bg-[#030712] border-t border-white/10 rounded-t-[4rem] p-8 sm:p-14 max-h-[95vh] overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-32 shadow-4xl ring-1 ring-white/5">
-            <div className="flex items-start justify-between mb-12">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-lg ${
-                    selectedRelic.tier === 'Holy' ? 'bg-orange-600/20 border-orange-500/40 text-orange-400' : 
-                    selectedRelic.tier === 'Radiant' ? 'bg-purple-600/20 border-purple-500/40 text-purple-400' : 
-                    'bg-blue-600/20 border-blue-500/40 text-blue-400'
-                  }`}>
-                    {selectedRelic.tier} Artifact Protocol
-                  </span>
+              <div className="grid grid-cols-1 gap-10">
+                {/* Tactical Analysis & Bio */}
+                <div className="space-y-4">
+                   {selectedItem.bio && (
+                     <div className="p-8 bg-gray-900/40 rounded-[2.5rem] border border-white/5 space-y-3">
+                        <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-2"><History size={16} /> Biological Archive</h4>
+                        <p className="text-[13px] text-gray-300 font-medium leading-relaxed italic">"{selectedItem.bio}"</p>
+                     </div>
+                   )}
+                   
+                   <div className="p-10 bg-gray-950 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div>
+                     <h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4>
+                     <div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10">
+                        {selectedItem.deepLogic || "Neural uplink required for deep architectural scan."}
+                     </div>
+                   </div>
                 </div>
-                <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedRelic.name}</h2>
+
+                {/* Specific Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                   {selectedItem.globalBonus120 && (
+                     <div className="p-7 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem] group hover:bg-orange-600/15 transition-colors">
+                        <div className="flex items-center gap-3 mb-2"><AwardIcon size={18} className="text-orange-500"/><p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Global Perk (L120)</p></div>
+                        <p className="text-2xl font-black text-white italic">{selectedItem.globalBonus120}</p>
+                     </div>
+                   )}
+                   {selectedItem.shardCost && (
+                     <div className="p-7 bg-purple-600/10 border border-purple-500/20 rounded-[2.5rem]">
+                        <div className="flex items-center gap-3 mb-2"><Gem size={18} className="text-purple-500"/><p className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Shard Acquisition</p></div>
+                        <p className="text-lg font-black text-white italic">{selectedItem.shardCost}</p>
+                     </div>
+                   )}
+                   {selectedItem.bestSkin && (
+                     <div className="p-7 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] col-span-full">
+                        <div className="flex items-center gap-3 mb-2"><StarIcon size={18} className="text-blue-500"/><p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Optimal Skin Variant</p></div>
+                        <p className="text-lg font-black text-white italic">{selectedItem.bestSkin}</p>
+                     </div>
+                   )}
+                   {selectedItem.evo4Star && (
+                     <div className="p-7 bg-yellow-500/10 border border-yellow-500/20 rounded-[2.5rem] col-span-full">
+                        <div className="flex items-center gap-3 mb-2"><Zap size={18} className="text-yellow-500"/><p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest">Evolution Perk (4★)</p></div>
+                        <p className="text-[14px] font-bold text-gray-200 italic leading-relaxed">{selectedItem.evo4Star}</p>
+                     </div>
+                   )}
+                </div>
+
+                {/* Gear Specifics: Perks & Unique */}
+                <div className="space-y-6">
+                   {selectedItem.mythicPerk && (
+                     <div className="p-9 bg-gradient-to-br from-orange-600/20 to-transparent border border-orange-500/40 rounded-[3rem] shadow-4xl">
+                        <div className="flex items-center gap-3 mb-4"><Sparkles size={22} className="text-orange-500" /><p className="text-[11px] font-black text-orange-500 uppercase tracking-widest">Mythic Peak Resonance</p></div>
+                        <p className="text-[18px] font-black text-white italic leading-snug">"{selectedItem.mythicPerk}"</p>
+                     </div>
+                   )}
+
+                   {selectedItem.uniqueEffect && (
+                     <div className="p-8 bg-blue-900/10 border border-blue-500/20 rounded-[2.8rem] flex items-start gap-4">
+                        <Zap size={24} className="text-blue-500 mt-1 shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Unique Protocol</p>
+                          <p className="text-[14px] font-black text-white italic leading-relaxed">{selectedItem.uniqueEffect}</p>
+                        </div>
+                     </div>
+                   )}
+
+                   {selectedItem.rarityPerks && selectedItem.rarityPerks.length > 0 && (
+                     <div className="space-y-4">
+                        <h5 className="px-4 text-[11px] font-black text-gray-500 uppercase tracking-widest italic flex items-center gap-2"><Layers size={14}/> Rarity Evolution Matrix</h5>
+                        <div className="grid grid-cols-1 gap-2">
+                           {selectedItem.rarityPerks.map((p: any, i: number) => (
+                             <div key={i} className="px-6 py-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between group hover:bg-white/10 transition-colors">
+                                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">{p.rarity}</span>
+                                <span className="text-[12px] font-bold text-gray-200 italic">{p.effect}</span>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                   )}
+                </div>
+
+                {/* Final Details: Pairs & Trivia */}
+                <div className="grid grid-cols-1 gap-5">
+                   {selectedItem.bestPairs && selectedItem.bestPairs.length > 0 && (
+                     <div className="p-8 bg-white/5 border border-white/10 rounded-[3rem] flex items-start gap-5">
+                        <Link2 className="text-blue-400 mt-1 shrink-0" size={24} />
+                        <div>
+                           <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-3">S-Tier Loadout Synergy</p>
+                           <div className="flex flex-wrap gap-2">
+                              {selectedItem.bestPairs.map((p: string) => (
+                                <span key={p} className="px-4 py-1.5 bg-blue-600/10 text-blue-400 text-[11px] font-black rounded-xl border border-blue-500/20 shadow-inner">{p}</span>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                   )}
+                   {selectedItem.assistHeroes && selectedItem.assistHeroes.length > 0 && (
+                     <div className="p-8 bg-white/5 border border-white/10 rounded-[3rem] flex items-start gap-5">
+                        <Users className="text-purple-400 mt-1 shrink-0" size={24} />
+                        <div>
+                           <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-3">Recommended Assist Protocol</p>
+                           <div className="flex flex-wrap gap-2">
+                              {selectedItem.assistHeroes.map((p: string) => (
+                                <span key={p} className="px-4 py-1.5 bg-purple-600/10 text-purple-400 text-[11px] font-black rounded-xl border border-purple-500/20">{p}</span>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                   )}
+                   {selectedItem.trivia && (
+                     <div className="p-8 bg-white/5 border border-white/10 rounded-[3rem] flex items-start gap-5">
+                        <Lightbulb className="text-yellow-400 mt-1 shrink-0" size={24} />
+                        <div>
+                           <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1">Tactical Trivia</p>
+                           <p className="text-[13px] text-gray-300 font-medium italic leading-relaxed">{selectedItem.trivia}</p>
+                        </div>
+                     </div>
+                   )}
+                </div>
+
+                {/* Relic Specific View */}
+                {selectedItem.category === 'Relic' && (
+                   <div className="space-y-8">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                           <p className="text-[10px] font-black text-gray-500 uppercase mb-1">Set Resonance</p>
+                           <p className="text-sm font-black text-white uppercase italic">{selectedItem.setBonus || "Standalone"}</p>
+                        </div>
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                           <p className="text-[10px] font-black text-gray-500 uppercase mb-1">Chapter Source</p>
+                           <p className="text-sm font-black text-white uppercase italic">{selectedItem.source || "Archive Lock"}</p>
+                        </div>
+                      </div>
+                      {selectedItem.stars && (
+                        <div className="space-y-4">
+                           <h5 className="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Evolution Growth Path</h5>
+                           <div className="space-y-2">
+                             {selectedItem.stars.map((s: string, i: number) => (
+                               <div key={i} className="px-7 py-4 bg-white/5 rounded-2xl border border-white/5 text-[13px] font-bold text-gray-200 italic flex items-center gap-5">
+                                 <div className="flex items-center gap-1 shrink-0">
+                                   {[...Array(i+1)].map((_, idx) => <Star key={idx} size={11} className="text-yellow-500 fill-current" />)}
+                                 </div>
+                                 {s}
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+                      )}
+                   </div>
+                )}
+
+                {/* Jewel Specific View */}
+                {selectedItem.category === 'Jewel' && (
+                   <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                         <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <p className="text-[10px] font-black text-gray-500 uppercase mb-1">Stat Scaling Type</p>
+                            <p className="text-sm font-black text-white uppercase italic">{selectedItem.statType}</p>
+                         </div>
+                         <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <p className="text-[10px] font-black text-gray-500 uppercase mb-1">Available Sockets</p>
+                            <p className="text-sm font-black text-white uppercase italic">{selectedItem.slots.join(', ')}</p>
+                         </div>
+                      </div>
+                      <div className="space-y-3">
+                         <h5 className="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Resonance Bonuses</h5>
+                         <div className="p-7 bg-white/5 rounded-[2.5rem] border border-white/5 space-y-4">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                               <span className="text-[11px] font-black text-blue-400 uppercase">LV 16</span>
+                               <span className="text-[12px] font-bold text-white italic">{selectedItem.bonus16}</span>
+                            </div>
+                            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                               <span className="text-[11px] font-black text-orange-400 uppercase">LV 28</span>
+                               <span className="text-[12px] font-bold text-white italic">{selectedItem.bonus28}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                               <span className="text-[11px] font-black text-red-500 uppercase">LV 40</span>
+                               <span className="text-[12px] font-bold text-white italic">{selectedItem.bonus40 || "Unknown Prototype"}</span>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                )}
+
               </div>
-              <Tooltip text="Close Uplink"><button onClick={() => { setSelectedRelic(null); playSfx('click'); }} className="p-5 bg-white/5 rounded-full border border-white/10 active:scale-90 transition-transform hover:bg-white/10 hover:border-white/20"><X size={32}/></button></Tooltip>
             </div>
             
-            <div className="space-y-10 pb-24">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] shadow-2xl relative overflow-hidden group">
-                     <div className="absolute -top-6 -right-6 p-12 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity"><RelicIcon type={selectedRelic.iconType} className="w-48 h-48" /></div>
-                     <h4 className="text-[11px] font-black text-orange-500 uppercase mb-6 tracking-[0.3em] flex items-center gap-3"><Activity size={20}/> Primary Attribute</h4>
-                     <p className="text-3xl font-black text-white italic drop-shadow-lg">{selectedRelic.effect}</p>
-                     <div className="mt-8 p-6 bg-white/5 rounded-3xl border border-white/5">
-                        <p className="text-[9px] font-black text-gray-500 uppercase mb-3 tracking-widest">Synergy Set</p>
-                        <p className="text-[14px] font-bold text-gray-300 italic">{selectedRelic.setBonus || 'Universal Alignment'}</p>
-                     </div>
-                  </div>
-                  
-                  {selectedRelic.lore && (
-                    <div className="p-10 bg-blue-900/5 border border-blue-500/10 rounded-[3.5rem] ring-1 ring-blue-500/5">
-                      <h4 className="text-[10px] font-black text-blue-500 uppercase mb-6 tracking-widest flex items-center gap-2"><BookOpen size={16}/> Artifact Chronology</h4>
-                      <p className="text-[13px] text-gray-400 leading-[1.8] font-medium italic">"{selectedRelic.lore}"</p>
-                    </div>
-                  )}
-                  
-                  {selectedRelic.source && (
-                    <div className="p-8 bg-white/5 border border-white/5 rounded-[3rem]">
-                       <h4 className="text-[10px] font-black text-gray-600 uppercase mb-4 tracking-widest flex items-center gap-2"><MapPin size={16}/> Fragment Synthesis</h4>
-                       <p className="text-[13px] font-bold text-orange-500">{selectedRelic.source}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] shadow-2xl relative">
-                  <h4 className="text-[11px] font-black text-purple-500 uppercase mb-8 tracking-[0.3em] flex items-center gap-3"><Sparkles size={20}/> Star Level Calibration</h4>
-                  <div className="space-y-4">
-                    {selectedRelic.stars?.map((star, idx) => (
-                      <div key={idx} className="p-5 bg-white/5 border border-white/5 rounded-[1.5rem] flex items-center gap-4 group hover:border-purple-500/30 transition-all">
-                        <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center border border-purple-500/20 text-purple-500">
-                           <Star size={16} fill={idx < 2 ? "currentColor" : "none"} />
-                        </div>
-                        <p className="text-[12px] font-black text-gray-200 uppercase italic tracking-tight">{star}</p>
-                      </div>
-                    ))}
-                    {!selectedRelic.stars && <p className="text-center text-gray-600 italic py-12">Calibration data unavailable for this tier.</p>}
-                  </div>
-                </div>
-              </div>
+            <div className="mt-14 pt-10 border-t border-white/5 flex items-center justify-between opacity-30">
+               <div className="flex items-center gap-3">
+                  <Terminal size={14} className="text-orange-500" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">System Signature: v6.3.0_ZVA</span>
+               </div>
+               <p className="text-[8px] font-bold text-gray-700">© 2025 ZV ARMORY CORE</p>
             </div>
           </div>
         </div>

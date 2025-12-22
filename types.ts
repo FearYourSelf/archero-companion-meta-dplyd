@@ -1,6 +1,5 @@
 
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
-// Added 'Glyph' to GearCategory to support the full range of equipment categories used in constants.tsx
 export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Jewel' | 'Glyph';
 
 export interface RarityPerk {
@@ -16,19 +15,19 @@ export interface BaseItem {
   category: GearCategory;
   isGodTier?: boolean;
   mythicPerk?: string;
-  trivia?: string; // Mapped to "Did You Know?"
-  deepLogic?: string; // Mapped to "Strategist Insights"
+  trivia?: string;
+  deepLogic?: string;
   rarityPerks?: RarityPerk[];
-  bestPairs?: string[]; // Mapped to "Synergistic Gear"
+  bestPairs?: string[];
   drPercent?: string;
-  uniqueEffect?: string; // Special glow effect in UI
+  uniqueEffect?: string;
 }
 
 export interface Hero extends BaseItem {
   globalBonus120: string;
   bestSkin?: string;
   evo4Star?: string;
-  bio?: string; // Mapped to "Hero's Chronicle"
+  bio?: string;
   assistHeroes?: string[];
   shardCost?: string;
 }
@@ -36,10 +35,15 @@ export interface Hero extends BaseItem {
 export interface Jewel {
   id: string;
   name: string;
-  color: 'Red' | 'Blue' | 'Green' | 'Purple' | 'Yellow';
-  statPerLevel: string;
-  bonus16: string; // Hidden bonus at Level 16
-  bonus28: string; // Hidden bonus at Level 28
+  color: 'Red' | 'Blue' | 'Green' | 'Purple' | 'Yellow' | 'Teal';
+  statType: string;
+  baseStat: number;
+  statPerLevel: number;
+  slots: string[];
+  bonus16: string;
+  bonus28: string;
+  bonus40?: string;
+  lore?: string;
 }
 
 export interface Relic {
