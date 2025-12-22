@@ -56,7 +56,6 @@ const CustomSelect: React.FC<{
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    // Fix: renamed removeAccessListener to removeEventListener
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
@@ -188,7 +187,13 @@ const App: React.FC = () => {
   const relicFilterScrollRef = useRef<HTMLDivElement>(null);
   const jewelFilterScrollRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef({ isDragging: false, moved: false, startX: 0, startY: 0, lastX: 0, lastTime: Date.now(), velocity: 0, scrollLeft: 0, scrollTop: 0, mode: 'both' as 'both' | 'horizontal', targetRef: null as any });
+  const dragRef = useRef({ 
+    isDragging: false, 
+    moved: false, 
+    startX: 0, 
+    scrollLeft: 0, 
+    targetRef: null as React.RefObject<HTMLElement | null> | null 
+  });
 
   const playSfx = (type: 'click' | 'hover' | 'tab' | 'msg' | 'error') => {
     if (soundEnabled) {
@@ -197,40 +202,49 @@ const App: React.FC = () => {
     }
   };
 
-  const handleDragStart = (e: React.MouseEvent, ref: React.RefObject<HTMLElement | null>, mode: 'both' | 'horizontal' = 'both') => {
+  const handleDragStart = (e: React.MouseEvent, ref: React.RefObject<HTMLElement | null>) => {
     if (!ref.current) return;
     const target = e.target as HTMLElement;
-    if (target.closest('button, input, select, textarea, a')) return;
+    // Allow dragging only if we're not clicking a specific interactive child element directly
+    if (target.closest('input, select, textarea, a')) return;
+    
     ref.current.style.scrollBehavior = 'auto';
-    dragRef.current = { isDragging: true, moved: false, startX: e.pageX, startY: e.pageY, lastX: e.pageX, lastTime: Date.now(), velocity: 0, scrollLeft: ref.current.scrollLeft, scrollTop: ref.current.scrollTop, mode, targetRef: ref };
-  };
-
-  const handleDragMove = (e: React.MouseEvent) => {
-    const d = dragRef.current;
-    if (!d.isDragging || !d.targetRef?.current) return;
-    if (e.buttons !== 1) { handleDragEnd(); return; }
-    const ref = d.targetRef.current;
-    const now = Date.now();
-    const dx = (e.pageX - d.startX) * 1.5; 
-    if (Math.abs(dx) > 3) {
-      if (!d.moved) d.moved = true;
-      e.preventDefault();
-      if (d.mode === 'horizontal') ref.scrollLeft = d.scrollLeft - dx;
-      d.lastX = e.pageX; d.lastTime = now;
-    }
-  };
-
-  const handleDragEnd = () => {
-    const d = dragRef.current;
-    if (d.isDragging) {
-      const ref = d.targetRef?.current;
-      if (ref) ref.style.scrollBehavior = 'smooth';
-      d.isDragging = false;
-    }
+    dragRef.current = { 
+      isDragging: true, 
+      moved: false, 
+      startX: e.pageX, 
+      scrollLeft: ref.current.scrollLeft, 
+      targetRef: ref 
+    };
   };
 
   useLayoutEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d.isDragging || !d.targetRef?.current) return;
+      
+      const ref = d.targetRef.current;
+      const dx = (e.pageX - d.startX) * 1.5; // Sensitivity multiplier
+      if (Math.abs(dx) > 3) {
+        d.moved = true;
+        ref.scrollLeft = d.scrollLeft - dx;
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      const d = dragRef.current;
+      if (d.isDragging) {
+        if (d.targetRef?.current) {
+          d.targetRef.current.style.scrollBehavior = 'smooth';
+        }
+        d.isDragging = false;
+      }
+    };
+
+    // Horizontal scroll wheel support for bars
     const bars = [navScrollRef.current, categoryScrollRef.current, farmFilterScrollRef.current, relicFilterScrollRef.current, jewelFilterScrollRef.current];
+    const wheelListeners: {el: HTMLElement, fn: (e: WheelEvent) => void}[] = [];
+
     bars.forEach(bar => {
       if (!bar) return;
       const onWheel = (e: WheelEvent) => {
@@ -242,8 +256,17 @@ const App: React.FC = () => {
         }
       };
       bar.addEventListener('wheel', onWheel, { passive: false });
+      wheelListeners.push({ el: bar, fn: onWheel });
     });
-    window.addEventListener('mouseup', handleDragEnd);
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      wheelListeners.forEach(({el, fn}) => el.removeEventListener('wheel', fn));
+    };
   }, [activeTab]);
 
   useEffect(() => { localStorage.setItem('archero_v6_tracker', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
@@ -392,6 +415,12 @@ const App: React.FC = () => {
     }
   };
 
+  const handleInteractiveClick = (e: React.MouseEvent, action: () => void) => {
+    // If the user was dragging, don't trigger the click action
+    if (dragRef.current.moved) return;
+    action();
+  };
+
   return (
     <div className="h-screen w-full bg-[#030712] text-gray-100 flex flex-col font-sans max-w-3xl mx-auto relative overflow-hidden border-x border-white/5 shadow-4xl">
       
@@ -435,11 +464,19 @@ const App: React.FC = () => {
                     <input type="text" placeholder="Search archives..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
                 </div>
-                <div ref={categoryScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x draggable-content touch-pan-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, categoryScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                <div 
+                  ref={categoryScrollRef} 
+                  className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x draggable-content touch-pan-x flex-nowrap" 
+                  onMouseDown={(e) => handleDragStart(e, categoryScrollRef)}
+                >
                   {['All', ...displayOrder].map(cat => {
                     const Icon = categoryIcons[cat] || Package;
                     return (
-                      <button key={cat} onClick={() => { setCategoryFilter(cat as any); playSfx('click'); }} className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${categoryFilter === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>
+                      <button 
+                        key={cat} 
+                        onClick={(e) => handleInteractiveClick(e, () => { setCategoryFilter(cat as any); playSfx('click'); })} 
+                        className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${categoryFilter === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
+                      >
                         <Icon size={12} /> {cat}
                       </button>
                     );
@@ -454,24 +491,54 @@ const App: React.FC = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={16} />
                     <input type="text" placeholder="Search chapters or resources..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-2.5 pl-11 pr-4 text-[10px] font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" value={farmingSearch} onChange={(e) => setFarmingSearch(e.target.value)} />
                   </div>
-                  <div ref={farmFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, farmFilterScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                  <div 
+                    ref={farmFilterScrollRef} 
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" 
+                    onMouseDown={(e) => handleDragStart(e, farmFilterScrollRef)}
+                  >
                     {['All', 'Gear', 'Gold', 'Shards', 'Jewels', 'Runes', 'Exp'].map(cat => (
-                      <button key={cat} onClick={() => { setFarmingCategory(cat as any); playSfx('click'); }} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${farmingCategory === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{cat}</button>
+                      <button 
+                        key={cat} 
+                        onClick={(e) => handleInteractiveClick(e, () => { setFarmingCategory(cat as any); playSfx('click'); })} 
+                        className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${farmingCategory === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
+                      >
+                        {cat}
+                      </button>
                     ))}
                   </div>
                 </div>
              )}
              {activeTab === 'relics' && (
-                <div ref={relicFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, relicFilterScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                <div 
+                  ref={relicFilterScrollRef} 
+                  className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" 
+                  onMouseDown={(e) => handleDragStart(e, relicFilterScrollRef)}
+                >
                   {['All', 'Holy', 'Radiant', 'Faint'].map(t => (
-                    <button key={t} onClick={() => { setRelicTierFilter(t as any); playSfx('click'); }} className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{t} Archive</button>
+                    <button 
+                      key={t} 
+                      onClick={(e) => handleInteractiveClick(e, () => { setRelicTierFilter(t as any); playSfx('click'); })} 
+                      className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
+                    >
+                      {t} Archive
+                    </button>
                   ))}
                 </div>
              )}
              {activeTab === 'jewels' && (
-                <div ref={jewelFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, jewelFilterScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+                <div 
+                  ref={jewelFilterScrollRef} 
+                  className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" 
+                  onMouseDown={(e) => handleDragStart(e, jewelFilterScrollRef)}
+                >
                   {['All', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Spellbook'].map(slot => (
-                    <button key={slot} onClick={() => { setJewelFilterSlot(slot); playSfx('click'); }} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${jewelFilterSlot === slot ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{slot} Sockets</button>
+                    <button 
+                      key={slot} 
+                      onClick={(e) => handleInteractiveClick(e, () => { setJewelFilterSlot(slot); playSfx('click'); })} 
+                      className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${jewelFilterSlot === slot ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
+                    >
+                      {slot} Sockets
+                    </button>
                   ))}
                 </div>
              )}
@@ -505,6 +572,72 @@ const App: React.FC = () => {
                     </div>
                   );
                })}
+            </div>
+          )}
+
+          {/* TAB CONTENT: VS (GEAR COMPARISON) */}
+          {activeTab === 'vs' && (
+            <div className="space-y-10 animate-in fade-in pb-12">
+               <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[3rem] text-center">
+                  <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Comparison Matrix</h4>
+                  <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">Side-by-Side Architectural Analysis</p>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-6">
+                    <CustomSelect 
+                      options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))}
+                      value={vsItemA}
+                      onChange={(v) => setVsItemA(v)}
+                      placeholder="Load Source A..."
+                    />
+                    {GEAR_DATA.find(g => g.id === vsItemA) && (
+                      <div className="animate-in slide-in-from-left-4 duration-500">
+                        <Card tier={GEAR_DATA.find(g => g.id === vsItemA)?.tier} className="min-h-[400px]">
+                           <Badge tier={GEAR_DATA.find(g => g.id === vsItemA)!.tier} />
+                           <h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemA)?.name}</h5>
+                           <div className="mt-8 space-y-6">
+                              <div>
+                                <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p>
+                                <p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk || "N/A"}</p>
+                              </div>
+                              <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                <p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p>
+                                <p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic || "Neural scan unavailable."}</p>
+                              </div>
+                           </div>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-6">
+                    <CustomSelect 
+                      options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))}
+                      value={vsItemB}
+                      onChange={(v) => setVsItemB(v)}
+                      placeholder="Load Source B..."
+                    />
+                    {GEAR_DATA.find(g => g.id === vsItemB) && (
+                      <div className="animate-in slide-in-from-right-4 duration-500">
+                        <Card tier={GEAR_DATA.find(g => g.id === vsItemB)?.tier} className="min-h-[400px]">
+                           <Badge tier={GEAR_DATA.find(g => g.id === vsItemB)!.tier} />
+                           <h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemB)?.name}</h5>
+                           <div className="mt-8 space-y-6">
+                              <div>
+                                <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p>
+                                <p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk || "N/A"}</p>
+                              </div>
+                              <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                <p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p>
+                                <p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic || "Neural scan unavailable."}</p>
+                              </div>
+                           </div>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+               </div>
             </div>
           )}
 
@@ -989,7 +1122,11 @@ const App: React.FC = () => {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950/98 backdrop-blur-3xl border-t border-white/5 p-4 flex flex-col items-center shadow-2xl">
-        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x" onMouseDown={(e) => handleDragStart(e, navScrollRef, 'horizontal')} onMouseMove={handleDragMove}>
+        <div 
+          ref={navScrollRef} 
+          className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" 
+          onMouseDown={(e) => handleDragStart(e, navScrollRef)}
+        >
           {[
             { id: 'meta', icon: LayoutGrid, label: 'Archive' },
             { id: 'tracker', icon: Target, label: 'Sync' },
@@ -1005,7 +1142,11 @@ const App: React.FC = () => {
             { id: 'relics', icon: Box, label: 'Relic' },
             { id: 'ai', icon: MessageSquare, label: 'Grandmaster' },
           ].map(t => (
-            <button key={t.id} onClick={() => handleTabChange(t.id as any)} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}>
+            <button 
+              key={t.id} 
+              onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} 
+              className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}
+            >
               <t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} />
               <span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span>
             </button>

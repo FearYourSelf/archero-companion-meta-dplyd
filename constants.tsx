@@ -52,30 +52,113 @@ export const HERO_DATA: Hero[] = [
 ];
 
 export const GEAR_DATA: BaseItem[] = [
-  { 
-    id: 'exp_fist', name: 'Expedition Fist', tier: 'SSS', category: 'Weapon', desc: 'Divine hybrid boxing weapon.', 
-    mythicPerk: 'Titan Tales: Weapon Damage +15%', deepLogic: 'Melee hits heal 15% of damage dealt. Fast melee mode resets on dodge.', 
-    bestPairs: ['Expedition Plate'], drPercent: '5% (Melee)', trivia: 'The highest burst weapon in the SSS category.',
-    rarityPerks: [
-      { rarity: 'Epic', effect: 'Melee attacks apply a small knockback.' },
-      { rarity: 'Mythic', effect: 'Speed of melee attacks increases by 10%.' }
-    ]
-  },
-  { 
-    id: 'celestial_hammer', name: 'Celestial Hammer', tier: 'SSS', category: 'Weapon', desc: 'Heavy hammer of lightning.', 
-    mythicPerk: 'Titan Tales: No cooldown for mode switch.', deepLogic: 'Charged Strike ignores shields. Standing still buffs DR.', 
-    bestPairs: ['Celestial Warplate'], uniqueEffect: 'Thunder Smash: Creates a shockwave on crit.',
-    rarityPerks: [
-      { rarity: 'Legendary', effect: 'Lightning jumps to 2 additional targets.' }
-    ]
-  },
-  { id: 'ant_sword', name: 'Antiquated Sword', tier: 'SS', category: 'Weapon', desc: 'Form-shifting relic.', mythicPerk: 'Whirlwind reflects 30% damage.', deepLogic: 'Parry active skill negates hits every 8s.', bestPairs: ['Giant\'s Contract'] },
-  { id: 'demon_blade', name: 'Demon Blade', tier: 'SS', category: 'Weapon', desc: 'Cursed katana.', mythicPerk: 'Shadows inherit 100% Ele Dmg.', deepLogic: 'Melee deals 1.8x ranged damage.', bestPairs: ['Helix'] },
-  { id: 'c_warplate', name: 'Celestial Warplate', tier: 'SSS', category: 'Armor', desc: 'Armor forged from stars.', mythicPerk: 'Collision Resistance +20%.', deepLogic: 'Collision DR is extremely rare. Vital for bosses.', bestPairs: ['Celestial Hammer'], drPercent: '10%' },
-  { id: 'p_cloak', name: 'Phantom Cloak', tier: 'SS', category: 'Armor', desc: 'Freezes attackers.', mythicPerk: 'Frozen enemies take +30% damage.', deepLogic: 'Best defensive item for Boss chapters.', bestPairs: ['Dragon Ring'] },
-  { id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', desc: 'Dragon essence.', mythicPerk: 'Proj Resist +13.8%.', deepLogic: 'Core item for 100% Immunity builds.', bestPairs: ['Bulletproof Locket'], drPercent: '13.8% (Projectile)' },
-  { id: 'bull_ring', name: 'Bull Ring', tier: 'S', category: 'Ring', desc: 'DR and gold.', mythicPerk: 'DR +10% & Gold +10%.', deepLogic: 'Best for farming and general survival.', trivia: 'Stacks additively with other DR.', drPercent: '10%' },
-  { id: 'arc_time', name: 'Arcanum of Time', tier: 'SSS', category: 'Book', desc: 'Temporal flow book.', mythicPerk: 'Activation duration +1s.', deepLogic: 'Freezes projectiles in place. Allows shotgunning bosses.', bestPairs: ['Wukong'], uniqueEffect: 'Time Dilation: Enemies move 50% slower during active.' }
+  // --- WEAPONS ---
+  { id: 'exp_fist', name: 'Expedition Fist', tier: 'SSS', category: 'Weapon', desc: 'Hybrid Fist.', mythicPerk: 'Titan: Weapon Dmg +15% (Final Multiplier).', deepLogic: 'Melee hits heal 15% Dmg. Maintains Combo stacks while moving.' },
+  { id: 'celestial_hammer', name: 'Celestial Hammer', tier: 'SSS', category: 'Weapon', desc: 'Lightning Hammer.', mythicPerk: 'Titan: Perpetual Charge.', deepLogic: 'Lightning form pierces walls. Pairs with Warplate for Chain Lightning.' },
+  { id: 'ant_sword', name: 'Antiquated Sword', tier: 'SS', category: 'Weapon', desc: 'Greatsword.', mythicPerk: 'Titan: Whirlwind Reflects 30% Dmg.', deepLogic: 'Broadsword has hidden +40% Dmg vs Bosses.' },
+  { id: 'demon_blade', name: 'Demon Blade', tier: 'SS', category: 'Weapon', desc: 'Katana.', mythicPerk: 'Titan: Shadows inherit 100% Element.', deepLogic: 'Melee hits deal 1.8x damage. Do NOT take Front Arrow.' },
+  { id: 'stalker_staff', name: 'Stalker Staff', tier: 'S', category: 'Weapon', desc: 'Staff.', mythicPerk: 'Titan: +15% Flight Speed.', deepLogic: 'Best for Bosses. Stack Diagonal Arrows.' },
+  { id: 'brightspear', name: 'Brightspear', tier: 'A', category: 'Weapon', desc: 'Laser.', mythicPerk: 'Titan: Beam splits to 2 targets.' },
+  { id: 'death_scythe', name: 'Death Scythe', tier: 'A', category: 'Weapon', desc: 'Scythe.', mythicPerk: 'Titan: Execute threshold <35% HP.' },
+  { id: 'tornado', name: 'Tornado', tier: 'A', category: 'Weapon', desc: 'Boomerang. Built-in Pierce and Ricochet.' },
+  { id: 'gale_force', name: 'Gale Force', tier: 'B', category: 'Weapon', desc: 'Crossbow. Charged Shot.' },
+  { id: 'saw_blade', name: 'Saw Blade', tier: 'C', category: 'Weapon', desc: 'Dagger. Fastest Attack Speed.' },
+  { id: 'brave_bow', name: 'Brave Bow', tier: 'C', category: 'Weapon', desc: 'Bow.', mythicPerk: 'Titan: High Crit Synergy.' },
+  { id: 'mini_atreus', name: 'Mini Atreus', tier: 'D', category: 'Weapon', desc: 'Meme Weapon. Just for fun.' },
+
+  // --- ARMOR ---
+  { id: 'c_warplate', name: 'Celestial Warplate', tier: 'SSS', category: 'Armor', desc: 'Lightning Plate.', mythicPerk: 'Titan: Collision Resist +20%.', deepLogic: 'Converts dmg to Heavenly Energy. Best for wave chapters.' },
+  { id: 'exp_plate', name: 'Expedition Plate', tier: 'SSS', category: 'Armor', desc: 'Heart Plate.', mythicPerk: 'Titan: Heart Drop +20%.', deepLogic: 'Picking up hearts grants Invincibility Shield.' },
+  { id: 'p_cloak', name: 'Phantom Cloak', tier: 'SS', category: 'Armor', desc: 'Ice Cloak.', mythicPerk: 'Titan: Freeze +2.5s. Frozen enemies take +30% Dmg.', deepLogic: 'Meta for Boss chapters.' },
+  { id: 'bright_robe', name: 'Bright Robe', tier: 'A', category: 'Armor', desc: 'Front Dmg Resistance + XP Boost.' },
+  { id: 'shadow_robe', name: 'Shadow Robe', tier: 'A', category: 'Armor', desc: 'Deals Dark damage to nearby enemies.' },
+  { id: 'void_robe', name: 'Void Robe', tier: 'B', category: 'Armor', desc: 'Poisons all enemies in room.' },
+  { id: 'vest_dex', name: 'Vest of Dexterity', tier: 'B', category: 'Armor', desc: 'Dodge Vest.', deepLogic: '+7% Dodge.' },
+  { id: 'golden_chest', name: 'Golden Chestplate', tier: 'C', category: 'Armor', desc: 'Flame Chest.', mythicPerk: 'Titan: 5% Dmg Reduction.' },
+
+  // --- RINGS ---
+  { id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', desc: 'Proj Resist.', mythicPerk: 'Titan: Proj Resist +13.8%.', deepLogic: 'Essential for Immunity Build. Stacks additively.' },
+  { id: 'celestial_ring', name: 'Celestial Band', tier: 'SS', category: 'Ring', desc: 'Lightning Ring.', mythicPerk: 'Titan: Collision Resist +15%.', deepLogic: 'Chain Lightning scales with S-Locket.' },
+  { id: 'bull_ring', name: 'Bull Ring', tier: 'S', category: 'Ring', desc: 'Tank Ring.', mythicPerk: 'Titan: Dmg Resist +10%.', deepLogic: 'Best for farming Gold. DR applies after Proj Resist.' },
+  { id: 'lion_ring', name: 'Lion Ring', tier: 'S', category: 'Ring', desc: 'Boss Ring.', mythicPerk: 'Titan: Crit Dmg +20%.', deepLogic: 'Pure DPS. Mandatory for Boss Chapters.' },
+  { id: 'vilebat_ring', name: 'Vilebat Ring', tier: 'A', category: 'Ring', desc: 'Heal on Kill.' },
+  { id: 'wolf_ring', name: 'Wolf Ring', tier: 'B', category: 'Ring', desc: 'Melee Crit Chance.' },
+  { id: 'serpent_ring', name: 'Serpent Ring', tier: 'B', category: 'Ring', desc: 'Dodge Chance +7%.' },
+  { id: 'falcon_ring', name: 'Falcon Ring', tier: 'C', category: 'Ring', desc: 'Attack Speed +5%.' },
+  { id: 'bear_ring', name: 'Bear Ring', tier: 'C', category: 'Ring', desc: 'HP + Ground Dmg.' },
+
+  // --- BRACELETS ---
+  { id: 'celestial_bracer', name: 'Celestial Bracer', tier: 'SS', category: 'Bracelet', desc: 'Lightning.', mythicPerk: 'Titan: Lightning Dmg +20%.' },
+  { id: 'shield_bracer', name: 'Shield Bracelet', tier: 'SS', category: 'Bracelet', desc: 'Shield.', mythicPerk: 'Titan: Atk +12%.' },
+  { id: 'invincible', name: 'Invincible Bracelet', tier: 'S', category: 'Bracelet', desc: 'Invincibility.', deepLogic: '2.5s God Mode on room entry.' },
+  { id: 'quickshot', name: 'Quickshot Bracelet', tier: 'A', category: 'Bracelet', desc: 'Multishot.' },
+  { id: 'thunder_bracer', name: 'Thunder Bracelet', tier: 'B', category: 'Bracelet', desc: 'Zap.' },
+  { id: 'frozen_bracer', name: 'Frozen Bracelet', tier: 'B', category: 'Bracelet', desc: 'Freeze.' },
+  { id: 'blazing_bracer', name: 'Blazing Bracelet', tier: 'C', category: 'Bracelet', desc: 'Fire.' },
+  { id: 'split_bracer', name: 'Split Bracelet', tier: 'C', category: 'Bracelet', desc: 'Clones.' },
+
+  // --- LOCKETS ---
+  { id: 'bulletproof', name: 'Bulletproof Locket', tier: 'SS', category: 'Locket', desc: 'Proj Tank.', mythicPerk: 'Titan: +15% Proj Resist (<25% HP).', deepLogic: 'Key to 100% Immunity.' },
+  { id: 'celestial_talisman', name: 'Celestial Talisman', tier: 'SS', category: 'Locket', desc: 'MP Gen.', deepLogic: 'Best for Mana-hungry heroes.' },
+  { id: 'exp_locket', name: 'Expedition Locket', tier: 'S', category: 'Locket', desc: 'Revive.', mythicPerk: 'Titan: Atk +25% after heal.' },
+  { id: 'angel', name: 'Angel Locket', tier: 'A', category: 'Locket', desc: 'Revive Chance.' },
+  { id: 'bloodthirsty', name: 'Bloodthirsty Locket', tier: 'A', category: 'Locket', desc: 'Lifesteal.' },
+  { id: 'agile', name: 'Agile Locket', tier: 'B', category: 'Locket', desc: 'Dodge.', deepLogic: 'Dodge at low HP.' },
+  { id: 'counterattack', name: 'Counterattack Charm', tier: 'C', category: 'Locket', desc: 'Reflect.' },
+  { id: 'iron', name: 'Iron Locket', tier: 'C', category: 'Locket', desc: 'Collision.' },
+  { id: 'piercer', name: 'Piercer Locket', tier: 'C', category: 'Locket', desc: 'Wall Pass.' },
+
+  // --- BOOKS ---
+  { id: 'enlightenment', name: 'Enlightenment', tier: 'SS', category: 'Book', desc: 'Skills.', mythicPerk: 'Titan: Dmg Resist +5%.', deepLogic: 'Best for Infinite Adventure. Breaks RNG limit.' },
+  { id: 'arcanum', name: 'Arcanum of Time', tier: 'SS', category: 'Book', desc: 'Time Stop.', mythicPerk: 'Titan: Duration +1s.', deepLogic: 'Freezes projectiles. Ultimate defense.' },
+  { id: 'giant', name: 'Giants Contract', tier: 'S', category: 'Book', desc: 'Melee.', deepLogic: 'Synergy King with Demon Blade/Fist.' },
+  { id: 'art_combat', name: 'Art of Combat', tier: 'A', category: 'Book', desc: 'Knockback.' },
+  { id: 'arcane_archer', name: 'Arcane Archer', tier: 'A', category: 'Book', desc: 'Arrows.', mythicPerk: 'Titan: Duration +1s.' },
+  { id: 'ice_realm', name: 'Ice Realm', tier: 'B', category: 'Book', desc: 'Freeze.' },
+  { id: 'spectre', name: 'Spectre Book', tier: 'C', category: 'Book', desc: 'Summons.' },
+  { id: 'peach', name: 'Peach Book', tier: 'C', category: 'Book', desc: 'Heal.' },
+
+  // --- SPIRITS ---
+  { id: 'laser_bat', name: 'Laser Bat', tier: 'A', category: 'Spirit', desc: 'Wall Pierce.', deepLogic: 'Shoots through walls. Best for applying Element debuffs safely.' },
+  { id: 'noisy_owl', name: 'Noisy Owl', tier: 'A', category: 'Spirit', desc: 'Knockback.', deepLogic: 'Good for knockback, but can mess up melee grouping.' },
+  { id: 'flaming_ghost', name: 'Flaming Ghost', tier: 'B', category: 'Spirit', desc: 'Pierce.', deepLogic: 'Decent on-hit effects.' },
+  { id: 'scythe_mage', name: 'Scythe Mage', tier: 'C', category: 'Spirit', desc: 'Bounce.' },
+  { id: 'elf', name: 'Elf', tier: 'C', category: 'Spirit', desc: 'Fast Atk.' },
+  { id: 'living_bomb', name: 'Living Bomb', tier: 'D', category: 'Spirit', desc: 'Useless.' },
+
+  // --- DRAGONS ---
+  { id: 'magmar', name: 'Magmar', tier: 'SS', category: 'Dragon', dragonType: 'Attack', desc: 'Mana Regen.' },
+  { id: 'starrite', name: 'Starrite', tier: 'SS', category: 'Dragon', dragonType: 'Balance', desc: 'Meteors.' },
+  { id: 'voideon', name: 'Voideon', tier: 'SS', category: 'Dragon', dragonType: 'Defense', desc: 'Portals.' },
+  { id: 'necrogon', name: 'Necrogon', tier: 'S', category: 'Dragon', dragonType: 'Balance', desc: 'Proj Resist.' },
+  { id: 'shadex', name: 'Shadex', tier: 'S', category: 'Dragon', dragonType: 'Defense', desc: 'Collision Immune.' },
+  { id: 'geogon', name: 'Geogon', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Rock Shield.' },
+  { id: 'stormra', name: 'Stormra', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Lightning.' },
+  { id: 'jadeon', name: 'Jadeon', tier: 'B', category: 'Dragon', dragonType: 'Balance', desc: 'Gold.' },
+  { id: 'ferron', name: 'Ferron', tier: 'B', category: 'Dragon', dragonType: 'Attack', desc: 'Slash.' },
+  { id: 'noxion', name: 'Noxion', tier: 'C', category: 'Dragon', dragonType: 'Defense', desc: 'Poison.' },
+  { id: 'glaciem', name: 'Glaciem', tier: 'C', category: 'Dragon', dragonType: 'Balance', desc: 'Ice.' },
+
+  // --- PETS (New Ground Units) ---
+  { id: 'frothy', name: 'Frothy Capy', tier: 'SS', category: 'Pet', desc: 'Immunity Bubble.', deepLogic: 'Bubble = 100% Immunity.' },
+  { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Block %.' },
+  { id: 'blitzbeak', name: 'Furious Blitzbeak', tier: 'S', category: 'Pet', desc: 'Lightning.' },
+  { id: 'bone_warrior', name: 'Bone Warrior', tier: 'A', category: 'Pet', desc: 'Melee Tank.' },
+
+  // --- TOTEMS ---
+  { id: 'totem_might', name: 'Totem of Might', tier: 'SS', category: 'Totem', desc: 'Hero Stats %.' },
+  { id: 'totem_celerity', name: 'Totem of Celerity', tier: 'S', category: 'Totem', desc: 'Gear Stats %.' },
+  { id: 'totem_vigor', name: 'Totem of Vigor', tier: 'A', category: 'Totem', desc: 'HP.' },
+
+  // --- EGGS ---
+  { id: 'fire_demon', name: 'Fire Demon', tier: 'SS', category: 'Egg', desc: 'Crit Dmg +5%.' },
+  { id: 'ice_mage', name: 'Ice Mage', tier: 'S', category: 'Egg', desc: 'Airborne Dmg.' },
+  { id: 'scarlet_mage', name: 'Scarlet Mage', tier: 'S', category: 'Egg', desc: 'Crit Chance.' },
+
+  // --- GLYPHS ---
+  { id: 'glyph_devour', name: 'Glyph: Devour', tier: 'SS', category: 'Glyph', desc: 'Atk on Kill.' },
+  { id: 'glyph_ironclad', name: 'Glyph: Ironclad', tier: 'S', category: 'Glyph', desc: 'Rear Resist.' },
+  { id: 'glyph_potential', name: 'Glyph: Potential', tier: 'A', category: 'Glyph', desc: 'Level Speed.' }
 ];
 
 export const JEWEL_DATA: Jewel[] = [

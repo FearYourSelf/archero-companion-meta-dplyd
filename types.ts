@@ -21,6 +21,8 @@ export interface BaseItem {
   bestPairs?: string[];
   drPercent?: string;
   uniqueEffect?: string;
+  dragonType?: 'Attack' | 'Defense' | 'Balance';
+  [key: string]: any; // Allow for flexible metadata from new categories
 }
 
 export interface Hero extends BaseItem {
