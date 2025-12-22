@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -84,7 +83,7 @@ const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, 
 
 // --- Refined Tour Step Data ---
 const TOUR_STEPS = [
-  { target: 'tour-header', title: 'Grandmaster V4.0', content: 'Welcome to the 2025 tactical hub. We have overhauled every system for maximum efficiency.' },
+  { target: 'tour-header', title: 'ZA Armory GRANDMASTER', content: 'Welcome to the 2025 tactical hub. We have overhauled every system for maximum efficiency.' },
   { target: 'tour-nav-meta', title: 'Meta Registry', content: 'Browse the current Tier Lists for Heroes and Gear. Use "Deep Dive" for hidden logic and frame data.', tab: 'meta' },
   { target: 'tour-nav-tracker', title: 'Mastery Tracker', content: 'Mark your Level 120 progress here. The system will automatically synthesize your account-wide global bonuses.', tab: 'tracker' },
   { target: 'tour-nav-analyze', title: 'Neural Simulator', content: 'Input your hero and ATK stats. Our AI core will generate Chapter 80+ gear recommendations.', tab: 'analyze' },
@@ -558,9 +557,9 @@ const App: React.FC = () => {
       <header id="tour-header" className="bg-gray-950/90 backdrop-blur-2xl border-b border-white/5 p-5 shrink-0 z-50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <Tooltip text="Grandmaster V4: The ultimate tactical archive."><Trophy className="text-orange-500 w-7 h-7" /></Tooltip>
+            <Tooltip text="ZA Armory GRANDMASTER: The ultimate tactical archive."><Trophy className="text-orange-500 w-7 h-7" /></Tooltip>
             <div>
-              <h1 className="text-xl font-black italic text-white uppercase tracking-tighter leading-none">GRANDMASTER V4</h1>
+              <h1 className="text-xl font-black italic text-white uppercase tracking-tighter leading-none">ZA Armory GRANDMASTER</h1>
               <p className="text-[8px] text-orange-500 font-bold tracking-[0.3em] uppercase mt-1">Advanced Tactical Hub</p>
             </div>
           </div>
