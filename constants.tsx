@@ -10,7 +10,34 @@ export const HERO_DATA: Hero[] = [
     bio: 'A celestial entity who descended to purge the darkness with righteous thunder.',
     bestSkin: 'Olympus Overlord', shardCost: '50 (Premium)', assistHeroes: ['Wukong', 'Stella'],
     trivia: 'Currently the highest DPS hero in the game for wave chapters.',
-    uniqueEffect: 'Thunder Chain: Hits bounce to 3 nearby enemies.'
+    uniqueEffect: 'Thunder Chain: Hits bounce to 3 nearby enemies.',
+    historicalTiers: [
+      { update: "v6.0 Launch", tier: "SSS" },
+      { update: "v6.1 Patch", tier: "SSS" },
+      { update: "v6.3 Current", tier: "SSS" }
+    ],
+    gearSets: [
+      {
+        name: "Celestial Stormlord",
+        weapon: "Celestial Hammer",
+        armor: "Celestial Warplate",
+        rings: ["Celestial Band", "Dragon Ring"],
+        bracelet: "Celestial Bracer",
+        locket: "Celestial Talisman",
+        book: "Arcanum of Time",
+        synergy: "Triggers Full Celestial Resonance. Lightning chain jumps are amplified by 40% and mana regen is doubled."
+      },
+      {
+        name: "Expedition Juggernaut",
+        weapon: "Expedition Fist",
+        armor: "Expedition Plate",
+        rings: ["Dragon Ring", "Dragon Ring"],
+        bracelet: "Shield Bracelet",
+        locket: "Expedition Locket",
+        book: "Arcanum of Time",
+        synergy: "Maximum damage resistance and healing. Invincibility shields trigger constantly from heart drops."
+      }
+    ]
   },
   { 
     id: 'wukong', name: 'Wukong', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+8% Attack', 
@@ -18,7 +45,34 @@ export const HERO_DATA: Hero[] = [
     evo4Star: 'Phantom Hair: Spawns mirror decoy every 10s.', bestPairs: ['Expedition Fist', 'Phantom Cloak'],
     bio: 'The Monkey King, escaped from his mountain prison to seek new challenges.',
     bestSkin: 'Cosmic Traveler', shardCost: '50 (Premium)', assistHeroes: ['Zeus', 'Dragon Girl'],
-    trivia: 'His clones count as "Spirits" for certain equipment buffs.'
+    trivia: 'His clones count as "Spirits" for certain equipment buffs.',
+    historicalTiers: [
+      { update: "v5.8 Intro", tier: "SS" },
+      { update: "v5.9 Buff", tier: "SSS" },
+      { update: "v6.3 Current", tier: "SSS" }
+    ],
+    gearSets: [
+      {
+        name: "King of Clones",
+        weapon: "Expedition Fist",
+        armor: "Phantom Cloak",
+        rings: ["Dragon Ring", "Bull Ring"],
+        bracelet: "Shield Bracelet",
+        locket: "Bulletproof Locket",
+        book: "Giants Contract",
+        synergy: "Close-range dominance. Phantom Cloak freezes enemies while the Fist combo destroys them in seconds."
+      },
+      {
+        name: "Thunder Monkey",
+        weapon: "Celestial Hammer",
+        armor: "Celestial Warplate",
+        rings: ["Celestial Band", "Lion Ring"],
+        bracelet: "Celestial Bracer",
+        locket: "Celestial Talisman",
+        book: "Arcanum of Time",
+        synergy: "Hybrid lightning/clone build. Excellent for clearing high-difficulty wave chapters."
+      }
+    ]
   },
   { 
     id: 'melinda', name: 'Melinda', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+5% Dmg to All Units', 
@@ -26,21 +80,66 @@ export const HERO_DATA: Hero[] = [
     evo4Star: 'Barrage gains homing effect.', bestPairs: ['Expedition Fist', 'Dragon Ring'],
     bio: 'A high-society sharpshooter who prefers the heat of battle to the ballroom.',
     bestSkin: 'Baker Melinda', shardCost: '50 (Premium)', assistHeroes: ['Iris', 'Elaine'],
-    trivia: 'Her Barrage skill is considered a "Physical" attack and benefits from raw ATK buffs.'
+    trivia: 'Her Barrage skill is considered a "Physical" attack and benefits from raw ATK buffs.',
+    historicalTiers: [
+      { update: "v4.2 Intro", tier: "S" },
+      { update: "v5.0 Mastery", tier: "SS" },
+      { update: "v6.3 Current", tier: "SSS" }
+    ],
+    gearSets: [
+      {
+        name: "Meta Barrage",
+        weapon: "Expedition Fist",
+        armor: "Phantom Cloak",
+        rings: ["Dragon Ring", "Dragon Ring"],
+        bracelet: "Quickshot Bracelet",
+        locket: "Bulletproof Locket",
+        book: "Arcanum of Time",
+        synergy: "The standard high-end meta. Maximizes projectile immunity and burst damage from low HP states."
+      },
+      {
+        name: "Speed Striker",
+        weapon: "Antiquated Sword",
+        armor: "Bright Robe",
+        rings: ["Lion Ring", "Dragon Ring"],
+        bracelet: "Invincible Bracelet",
+        locket: "Agile Locket",
+        book: "Giants Contract",
+        synergy: "High movement and attack speed. Focuses on using the sword's whirlwind to trigger Melinda's passive safely."
+      }
+    ]
   },
-  { id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Ranged', desc: 'Dragon companion warrior.', deepLogic: 'Hits trigger "Dragon Mark" for 200% burst.', evo4Star: 'Dragon Breath applies Burn.', bestPairs: ['Demon Blade'], bio: 'Raised by dragons in the forgotten peaks.', shardCost: '40 Shards' },
-  { id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: '+17% Crit Damage', desc: 'Meteor-calling monk.', deepLogic: 'Meteors scale with Skill Damage artifacts.', bestPairs: ['Brightspear'], bio: 'A monk from the Far East who controls the falling stars.', shardCost: '40 Shards' },
-  { id: 'stella', name: 'Stella', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Melee', desc: 'Star-weaver mage.', deepLogic: 'Star-power builds up to trigger a screen-wide supernova.', bestPairs: ['Celestial Hammer'], bio: 'She weaves the constellations into deadly weapons.', shardCost: '40 Shards' },
-  { id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: '+7% Max HP', desc: 'Cherry blossom shields.', deepLogic: 'Shields block contact damage and projectiles.', bestPairs: ['Expedition Plate'], bio: 'The guardian of the sacred sakura tree.', shardCost: '40 Shards' },
-  { id: 'iris', name: 'Iris', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack Speed', desc: 'The wind-born archer.', deepLogic: 'Increases dodge after moving 3 meters.', bestPairs: ['Vest of Dexterity'], shardCost: '30 Shards' },
-  { id: 'blazo', name: 'Blazo', tier: 'S', category: 'Hero', globalBonus120: '+6% Crit Rate', desc: 'Demonic gunslinger.', deepLogic: 'Overheat mechanic triples damage but slows movement.', bestPairs: ['Demon Blade'], shardCost: '30 Shards' },
-  { id: 'shingen', name: 'Shingen', tier: 'S', category: 'Hero', globalBonus120: '+10% Crit Damage', desc: 'The blade master.', deepLogic: 'Attacks faster as he hits the same enemy.', bestPairs: ['Demon Blade'], shardCost: '30 Shards' },
-  { id: 'lina', name: 'Lina', tier: 'S', category: 'Hero', globalBonus120: '+5% Dmg to Grounded', desc: 'Summons dancers.', deepLogic: 'Dancers apply a stacking slow to all enemies.', bestPairs: ['Brightspear'], shardCost: '30 Shards' },
-  { id: 'gugu', name: 'Gugu', tier: 'S', category: 'Hero', globalBonus120: '+20% Healing Effect', desc: 'Owl guardian.', deepLogic: 'Birds provide 30% damage reduction shields.', bestPairs: ['Bull Ring'], shardCost: 'Free (Guild Store)' },
-  { id: 'shade', name: 'Shade', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', desc: 'The shadow assassin.', deepLogic: 'Shadow form grants +75% Attack Speed and +25% Dmg.', bestPairs: ['Demon Blade'], shardCost: '30 Shards' },
-  { id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: '+5% Max HP', desc: 'Elf prince.', deepLogic: 'Removes elemental skills from RNG pool, inherent elemental master.', bestPairs: ['Brightspear'], shardCost: '30 Shards' },
-  { id: 'helix', name: 'Helix', tier: 'S', category: 'Hero', globalBonus120: '+6% Max HP', desc: 'The OG Fury king.', deepLogic: 'Damage increases as HP drops. Highest stability.', bestPairs: ['Demon Blade'], bio: 'The son of a legendary warrior who draws power from his wounds.', shardCost: '1500 Gems' },
-  { id: 'meowgik', name: 'Meowgik', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', desc: 'The kitten mage.', deepLogic: 'Spawns homing kittens that ignore walls.', bestPairs: ['Brightspear'], shardCost: '1800 Gems' },
+  { id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Ranged', desc: 'Dragon companion warrior.', deepLogic: 'Hits trigger "Dragon Mark" for 200% burst.', evo4Star: 'Dragon Breath applies Burn.', bestPairs: ['Demon Blade'], bio: 'Raised by dragons in the forgotten peaks.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "SS"}] },
+  { id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: '+17% Crit Damage', desc: 'Meteor-calling monk.', deepLogic: 'Meteors scale with Skill Damage artifacts.', bestPairs: ['Brightspear'], bio: 'A monk from the Far East who controls the falling stars.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "S"}, {update: "Buff", tier: "SS"}] },
+  { id: 'stella', name: 'Stella', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Melee', desc: 'Star-weaver mage.', deepLogic: 'Star-power builds up to trigger a screen-wide supernova.', bestPairs: ['Celestial Hammer'], bio: 'She weaves the constellations into deadly weapons.', shardCost: '40 Shards', historicalTiers: [{update: "v5.5", tier: "S"}, {update: "v6.3", tier: "SS"}] },
+  { id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: '+7% Max HP', desc: 'Cherry blossom shields.', deepLogic: 'Shields block contact damage and projectiles.', bestPairs: ['Expedition Plate'], bio: 'The guardian of the sacred sakura tree.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "A"}, {update: "Skin release", tier: "SS"}] },
+  { id: 'iris', name: 'Iris', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack Speed', desc: 'The wind-born archer.', deepLogic: 'Increases dodge after moving 3 meters.', bestPairs: ['Vest of Dexterity'], shardCost: '30 Shards', historicalTiers: [{update: "Launch", tier: "A"}, {update: "v6.3", tier: "S"}] },
+  { id: 'blazo', name: 'Blazo', tier: 'S', category: 'Hero', globalBonus120: '+6% Crit Rate', desc: 'Demonic gunslinger.', deepLogic: 'Overheat mechanic triples damage but slows movement.', bestPairs: ['Demon Blade'], shardCost: '30 Shards', historicalTiers: [{update: "v4.0", tier: "SSS"}, {update: "Nerf", tier: "SS"}, {update: "Current", tier: "S"}] },
+  { id: 'shingen', name: 'Shingen', tier: 'S', category: 'Hero', globalBonus120: '+10% Crit Damage', desc: 'The blade master.', deepLogic: 'Attacks faster as he hits the same enemy.', bestPairs: ['Demon Blade'], shardCost: '30 Shards', historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "S"}] },
+  { id: 'lina', name: 'Lina', tier: 'S', category: 'Hero', globalBonus120: '+5% Dmg to Grounded', desc: 'Summons dancers.', deepLogic: 'Dancers apply a stacking slow to all enemies.', bestPairs: ['Brightspear'], shardCost: '30 Shards', historicalTiers: [{update: "v3.0", tier: "SSS"}, {update: "v6.3", tier: "S"}] },
+  { id: 'gugu', name: 'Gugu', tier: 'S', category: 'Hero', globalBonus120: '+20% Healing Effect', desc: 'Owl guardian.', deepLogic: 'Birds provide 30% damage reduction shields.', bestPairs: ['Bull Ring'], shardCost: 'Free (Guild Store)', historicalTiers: [{update: "Nerf", tier: "A"}, {update: "Relic buff", tier: "S"}] },
+  { id: 'shade', name: 'Shade', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', desc: 'The shadow assassin.', deepLogic: 'Shadow form grants +75% Attack Speed and +25% Dmg.', bestPairs: ['Demon Blade'], shardCost: '30 Shards', historicalTiers: [{update: "v2.0", tier: "SSS"}, {update: "v6.3", tier: "S"}] },
+  { id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: '+5% Max HP', desc: 'Elf prince.', deepLogic: 'Removes elemental skills from RNG pool, inherent elemental master.', bestPairs: ['Brightspear'], shardCost: '30 Shards', historicalTiers: [{update: "v1.8", tier: "SSS"}, {update: "v6.3", tier: "S"}] },
+  { id: 'helix', name: 'Helix', tier: 'S', category: 'Hero', globalBonus120: '+6% Max HP', desc: 'The OG Fury king.', deepLogic: 'Damage increases as HP drops. Highest stability.', bestPairs: ['Demon Blade'], bio: 'The son of a legendary warrior who draws power from his wounds.', shardCost: '1500 Gems',
+    historicalTiers: [
+      { update: "Classic", tier: "SSS" },
+      { update: "Mid-Game", tier: "SS" },
+      { update: "v6.3 Meta", tier: "S" }
+    ],
+    gearSets: [
+      {
+        name: "Classic Fury",
+        weapon: "Demon Blade",
+        armor: "Phantom Cloak",
+        rings: ["Bull Ring", "Bull Ring"],
+        bracelet: "Invincible Bracelet",
+        locket: "Angel Locket",
+        book: "Giants Contract",
+        synergy: "Survival-focused. Allows Helix to stay at low HP safely while the Giant's Contract provides melee shields."
+      }
+    ]
+  },
+  { id: 'meowgik', name: 'Meowgik', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', desc: 'The kitten mage.', deepLogic: 'Spawns homing kittens that ignore walls.', bestPairs: ['Brightspear'], shardCost: '1800 Gems', historicalTiers: [{update: "Intro", tier: "SS"}, {update: "v6.3", tier: "A"}] },
   { id: 'ayana', name: 'Ayana', tier: 'A', category: 'Hero', globalBonus120: '+5% Dodge', desc: 'Enchanted witch.', deepLogic: 'Portals provide temporary i-frames during travel.', bestPairs: ['Phantom Cloak'], shardCost: '2500 Gems' },
   { id: 'ophelia', name: 'Ophelia', tier: 'A', category: 'Hero', globalBonus120: '+5% Dmg to Elites', desc: 'Spirit hunter.', deepLogic: 'Soul shards provide varying elemental buffs.', bestPairs: ['Demon Blade'], shardCost: 'Free (Events)' },
   { id: 'onir', name: 'Onir', tier: 'A', category: 'Hero', globalBonus120: '+20% Healing Effect', desc: 'Holy knight.', deepLogic: 'Global 10% Projectile Resistance at 7-stars.', uniqueEffect: 'Global Proj Resist', shardCost: '9.99 USD' },
@@ -126,19 +225,6 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'elf', name: 'Elf', tier: 'C', category: 'Spirit', desc: 'Fast Atk.' },
   { id: 'living_bomb', name: 'Living Bomb', tier: 'D', category: 'Spirit', desc: 'Useless.' },
 
-  // --- DRAGONS ---
-  { id: 'magmar', name: 'Magmar', tier: 'SS', category: 'Dragon', dragonType: 'Attack', desc: 'Mana Regen.' },
-  { id: 'starrite', name: 'Starrite', tier: 'SS', category: 'Dragon', dragonType: 'Balance', desc: 'Meteors.' },
-  { id: 'voideon', name: 'Voideon', tier: 'SS', category: 'Dragon', dragonType: 'Defense', desc: 'Portals.' },
-  { id: 'necrogon', name: 'Necrogon', tier: 'S', category: 'Dragon', dragonType: 'Balance', desc: 'Proj Resist.' },
-  { id: 'shadex', name: 'Shadex', tier: 'S', category: 'Dragon', dragonType: 'Defense', desc: 'Collision Immune.' },
-  { id: 'geogon', name: 'Geogon', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Rock Shield.' },
-  { id: 'stormra', name: 'Stormra', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Lightning.' },
-  { id: 'jadeon', name: 'Jadeon', tier: 'B', category: 'Dragon', dragonType: 'Balance', desc: 'Gold.' },
-  { id: 'ferron', name: 'Ferron', tier: 'B', category: 'Dragon', dragonType: 'Attack', desc: 'Slash.' },
-  { id: 'noxion', name: 'Noxion', tier: 'C', category: 'Dragon', dragonType: 'Defense', desc: 'Poison.' },
-  { id: 'glaciem', name: 'Glaciem', tier: 'C', category: 'Dragon', dragonType: 'Balance', desc: 'Ice.' },
-
   // --- PETS (New Ground Units) ---
   { id: 'frothy', name: 'Frothy Capy', tier: 'SS', category: 'Pet', desc: 'Immunity Bubble.', deepLogic: 'Bubble = 100% Immunity.' },
   { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Block %.' },
@@ -174,6 +260,7 @@ export const RELIC_DATA: Relic[] = [
   { id: 'phoenix_feather', name: 'Phoenix Feather', tier: 'Holy', effect: 'Attack +10%', setBonus: 'Rebirth Flame', iconType: 'Arrow', lore: 'A glowing feather that never stops burning.', source: 'Elite Chests', stars: ['1★: Fire Damage +15%', '2★: Atk Speed +5%', '3★: 1x Instant Revive per game'] },
   { id: 'jade_dragon_statue', name: 'Jade Dragon Statue', tier: 'Holy', effect: 'All Elemental Dmg +12%', setBonus: 'Eastern Spirit', iconType: 'Gem', lore: 'The soul of a dragon trapped in emerald.', source: 'Lunar New Year Event', stars: ['1★: Freeze Duration +20%', '2★: Lightning Damage +10%', '3★: Elemental Burst +5%'] },
   { id: 'thunder_hammer_relic', name: 'Thunder Hammer', tier: 'Holy', effect: 'Lightning Dmg +20%', setBonus: 'Storm Lord', iconType: 'Sword', lore: 'Miniature replica of a god\'s weapon.', source: 'Tower Defense Rewards', stars: ['1★: Chain Lightning +1 Jump', '2★: Atk +500', '3★: Thunder Strike Crit +15%'] },
+  { id: 'dragon_ball_relic', name: 'Dragon Ball', tier: 'Holy', effect: '+10% Skill Damage', setBonus: 'Ancient Power', iconType: 'Gem', lore: 'A sphere containing the essence of ancient beasts.', source: 'World Boss Drops', stars: ['1★: Skill Damage +5%', '2★: Elemental Dmg +10%', '3★: Skill Crit Chance +8%'] },
   { id: 'golden_apple', name: 'Golden Apple', tier: 'Radiant', effect: 'Max HP +1200', setBonus: 'Fruity Fortune', iconType: 'Gem', lore: 'Looks delicious, but it\'s actually hard as rock.', source: 'Normal Chapters', stars: ['1★: Max HP +500', '2★: Dropped HP Hearts +20%', '3★: Healing +5%'] },
   { id: 'mirror_of_truth', name: 'Mirror of Truth', tier: 'Radiant', effect: 'Crit Chance +3%', setBonus: 'Clear Vision', iconType: 'Eye', lore: 'Shows the enemy exactly where they are weak.', source: 'Hero Chapters', stars: ['1★: Crit Dmg +5%', '2★: Accuracy +10%', '3★: Dodge +2%'] },
   { id: 'ancient_map', name: 'Ancient Map', tier: 'Radiant', effect: 'Movement Speed +5%', setBonus: 'Pathfinder', iconType: 'Scroll', lore: 'A map of lands that no longer exist.', source: 'Expedition Mode', stars: ['1★: Trap Damage -20%', '2★: Gold +10%', '3★: Collision Resist +5%'] },
@@ -182,6 +269,22 @@ export const RELIC_DATA: Relic[] = [
   { id: 'rusty_key_relic', name: 'Rusty Key', tier: 'Faint', effect: 'Gold Drop +5%', setBonus: 'Scavenger', iconType: 'Gem', lore: 'Probably doesn\'t open anything important.', source: 'Common Drops', stars: ['1★: Gold +2%', '2★: Dropped Gear Rate +1%', '3★: XP +5%'] },
   { id: 'dusty_tome_relic', name: 'Dusty Tome', tier: 'Faint', effect: 'Skill Damage +5%', setBonus: 'Scholar', iconType: 'Book', lore: 'The writing is almost faded away.', source: 'Common Drops', stars: ['1★: Mana Regen +5%', '2★: Book Energy +10%', '3★: Spellbook Effect +5%'] }
 ];
+
+export const SET_BONUS_DESCRIPTIONS: Record<string, string> = {
+  'Eternal Gaze': 'Increases Dark Damage by 25% and reduces enemy dodge rate by 15%.',
+  'Divine Vitality': 'Increases health recovery from all sources by 30% and grants a small shield when health drops below 30%.',
+  'Rebirth Flame': 'Grants a 20% chance to ignite enemies on hit. Burn damage scales with 10% of Attack.',
+  'Eastern Spirit': 'Boosts Elemental Burst frequency by 40% and adds +10% Resistance to all elements.',
+  'Storm Lord': 'Lightning chains jump 2 additional times and have a 15% chance to stun targets.',
+  'Ancient Power': 'Increases Ultimate Skill duration by 5s and Skill Damage by additional 15%.',
+  'Fruity Fortune': 'Increases drop rate of HP hearts by 50% and small gems by 20%.',
+  'Clear Vision': 'Increases Critical Damage by 40% when hitting enemies at full health.',
+  'Pathfinder': 'Reduces trap damage by 50% and increases movement speed by 10% in unexplored rooms.',
+  'Valiant Set': 'Increases Attack by 5% for every elite enemy present in the room.',
+  'Warrior Remnant': 'Provides +10% Damage Resistance for 5s after taking damage (Cooldown: 10s).',
+  'Scavenger': 'Increases Gold and XP gain from clearing rooms by 15%.',
+  'Scholar': 'Reduces Spellbook energy requirement by 20% and increases Mana Regeneration by 10%.'
+};
 
 export interface FarmingRoute {
   id: string;
@@ -278,21 +381,29 @@ ARCHERO V6.3 GRANDMASTER KNOWLEDGE:
 - Stutter Stepping: Cancel animation after shot to increase fire rate by 40%.
 `;
 
-export interface DragonInfo {
-  id: string;
-  name: string;
-  type: 'Attack' | 'Defense' | 'Balance';
-  lore: string;
-  skill: string;
-  passive: string;
-}
+// --- DRAGONS (Complete Roster) ---
+export const DRAGON_DATA: BaseItem[] = [
+  // SS TIER (The Holy Trinity)
+  { id: 'magmar', name: 'Magmar', tier: 'SS', category: 'Dragon', dragonType: 'Attack', desc: 'Mana King.', deepLogic: 'Active destroys projectiles. Passive converts lost HP to Mana. Essential for spell spam.' },
+  { id: 'starrite', name: 'Starrite', tier: 'SS', category: 'Dragon', dragonType: 'Balance', desc: 'Meteor Storm.', deepLogic: 'Massive AoE damage. Passive chance to cast spells for free.' },
+  { id: 'voideon', name: 'Voideon', tier: 'SS', category: 'Dragon', dragonType: 'Defense', desc: 'Portal Master.', deepLogic: 'Summons portals that boost stats. High Dodge passive.' },
 
-export const DRAGON_DATA: DragonInfo[] = [
-  { id: 'magmar', name: 'Magmar', type: 'Attack', lore: 'Born from dying stars.', skill: 'Vulcan Pulse: Ignores 50% enemy DR.', passive: 'Converts lost HP to Book Energy.' },
-  { id: 'voideon', name: 'Voideon', type: 'Defense', lore: 'Exists between dimensions.', skill: 'Void Shield: 2s total invulnerability.', passive: 'Increases Dodge when stationary.' },
-  { id: 'starrite', name: 'Starrite', type: 'Balance', lore: 'Fallen from the Phoenix constellation.', skill: 'Star Rain: Burn and Stun meteors.', passive: 'Balanced Attack/HP +5%.' },
-  { id: 'jadeon', name: 'Jadeon', type: 'Balance', lore: 'Guardian of nature secrets.', skill: 'Emerald Growth: HP Regen.', passive: 'Reduces Trap Damage.' },
-  { id: 'ferron', name: 'Ferron', type: 'Attack', lore: 'Mechanical war relic.', skill: 'Iron Blitz: +40% Atk Spd.', passive: 'Gain Crit Dmg per kill.' }
+  // S TIER (Meta Essentials)
+  { id: 'swordian', name: 'Swordian', tier: 'S', category: 'Dragon', dragonType: 'Attack', desc: 'Blade Spirit.', deepLogic: 'Best for Melee (Fist/Sword/Hammer). Buffs Hero stats and weapon range.' },
+  { id: 'necrogon', name: 'Necrogon', tier: 'S', category: 'Dragon', dragonType: 'Balance', desc: 'Proj Resist.', deepLogic: 'Passive grants Projectile Resistance. Mandatory for the "Immunity Build".' },
+  { id: 'geogon', name: 'Geogon', tier: 'S', category: 'Dragon', dragonType: 'Defense', desc: 'Rock Shield.', deepLogic: 'Active grants a Rock Shield that blocks damage. Great for boss tanking.' },
+
+  // A TIER (Specialists)
+  { id: 'stormra', name: 'Stormra', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Lightning Ball.', deepLogic: 'Summons a lightning ball that orbits you. Great for AFK farming.' },
+  { id: 'shadex', name: 'Shadex', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Collision Immune.', deepLogic: 'Active grants 100% Collision Resistance. Key for "room hugger" strats.' },
+  { id: 'infernox', name: 'Infernox', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Fire Bomber.', deepLogic: 'Deals splash Fire damage. Good against swarms.' },
+  { id: 'glacion', name: 'Glacion', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Ice Breath.', deepLogic: 'Freezes enemies in a cone. Good crowd control.' },
+  { id: 'dominus', name: 'Dominus', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Trophy Dragon.', deepLogic: 'Boosts damage against Bosses. Situational.' },
+  { id: 'jadeon', name: 'Jadeon', tier: 'A', category: 'Dragon', dragonType: 'Balance', desc: 'Gold Farmer.', deepLogic: 'Active skill drops Gold. Use for "Up-Close Dangers" event.' },
+  { id: 'noxion', name: 'Noxion', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Poison Cloud.', deepLogic: 'Leaves poison trails. Weak in endgame.' },
+
+  // B TIER (Fodder)
+  { id: 'ferron', name: 'Ferron', tier: 'B', category: 'Dragon', dragonType: 'Attack', desc: 'Slash.', deepLogic: 'Basic melee slash. Use as fodder for Magmar.' }
 ];
 
 export const REFINE_TIPS = [

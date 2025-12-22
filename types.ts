@@ -7,6 +7,17 @@ export interface RarityPerk {
   effect: string;
 }
 
+export interface GearSet {
+  name: string;
+  weapon: string;
+  armor: string;
+  rings: string[];
+  bracelet: string;
+  locket: string;
+  book: string;
+  synergy: string;
+}
+
 export interface BaseItem {
   id: string;
   name: string;
@@ -32,6 +43,8 @@ export interface Hero extends BaseItem {
   bio?: string;
   assistHeroes?: string[];
   shardCost?: string;
+  gearSets?: GearSet[];
+  historicalTiers?: { update: string; tier: Tier }[];
 }
 
 export interface Jewel {

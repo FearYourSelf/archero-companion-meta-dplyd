@@ -16,13 +16,14 @@ import {
   Clock, Gauge, UserCircle2, Zap as Spark, ChevronDown as ArrowDown, Droplets, Binary,
   Lightbulb, Link2, Ghost as Spook, Database, Cpu, Radio, Radar, Fingerprint as ScanIcon,
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
-  ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon
+  ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
+  ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone
 } from 'lucide-react';
 import { 
-  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, DragonInfo
+  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS
 } from './constants';
 import { chatWithAI } from './services/geminiService';
-import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic } from './types';
+import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet } from './types';
 import { Badge, Card } from './components/UI';
 
 // --- Fuzzy Match Logic ---
@@ -149,13 +150,16 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<GearCategory | 'All'>('All');
   const [relicTierFilter, setRelicTierFilter] = useState<'All' | 'Holy' | 'Radiant' | 'Faint'>('All');
+  const [relicSourceFilter, setRelicSourceFilter] = useState<string>('All');
   const [sssOnly, setSssOnly] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [maintenanceToast, setMaintenanceToast] = useState(false);
   
-  // Persistence States
+  // persistence States
   const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean }>>(() => JSON.parse(localStorage.getItem('archero_v6_tracker') || '{}'));
+  const [equippedItems, setEquippedItems] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem('archero_v6_equipped') || '[]')));
+  const [favoriteHeroes, setFavoriteHeroes] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem('archero_v6_favorites') || '[]')));
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => JSON.parse(localStorage.getItem('archero_v6_chat') || '[]'));
   const [calcStats, setCalcStats] = useState<CalcStats>(() => JSON.parse(localStorage.getItem('archero_v6_stats') || '{"baseAtk":75000,"critChance":45,"critDmg":420,"atkSpeed":60,"weaponType":"Expedition Fist"}'));
   const [fInputs, setFInputs] = useState({ baseAtk: 60000, atkPercent: 75, weaponDmgPercent: 15, critDmg: 380 });
@@ -172,19 +176,35 @@ const App: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSimMenuOpen, setIsSimMenuOpen] = useState(false);
 
+  // Hero Comparison state
+  const [compareHeroIds, setCompareHeroIds] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+
   // Filter States
   const [farmingSearch, setFarmingSearch] = useState('');
   const [farmingCategory, setFarmingCategory] = useState<'All' | FarmingRoute['resource']>('All');
+  const [farmingSort, setFarmingSort] = useState<{ field: 'resource' | 'chapter' | 'efficiency' | 'avgTime', direction: 'asc' | 'desc' }>({ 
+    field: 'efficiency', 
+    direction: 'desc' 
+  });
   const [expandedFarmingId, setExpandedFarmingId] = useState<string | null>(null);
   const [jewelSimLevel, setJewelSimLevel] = useState<number>(10);
   const [jewelFilterSlot, setJewelFilterSlot] = useState<string>('All');
+
+  // Unique Relic Sources for filter - Sorted alphabetically for UX
+  const relicSources = useMemo(() => {
+    const sources = RELIC_DATA.map(r => r.source).filter(Boolean) as string[];
+    const sortedUnique = Array.from(new Set(sources)).sort((a, b) => a.localeCompare(b));
+    return ['All', ...sortedUnique];
+  }, []);
 
   // Refs
   const scrollContainerRef = useRef<HTMLElement>(null);
   const navScrollRef = useRef<HTMLDivElement>(null);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const farmFilterScrollRef = useRef<HTMLDivElement>(null);
-  const relicFilterScrollRef = useRef<HTMLDivElement>(null);
+  const relicTierFilterScrollRef = useRef<HTMLDivElement>(null);
+  const relicSourceFilterScrollRef = useRef<HTMLDivElement>(null);
   const jewelFilterScrollRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ 
@@ -242,7 +262,14 @@ const App: React.FC = () => {
     };
 
     // Horizontal scroll wheel support for bars
-    const bars = [navScrollRef.current, categoryScrollRef.current, farmFilterScrollRef.current, relicFilterScrollRef.current, jewelFilterScrollRef.current];
+    const bars = [
+      navScrollRef.current, 
+      categoryScrollRef.current, 
+      farmFilterScrollRef.current, 
+      relicTierFilterScrollRef.current, 
+      relicSourceFilterScrollRef.current,
+      jewelFilterScrollRef.current
+    ];
     const wheelListeners: {el: HTMLElement, fn: (e: WheelEvent) => void}[] = [];
 
     bars.forEach(bar => {
@@ -270,6 +297,8 @@ const App: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => { localStorage.setItem('archero_v6_tracker', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
+  useEffect(() => { localStorage.setItem('archero_v6_equipped', JSON.stringify(Array.from(equippedItems))); }, [equippedItems]);
+  useEffect(() => { localStorage.setItem('archero_v6_favorites', JSON.stringify(Array.from(favoriteHeroes))); }, [favoriteHeroes]);
   useEffect(() => { localStorage.setItem('archero_v6_chat', JSON.stringify(chatHistory)); }, [chatHistory]);
   useEffect(() => { localStorage.setItem('archero_v6_stats', JSON.stringify(calcStats)); }, [calcStats]);
 
@@ -287,6 +316,26 @@ const App: React.FC = () => {
       }
     });
     return totals;
+  };
+
+  const toggleEquip = (id: string) => {
+    playSfx('click');
+    setEquippedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleFavorite = (id: string) => {
+    playSfx('click');
+    setFavoriteHeroes(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const formulaResult = useMemo(() => {
@@ -309,7 +358,7 @@ const App: React.FC = () => {
       DRAGON_DATA.find(d => d.id === dragons.slot2),
       DRAGON_DATA.find(d => d.id === dragons.slot3)
     ];
-    const uniqueTypes = new Set(selected.map(s => s?.type).filter(Boolean));
+    const uniqueTypes = new Set(selected.map(s => (s as BaseItem)?.dragonType).filter(Boolean));
     return uniqueTypes.size === 3;
   }, [dragons]);
 
@@ -319,12 +368,39 @@ const App: React.FC = () => {
   }, [smeltItem, smeltQty]);
 
   const filteredFarming = useMemo(() => {
-    return FARMING_ROUTES.filter(route => {
+    const efficiencyWeight = { 'SSS': 4, 'SS': 3, 'S': 2, 'A': 1, 'B': 0 };
+    
+    const filtered = FARMING_ROUTES.filter(route => {
       const matchesSearch = fuzzyMatch(route.resource + route.chapter, farmingSearch);
       const matchesCategory = farmingCategory === 'All' || route.resource === farmingCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [farmingSearch, farmingCategory]);
+
+    return [...filtered].sort((a, b) => {
+      let valA: any = a[farmingSort.field];
+      let valB: any = b[farmingSort.field];
+
+      if (farmingSort.field === 'efficiency') {
+        valA = (efficiencyWeight as any)[a.efficiency] || 0;
+        valB = (efficiencyWeight as any)[b.efficiency] || 0;
+      } else if (farmingSort.field === 'avgTime') {
+        valA = parseFloat(a.avgTime) || 0;
+        valB = parseFloat(b.avgTime) || 0;
+      }
+
+      if (valA < valB) return farmingSort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return farmingSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [farmingSearch, farmingCategory, farmingSort]);
+
+  const toggleFarmingSort = (field: typeof farmingSort.field) => {
+    playSfx('click');
+    setFarmingSort(prev => ({
+      field,
+      direction: prev.field === field ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'desc'
+    }));
+  };
 
   const handleAiSend = async () => {
     if (!aiInput.trim()) return;
@@ -388,16 +464,56 @@ const App: React.FC = () => {
     if (scrollContainerRef.current) scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setCategoryFilter('All');
+    setSssOnly(false);
+    playSfx('click');
+  };
+
+  const handleExportBuild = (heroName: string, set: GearSet) => {
+    playSfx('click');
+    const text = `
+ARCHERO TACTICAL BUILD: ${set.name}
+Hero: ${heroName}
+--- CORE LOADOUT ---
+Weapon: ${set.weapon}
+Armor: ${set.armor}
+Rings: ${set.rings.join(' + ')}
+Bracelet: ${set.bracelet}
+Locket: ${set.locket}
+Book: ${set.book}
+--- SYNERGY RESONANCE ---
+${set.synergy}
+--- Generated via ZV GRANDMASTER V6.3 ---
+    `.trim();
+    navigator.clipboard.writeText(text);
+    alert(`${set.name} configuration exported to tactical clipboard.`);
+  };
+
+  const findItemByName = (name: string) => {
+    return [...GEAR_DATA, ...DRAGON_DATA].find(i => i.name === name || i.id === name);
+  }
+
   const displayOrder: GearCategory[] = ['Hero', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book', 'Spirit', 'Dragon', 'Pet', 'Relic', 'Jewel', 'Totem', 'Egg', 'Glyph'];
   const categoryIcons: Record<string, any> = { 'All': LayoutGrid, 'Hero': User, 'Weapon': Sword, 'Armor': Shield, 'Ring': Circle, 'Locket': Target, 'Bracelet': Zap, 'Book': Book, 'Spirit': Ghost, 'Dragon': Flame, 'Pet': Dog, 'Egg': Egg, 'Totem': Tower, 'Relic': Box, 'Jewel': Disc, 'Glyph': Layers };
   const categoryEmojis: Record<string, string> = { 'Hero': '🦸', 'Weapon': '⚔️', 'Armor': '🛡️', 'Ring': '💍', 'Bracelet': '⚡', 'Locket': '🎯', 'Book': '📖', 'Spirit': '👻', 'Dragon': '🐉', 'Pet': '🐾', 'Relic': '🏺', 'Jewel': '💎', 'Totem': '🏛️', 'Egg': '🥚', 'Glyph': '➰' };
 
   const filteredJewels = useMemo(() => JEWEL_DATA.filter(j => jewelFilterSlot === 'All' || j.slots.includes(jewelFilterSlot)), [jewelFilterSlot]);
-  const filteredRelics = useMemo(() => RELIC_DATA.filter(r => relicTierFilter === 'All' || r.tier === relicTierFilter), [relicTierFilter]);
+  
+  const filteredRelics = useMemo(() => {
+    return RELIC_DATA.filter(r => {
+      const matchesTier = relicTierFilter === 'All' || r.tier === relicTierFilter;
+      const matchesSource = relicSourceFilter === 'All' || r.source === relicSourceFilter;
+      const matchesSearch = fuzzyMatch(r.name, searchQuery);
+      return matchesTier && matchesSource && matchesSearch;
+    });
+  }, [relicTierFilter, relicSourceFilter, searchQuery]);
+
   const filteredData = useMemo(() => {
     const adaptedJewels = JEWEL_DATA.map(j => ({ ...j, category: 'Jewel' as GearCategory, tier: 'S' as Tier, desc: j.lore || j.statType }));
     const adaptedRelics = RELIC_DATA.map(r => ({ ...r, category: 'Relic' as GearCategory, tier: 'S' as Tier, desc: r.effect }));
-    return [...HERO_DATA, ...GEAR_DATA, ...adaptedJewels, ...adaptedRelics].filter(item => {
+    return [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA, ...adaptedJewels, ...adaptedRelics].filter(item => {
       const matchesSearch = fuzzyMatch(item.name, searchQuery);
       const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
       const matchesSss = !sssOnly || item.tier === 'SSS';
@@ -415,11 +531,87 @@ const App: React.FC = () => {
     }
   };
 
+  const getRelicStyles = (tier: string) => {
+    switch (tier) {
+      case 'Holy': 
+        return {
+          card: 'bg-orange-600/5 border-orange-500/20 hover:border-orange-500/40',
+          iconContainer: 'bg-orange-600/20 border-orange-500/30 text-orange-500',
+          tooltip: 'border-orange-500/30 text-orange-400',
+          arrow: 'border-orange-500/30'
+        };
+      case 'Radiant':
+        return {
+          card: 'bg-yellow-600/5 border-yellow-500/20 hover:border-yellow-500/40',
+          iconContainer: 'bg-yellow-600/20 border-yellow-500/30 text-yellow-500',
+          tooltip: 'border-yellow-500/30 text-yellow-400',
+          arrow: 'border-yellow-500/30'
+        };
+      default:
+        return {
+          card: 'bg-blue-600/5 border-blue-500/20 hover:border-blue-500/40',
+          iconContainer: 'bg-blue-600/20 border-blue-500/30 text-blue-500',
+          tooltip: 'border-blue-500/30 text-blue-400',
+          arrow: 'border-blue-500/30'
+        };
+    }
+  };
+
   const handleInteractiveClick = (e: React.MouseEvent, action: () => void) => {
     // If the user was dragging, don't trigger the click action
     if (dragRef.current.moved) return;
     action();
   };
+
+  const SortHeader = ({ label, field, currentSort }: { label: string, field: typeof farmingSort.field, currentSort: typeof farmingSort }) => {
+    const isActive = currentSort.field === field;
+    return (
+      <button 
+        onClick={() => toggleFarmingSort(field)}
+        className={`flex items-center gap-1 hover:text-orange-500 transition-colors group ${isActive ? 'text-orange-500' : 'text-gray-500'}`}
+      >
+        <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+        {isActive ? (
+          currentSort.direction === 'asc' ? <ChevronUp size={10} /> : <ChevronDown size={10} />
+        ) : (
+          <ArrowDownWideNarrow size={10} className="opacity-0 group-hover:opacity-50" />
+        )}
+      </button>
+    );
+  };
+
+  const BuildSlot: React.FC<{ label: string; name: string; icon: any }> = ({ label, name, icon: Icon }) => {
+    const item = findItemByName(name);
+    return (
+      <div 
+        onClick={() => { if (item) { setSelectedItem(item); playSfx('click'); } }}
+        className={`p-4 bg-black/40 border border-white/5 rounded-2xl transition-all ${item ? 'cursor-pointer hover:border-blue-500/50 hover:bg-blue-900/10' : ''}`}
+      >
+        <p className="text-[8px] font-black text-gray-500 uppercase mb-1 flex items-center gap-1"><Icon size={10}/> {label}</p>
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-[11px] font-black text-gray-200 uppercase italic truncate">{name}</p>
+          {item && <ArrowUpRight size={10} className="text-blue-400 shrink-0" />}
+        </div>
+      </div>
+    );
+  };
+
+  const handleHeroCompareToggle = (id: string) => {
+    playSfx('click');
+    setCompareHeroIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(x => x !== id);
+      }
+      if (prev.length < 3) {
+        return [...prev, id];
+      }
+      return prev;
+    });
+  };
+
+  const comparedHeroes = useMemo(() => {
+    return HERO_DATA.filter(h => compareHeroIds.includes(h.id));
+  }, [compareHeroIds]);
 
   return (
     <div className="h-screen w-full bg-[#030712] text-gray-100 flex flex-col font-sans max-w-3xl mx-auto relative overflow-hidden border-x border-white/5 shadow-4xl">
@@ -438,8 +630,8 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3">
             <Trophy className="text-orange-500 w-8 h-8" />
             <div>
-              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV Armory GRANDMASTER</h1>
-              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZV Armory Clan Strategic Companion</p>
+              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER V6.3</h1>
+              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">Archero Strategic Protocol</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -456,14 +648,41 @@ const App: React.FC = () => {
         {/* STICKY UPPER TOOLBARS */}
         {(activeTab === 'meta' || activeTab === 'farming' || activeTab === 'relics' || activeTab === 'jewels') && (
           <div className="sticky top-0 z-[200] bg-gray-950/90 backdrop-blur-xl border-b border-white/5 px-5 py-4 space-y-4">
-             {activeTab === 'meta' && (
-               <>
+             {/* Integrated Search Bar for Meta and Relics */}
+             {(activeTab === 'meta' || activeTab === 'relics') && (
                 <div className="flex items-center gap-3">
                   <div className="relative group flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                    <input type="text" placeholder="Search archives..." className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    <input 
+                      type="text" 
+                      placeholder={`Search ${activeTab === 'meta' ? 'archives' : 'relics'}...`} 
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-xs font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" 
+                      value={searchQuery} 
+                      onChange={(e) => setSearchQuery(e.target.value)} 
+                    />
                   </div>
+                  {activeTab === 'meta' && (
+                    <div className="flex items-center gap-2">
+                       <button 
+                        onClick={() => { setSssOnly(!sssOnly); playSfx('click'); }}
+                        className={`p-3 rounded-2xl border transition-all ${sssOnly ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-500 hover:text-gray-300'}`}
+                        title="SSS Tier Only"
+                      >
+                        <Crown size={18} />
+                      </button>
+                      <button 
+                        onClick={handleResetFilters}
+                        className="p-3 bg-white/5 border border-white/10 text-gray-500 rounded-2xl hover:text-orange-500 transition-all"
+                        title="Reset Filters"
+                      >
+                        <RotateCcw size={18} />
+                      </button>
+                    </div>
+                  )}
                 </div>
+             )}
+
+             {activeTab === 'meta' && (
                 <div 
                   ref={categoryScrollRef} 
                   className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x draggable-content touch-pan-x flex-nowrap" 
@@ -482,8 +701,8 @@ const App: React.FC = () => {
                     );
                   })}
                 </div>
-               </>
              )}
+
              {/* Sub-tab Toolbars */}
              {activeTab === 'farming' && (
                 <div className="space-y-4">
@@ -509,20 +728,42 @@ const App: React.FC = () => {
                 </div>
              )}
              {activeTab === 'relics' && (
-                <div 
-                  ref={relicFilterScrollRef} 
-                  className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" 
-                  onMouseDown={(e) => handleDragStart(e, relicFilterScrollRef)}
-                >
-                  {['All', 'Holy', 'Radiant', 'Faint'].map(t => (
-                    <button 
-                      key={t} 
-                      onClick={(e) => handleInteractiveClick(e, () => { setRelicTierFilter(t as any); playSfx('click'); })} 
-                      className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
-                    >
-                      {t} Archive
-                    </button>
-                  ))}
+                <div className="space-y-3">
+                  {/* Relic Tier Filter */}
+                  <div 
+                    ref={relicTierFilterScrollRef} 
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" 
+                    onMouseDown={(e) => handleDragStart(e, relicTierFilterScrollRef)}
+                  >
+                    {['All', 'Holy', 'Radiant', 'Faint'].map(t => (
+                      <button 
+                        key={t} 
+                        onClick={(e) => handleInteractiveClick(e, () => { setRelicTierFilter(t as any); playSfx('click'); })} 
+                        className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
+                      >
+                        {t} Archive
+                      </button>
+                    ))}
+                  </div>
+                  {/* Relic Source Filter */}
+                  <div 
+                    ref={relicSourceFilterScrollRef} 
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content border-t border-white/5 pt-2" 
+                    onMouseDown={(e) => handleDragStart(e, relicSourceFilterScrollRef)}
+                  >
+                    <div className="flex-shrink-0 px-3 flex items-center">
+                       <MapPin size={10} className="text-gray-600" />
+                    </div>
+                    {relicSources.map(src => (
+                      <button 
+                        key={src} 
+                        onClick={(e) => handleInteractiveClick(e, () => { setRelicSourceFilter(src); playSfx('click'); })} 
+                        className={`flex-shrink-0 px-5 py-2 rounded-xl text-[8px] font-black uppercase transition-all border whitespace-nowrap ${relicSourceFilter === src ? 'bg-blue-600 border-blue-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-600 hover:text-gray-400'}`}
+                      >
+                        {src}
+                      </button>
+                    ))}
+                  </div>
                 </div>
              )}
              {activeTab === 'jewels' && (
@@ -553,21 +794,114 @@ const App: React.FC = () => {
                   if (categoryFilter !== 'All' && categoryFilter !== cat) return null;
                   const items = filteredData.filter(i => i.category === cat);
                   if (items.length === 0) return null;
+                  
+                  // SORT: Favorites first, then Equipped, then original (Tier)
+                  const sortedItems = [...items].sort((a, b) => {
+                    if (cat === 'Hero') {
+                      const aFav = favoriteHeroes.has(a.id);
+                      const bFav = favoriteHeroes.has(b.id);
+                      if (aFav && !bFav) return -1;
+                      if (!aFav && bFav) return 1;
+                    }
+                    const aEquipped = equippedItems.has(a.id);
+                    const bEquipped = equippedItems.has(b.id);
+                    if (aEquipped && !bEquipped) return -1;
+                    if (!aEquipped && bEquipped) return 1;
+                    return 0;
+                  });
+
                   return (
                     <div key={cat} className="space-y-6">
                       <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] border-l-4 border-orange-600 pl-4 italic flex items-center gap-3">
                         <span className="text-xl">{categoryEmojis[cat]}</span> {cat}S
                       </h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {items.map(item => (
-                          <div key={item.id} onClick={() => { setSelectedItem(item); playSfx('click'); }} className="cursor-pointer group">
-                            <Card tier={item.tier} className="hover:scale-[1.02] transition-all">
-                                <Badge tier={item.tier} />
-                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mt-3 group-hover:text-orange-500 transition-colors">{item.name}</h3>
-                                <p className="text-[10px] text-gray-500 mt-2 line-clamp-2">{item.desc}</p>
-                            </Card>
-                          </div>
-                        ))}
+                        {sortedItems.map(item => {
+                          const isEquipped = equippedItems.has(item.id);
+                          const isBeingCompared = compareHeroIds.includes(item.id);
+                          const isFavorite = favoriteHeroes.has(item.id);
+
+                          return (
+                            <div key={item.id} className="relative group">
+                              {/* Enhanced Item Tooltip */}
+                              {(item.mythicPerk || item.deepLogic) && (
+                                <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 bottom-[105%] w-72 p-5 bg-gray-950/98 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in slide-in-from-bottom-2">
+                                  <div className="space-y-4">
+                                    {item.mythicPerk && (
+                                      <div>
+                                        <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                          <Sparkles size={10} /> Mythic Resonance
+                                        </p>
+                                        <p className="text-[11px] text-white font-bold italic leading-relaxed bg-orange-600/5 p-2.5 rounded-xl border border-orange-500/10">"{item.mythicPerk}"</p>
+                                      </div>
+                                    )}
+                                    {item.deepLogic && (
+                                      <div>
+                                        <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                          <Atom size={10} /> Neural Synthesis
+                                        </p>
+                                        <p className="text-[10px] text-gray-300 font-medium italic leading-relaxed bg-blue-600/5 p-2.5 rounded-xl border border-blue-500/10">{item.deepLogic}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-gray-950 rotate-45 border-r border-b border-white/10"></div>
+                                </div>
+                              )}
+
+                              <div onClick={() => { setSelectedItem(item); playSfx('click'); }} className="cursor-pointer">
+                                <Card 
+                                  tier={item.tier} 
+                                  className={`transition-all duration-500 ${isEquipped ? 'border-orange-500/60 shadow-[0_0_20px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20' : 'hover:scale-[1.02]'} ${isFavorite && item.category === 'Hero' ? 'bg-yellow-400/5 border-yellow-500/20' : ''}`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <Badge tier={item.tier} />
+                                        {isEquipped && (
+                                          <span className="flex items-center gap-1 px-2 py-0.5 bg-orange-600 text-[7px] font-black text-white uppercase rounded animate-pulse">
+                                            <Zap size={8} fill="currentColor" /> ACTIVE
+                                          </span>
+                                        )}
+                                        {isFavorite && item.category === 'Hero' && (
+                                          <Star size={12} className="text-yellow-500 fill-current" />
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {item.category === 'Hero' && (
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); handleHeroCompareToggle(item.id); }}
+                                            className={`p-2 rounded-xl border transition-all ${isBeingCompared ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white/5 border-white/5 text-gray-600 hover:text-blue-500'}`}
+                                            title="Compare Hero"
+                                          >
+                                            <Scale size={14} />
+                                          </button>
+                                        )}
+                                        <button 
+                                          onClick={(e) => { e.stopPropagation(); toggleEquip(item.id); }}
+                                          className={`p-2 rounded-xl border transition-all ${isEquipped ? 'bg-orange-600 border-orange-400 text-white' : 'bg-white/5 border-white/5 text-gray-600 hover:text-gray-300'}`}
+                                        >
+                                          {isEquipped ? <Check size={14} /> : <Box size={14} />}
+                                        </button>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 mt-3">
+                                      <h3 className="text-lg font-black text-white uppercase italic tracking-tighter group-hover:text-orange-500 transition-colors truncate">{item.name}</h3>
+                                      {item.category === 'Hero' && (
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
+                                          className={`p-1.5 rounded-lg transition-all ${isFavorite ? 'text-yellow-400' : 'text-gray-700 hover:text-gray-500'}`}
+                                          title="Favorite Hero"
+                                        >
+                                          <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 mt-2 line-clamp-2">{item.desc}</p>
+                                </Card>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -715,15 +1049,15 @@ const App: React.FC = () => {
                       return (
                         <div key={slot} className="p-6 bg-black/40 rounded-[2.5rem] border border-white/5 flex flex-col gap-4">
                           <CustomSelect 
-                            options={DRAGON_DATA.map(d => ({ id: d.id, name: d.name, subtitle: d.type }))}
+                            options={DRAGON_DATA.map(d => ({ id: d.id, name: d.name, subtitle: (d as BaseItem).dragonType }))}
                             value={(dragons as any)[slot]}
                             onChange={(val) => setDragons(p => ({...p, [slot]: val}))}
                             placeholder={`Assign Dragon Socket ${i+1}`}
                           />
                           {selected && (
                             <div className="px-2 space-y-2 animate-in fade-in slide-in-from-left-2">
-                               <p className="text-[11px] font-bold text-orange-400 italic">Skill: {selected.skill}</p>
-                               <p className="text-[9px] text-gray-500 leading-relaxed font-medium">{selected.lore}</p>
+                               <p className="text-[11px] font-bold text-orange-400 italic">Skill: {selected.deepLogic}</p>
+                               <p className="text-[9px] text-gray-500 leading-relaxed font-medium">{selected.desc}</p>
                             </div>
                           )}
                         </div>
@@ -966,6 +1300,13 @@ const App: React.FC = () => {
           {/* TAB CONTENT: FARMING */}
           {activeTab === 'farming' && (
             <div className="space-y-6 pb-12 animate-in fade-in">
+              <div className="flex items-center justify-between px-6 py-4 bg-gray-900/60 rounded-[2rem] border border-white/5 sticky top-[130px] z-50 backdrop-blur-xl shadow-lg">
+                <SortHeader label="Resource" field="resource" currentSort={farmingSort} />
+                <SortHeader label="Chapter" field="chapter" currentSort={farmingSort} />
+                <SortHeader label="Efficiency" field="efficiency" currentSort={farmingSort} />
+                <SortHeader label="Avg Time" field="avgTime" currentSort={farmingSort} />
+              </div>
+
               {filteredFarming.length === 0 ? (
                 <div className="text-center py-20 opacity-30">
                   <Compass size={48} className="mx-auto mb-4 animate-spin-slow" />
@@ -1047,14 +1388,82 @@ const App: React.FC = () => {
           {/* TAB CONTENT: RELICS */}
           {activeTab === 'relics' && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pb-12">
-              {filteredRelics.map(r => (
-                <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${r.tier === 'Holy' ? 'bg-orange-600/5 border-orange-500/20' : 'bg-blue-600/5 border-blue-500/20'}`}>
-                  <div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${r.tier === 'Holy' ? 'bg-orange-600/20 border-orange-500/30 text-orange-500' : 'bg-blue-600/20 border-blue-500/30 text-blue-500'}`}>
-                    <RelicIcon type={r.iconType} className="w-8 h-8" />
-                  </div>
-                  <p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p>
+              {filteredRelics.length === 0 ? (
+                <div className="col-span-full py-20 text-center opacity-30">
+                  <Search size={48} className="mx-auto mb-4" />
+                  <p className="text-xs font-black uppercase tracking-widest">No matching relics in sector</p>
                 </div>
-              ))}
+              ) : (
+                filteredRelics.map((r, index) => {
+                  const styles = getRelicStyles(r.tier);
+                  // Identify if it's in the top row to flip tooltip direction
+                  const isTopRow = index < 3; 
+                  
+                  // Derive set information
+                  const setBonusEffect = r.setBonus ? SET_BONUS_DESCRIPTIONS[r.setBonus] : null;
+                  const requiredRelics = r.setBonus ? RELIC_DATA.filter(other => other.setBonus === r.setBonus).map(other => other.name) : [];
+
+                  return (
+                    <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${styles.card}`}>
+                      {/* Detailed Relic & Set Tooltip */}
+                      <div className={`invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 w-64 p-5 bg-gray-950/98 backdrop-blur-3xl border rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in ${isTopRow ? 'top-[110%] slide-in-from-top-2' : '-top-4 -translate-y-full slide-in-from-bottom-2'} ${styles.tooltip}`}>
+                        
+                        {r.lore && (
+                          <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-1.5 opacity-60">
+                                <ScrollText size={10} className="shrink-0" />
+                                <span className="text-[8px] font-black uppercase tracking-widest">Relic Lore</span>
+                            </div>
+                            <p className="text-[10px] text-gray-300 font-medium italic leading-relaxed text-left">"{r.lore}"</p>
+                          </div>
+                        )}
+
+                        {r.setBonus && (
+                          <div className="pt-3 border-t border-white/5 space-y-3">
+                             <div className="flex items-center gap-2">
+                                <Link2 size={12} className="text-orange-500" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">{r.setBonus} resonance</span>
+                             </div>
+                             
+                             <div className="space-y-1">
+                               <p className="text-[8px] font-black uppercase text-gray-500 tracking-tighter">Full Set Synergy:</p>
+                               <p className="text-[11px] text-gray-200 font-bold italic leading-tight text-left">{setBonusEffect || "Synergy effect unknown."}</p>
+                             </div>
+
+                             <div className="space-y-1">
+                               <p className="text-[8px] font-black uppercase text-gray-500 tracking-tighter">Required Relics:</p>
+                               <div className="flex flex-wrap gap-1.5">
+                                 {requiredRelics.map(name => (
+                                   <span key={name} className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase border ${name === r.name ? 'bg-orange-600/20 border-orange-500/30 text-orange-400' : 'bg-white/5 border-white/10 text-gray-500'}`}>{name}</span>
+                                 ))}
+                               </div>
+                             </div>
+                          </div>
+                        )}
+
+                        <div className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-950 rotate-45 ${isTopRow ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} ${styles.arrow}`}></div>
+                      </div>
+
+                      <div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${styles.iconContainer}`}>
+                        <RelicIcon type={r.iconType} className="w-8 h-8" />
+                      </div>
+                      <p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{r.tier} Tier</span>
+                        {r.setBonus && (
+                          <>
+                            <span className="w-1 h-1 bg-gray-800 rounded-full"></span>
+                            <div className="flex items-center gap-1 text-orange-500/80">
+                               <Link2 size={8} />
+                               <span className="text-[8px] font-black uppercase tracking-tighter">Set</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           )}
           {activeTab === 'jewels' && (
@@ -1154,6 +1563,109 @@ const App: React.FC = () => {
         </div>
       </nav>
 
+      {/* Hero Comparison Floating Bar */}
+      {compareHeroIds.length > 0 && activeTab === 'meta' && (
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[400] w-full max-w-md px-5 animate-in slide-in-from-bottom-5 duration-500">
+          <div className="bg-gray-950/90 backdrop-blur-3xl border border-blue-500/30 rounded-[2rem] p-4 flex items-center justify-between shadow-4xl ring-1 ring-blue-500/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-500">
+                <Scale size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Compare Protocol</p>
+                <p className="text-[9px] font-bold text-gray-500 uppercase mt-1">{compareHeroIds.length} / 3 Heroes Locked</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setCompareHeroIds([])}
+                className="p-3 text-gray-500 hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+              <button 
+                onClick={() => setIsCompareModalOpen(true)}
+                disabled={compareHeroIds.length < 2}
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+              >
+                Launch Analysis
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Comparison Modal */}
+      {isCompareModalOpen && (
+        <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => setIsCompareModalOpen(false)} />
+           <div className="relative w-full max-w-4xl bg-gray-950 border border-white/10 rounded-[3rem] p-8 sm:p-12 max-h-[92vh] overflow-y-auto no-scrollbar animate-in zoom-in-95 shadow-4xl overflow-x-auto">
+              <div className="flex items-center justify-between mb-10 min-w-[600px]">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-blue-600/20 border border-blue-500/30 rounded-2xl text-blue-500">
+                    <Scale size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Tactical Hero Comparison</h2>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Neural Data Synchronization: SUCCESS</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsCompareModalOpen(false)} className="p-4 bg-white/5 rounded-full border border-white/10 text-gray-400 hover:text-white transition-all"><X size={24}/></button>
+              </div>
+
+              <div className="grid grid-cols-[180px_repeat(auto-fit,minmax(200px,1fr))] gap-6 min-w-[700px]">
+                {/* Comparison Labels */}
+                <div className="space-y-6 pt-24">
+                  {['Tier', 'Global Bonus (L120)', 'Shard Cost', 'Unique Effect', 'Deep Logic', 'Evo 4★'].map(label => (
+                    <div key={label} className="h-24 flex items-center px-4 bg-white/5 rounded-2xl border border-white/5">
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-tight">{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Hero Data Columns */}
+                {comparedHeroes.map(hero => (
+                  <div key={hero.id} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="p-6 bg-gray-900/60 border border-white/10 rounded-3xl text-center flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-3xl">🦸</div>
+                      <h3 className="text-xl font-black text-white uppercase italic truncate w-full">{hero.name}</h3>
+                    </div>
+                    
+                    <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center">
+                      <Badge tier={hero.tier} />
+                    </div>
+
+                    <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center">
+                      <p className="text-sm font-black text-orange-500 italic uppercase">{hero.globalBonus120}</p>
+                    </div>
+
+                    <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center">
+                      <p className="text-[11px] font-bold text-purple-400 uppercase italic leading-tight">{hero.shardCost || "Event Exclusive"}</p>
+                    </div>
+
+                    <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar">
+                      <p className="text-[10px] font-medium text-blue-400 italic leading-snug">{hero.uniqueEffect || "Standard Build"}</p>
+                    </div>
+
+                    <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar">
+                      <p className="text-[10px] font-medium text-gray-300 italic leading-snug">{hero.deepLogic || "Scan missing."}</p>
+                    </div>
+
+                    <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar">
+                      <p className="text-[10px] font-medium text-yellow-500/80 italic leading-snug">{hero.evo4Star || "Passive Only"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-14 pt-8 border-t border-white/5 flex items-center justify-between opacity-30 min-w-[600px]">
+                <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 italic">Targeting specific synergies for high-wave chapters.</p>
+                <p className="text-[8px] font-bold text-gray-700 uppercase">Archive Analysis: Complete</p>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* INSPECTOR MODAL - COMPREHENSIVE VIEW */}
       {selectedItem && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6">
@@ -1191,6 +1703,76 @@ const App: React.FC = () => {
                      </div>
                    </div>
                 </div>
+
+                {/* META EVOLUTION HISTORY SECTION */}
+                {selectedItem.category === 'Hero' && selectedItem.historicalTiers && selectedItem.historicalTiers.length > 0 && (
+                  <div className="space-y-6">
+                    <h4 className="px-4 text-[11px] font-black text-orange-500 uppercase tracking-[0.3em] flex items-center gap-3 italic"><Milestone size={22}/> Meta Evolution History</h4>
+                    <div className="p-10 bg-gray-900/30 border border-white/5 rounded-[3rem] relative overflow-hidden">
+                       <div className="absolute top-0 left-[2.5rem] w-px h-full bg-gradient-to-b from-orange-500/20 via-orange-500/5 to-transparent"></div>
+                       <div className="space-y-10 relative z-10">
+                          {selectedItem.historicalTiers.map((hist: any, hIdx: number) => (
+                            <div key={hIdx} className="flex items-center gap-8 group/item">
+                               <div className="relative">
+                                 <div className="w-4 h-4 rounded-full bg-gray-950 border-2 border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.3)] z-10 relative"></div>
+                                 <div className="absolute inset-0 w-4 h-4 rounded-full bg-orange-500 animate-ping opacity-20"></div>
+                               </div>
+                               <div className="flex-1 flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-2xl hover:border-orange-500/30 transition-all duration-500">
+                                  <div className="space-y-1">
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{hist.update}</p>
+                                    <p className="text-sm font-bold text-white italic">Update Archive Data</p>
+                                  </div>
+                                  <Badge tier={hist.tier} />
+                               </div>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* RECOMMENDED GEAR SETS SECTION */}
+                {selectedItem.category === 'Hero' && selectedItem.gearSets && selectedItem.gearSets.length > 0 && (
+                  <div className="space-y-6">
+                    <h4 className="px-4 text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] flex items-center gap-3 italic"><Swords size={22}/> Recommended Gear Sets</h4>
+                    <div className="space-y-6">
+                      {selectedItem.gearSets.map((set: GearSet, sIdx: number) => (
+                        <div key={sIdx} className="p-8 bg-blue-900/5 border border-blue-500/20 rounded-[3rem] relative overflow-hidden group hover:bg-blue-900/10 transition-colors">
+                           <div className="absolute top-0 right-0 p-6 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">
+                             <LayoutGrid size={80} />
+                           </div>
+                           <div className="flex items-center justify-between mb-6">
+                              <h5 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-blue-500"></div> {set.name}
+                              </h5>
+                              <button 
+                                onClick={() => handleExportBuild(selectedItem.name, set)}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-xl text-[9px] font-black text-blue-400 uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                              >
+                                <Copy size={12} /> EXPORT BUILD
+                              </button>
+                           </div>
+                           
+                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+                             <BuildSlot label="Weapon" name={set.weapon} icon={Sword} />
+                             <BuildSlot label="Armor" name={set.armor} icon={Shield} />
+                             <BuildSlot label="Bracelet" name={set.bracelet} icon={Zap} />
+                             <BuildSlot label="Locket" name={set.locket} icon={Target} />
+                             <BuildSlot label="Book" name={set.book} icon={Book} />
+                             {set.rings.map((ringName, rIdx) => (
+                               <BuildSlot key={rIdx} label={`Ring ${rIdx + 1}`} name={ringName} icon={Circle} />
+                             ))}
+                           </div>
+
+                           <div className="p-5 bg-blue-600/5 border border-blue-500/10 rounded-2xl">
+                             <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1 italic">Set Synergy Resonance</p>
+                             <p className="text-[13px] text-gray-300 font-medium leading-relaxed italic">"{set.synergy}"</p>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Specific Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -1298,7 +1880,9 @@ const App: React.FC = () => {
                    <div className="space-y-8">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
-                           <p className="text-[10px] font-black text-gray-500 uppercase mb-1">Set Resonance</p>
+                           <p className="text-[10px] font-black text-gray-500 uppercase mb-1 flex items-center gap-2">
+                             <Link2 size={12} className="text-orange-500" /> Set Resonance
+                           </p>
                            <p className="text-sm font-black text-white uppercase italic">{selectedItem.setBonus || "Standalone"}</p>
                         </div>
                         <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
@@ -1365,7 +1949,7 @@ const App: React.FC = () => {
                   <Terminal size={14} className="text-orange-500" />
                   <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">System Signature: v6.3.0_ZVA</span>
                </div>
-               <p className="text-[8px] font-bold text-gray-700">© 2025 ZV ARMORY CORE</p>
+               <p className="text-[8px] font-bold text-gray-600">© 2025 ZV ARMORY CORE</p>
             </div>
           </div>
         </div>
