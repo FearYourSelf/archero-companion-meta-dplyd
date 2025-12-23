@@ -1,4 +1,5 @@
 
+
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
 export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Pet Farm Eggs' | 'Totem' | 'Jewel' | 'Glyph';
 
@@ -33,7 +34,7 @@ export interface BaseItem {
   drPercent?: string;
   uniqueEffect?: string;
   dragonType?: 'Attack' | 'Defense' | 'Balance';
-  [key: string]: any; // Allow for flexible metadata from new categories
+  [key: string]: any; 
 }
 
 export interface Hero extends BaseItem {
@@ -55,10 +56,15 @@ export interface Jewel {
   baseStat: number;
   statPerLevel: number;
   slots: string[];
-  bonus16: string;
-  bonus28: string;
-  bonus40?: string;
   lore?: string;
+}
+
+export interface SlotResonance {
+  slot: string;
+  lv16: string;
+  lv28: string;
+  lv33: string;
+  lv38: string;
 }
 
 export interface Relic {
@@ -67,7 +73,8 @@ export interface Relic {
   tier: 'Holy' | 'Radiant' | 'Faint';
   effect: string;
   setBonus?: string;
-  iconType?: 'Sword' | 'Shield' | 'Scroll' | 'Gem' | 'Eye' | 'Book' | 'Cup' | 'Arrow';
+  // Added 'Flame' to supported icon types for Prometheus's Fire
+  iconType?: 'Sword' | 'Shield' | 'Scroll' | 'Gem' | 'Eye' | 'Book' | 'Cup' | 'Arrow' | 'Flame';
   stars?: string[];
   lore?: string;
   source?: string;
