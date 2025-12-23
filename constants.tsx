@@ -1,4 +1,3 @@
-
 import { Hero, BaseItem, Jewel, Relic } from './types';
 
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
@@ -224,13 +223,12 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'scythe_mage', name: 'Scythe Mage', tier: 'C', category: 'Spirit', desc: 'Bounce.' },
   { id: 'elf', name: 'Elf', tier: 'C', category: 'Spirit', desc: 'Fast Atk.' },
   { id: 'living_bomb', name: 'Living Bomb', tier: 'D', category: 'Spirit', desc: 'Useless.' },
-  { id: 'skel_warrior', name: 'Skeleton Warrior', tier: 'A', category: 'Spirit', desc: 'Melee Shield & Aggro', ability: 'Melee Shield & Aggro' },
+  { id: 'bone_warrior', name: 'Bone Warrior', tier: 'A', category: 'Spirit', desc: 'Melee Tank & Aggro', ability: 'Melee Shield & Aggro' },
 
   // --- PETS (New Ground Units) ---
   { id: 'frothy', name: 'Frothy Capy', tier: 'SS', category: 'Pet', desc: 'Immunity Bubble.', deepLogic: 'Bubble = 100% Immunity.' },
   { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Block %.' },
   { id: 'blitzbeak', name: 'Furious Blitzbeak', tier: 'S', category: 'Pet', desc: 'Lightning.' },
-  { id: 'bone_warrior', name: 'Bone Warrior', tier: 'A', category: 'Pet', desc: 'Melee Tank.' },
 
   // --- TOTEMS ---
   { id: 'totem_might', name: 'Oathblade', tier: 'SS', category: 'Totem', desc: 'Hero Stats %.' },
