@@ -648,7 +648,7 @@ ${set.synergy}
   };
 
   const findItemByName = (name: string) => {
-    return [...GEAR_DATA, ...DRAGON_DATA].find(i => i.name === name || i.id === name);
+    return [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA].find(i => i.name === name || i.id === name);
   }
 
   const displayOrder: GearCategory[] = ['Hero', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book', 'Spirit', 'Dragon', 'Pet', 'Relic', 'Jewel', 'Totem', 'Pet Farm Eggs', 'Glyph'];
@@ -1122,7 +1122,7 @@ ${set.synergy}
                                         )}
                                         <button 
                                           onClick={(e) => { e.stopPropagation(); toggleEquip(item.id); }}
-                                          className={`p-2 rounded-xl border transition-all ${isEquipped ? 'bg-orange-600 border-orange-400 text-white' : 'bg-white/5 border-white/5 text-gray-600 hover:text-gray-300'}`}
+                                          className={`p-2 rounded-xl border transition-all ${isEquipped ? 'bg-orange-600 border-orange-400 text-white' : 'bg-white/5 border-white/5 text-gray-600 hover:text-blue-500'}`}
                                         >
                                           {isEquipped ? <Check size={14} /> : <Box size={14} />}
                                         </button>
@@ -2076,13 +2076,15 @@ ${set.synergy}
                         <p className="text-[13px] text-gray-300 font-medium leading-relaxed italic">"{selectedItem.bio}"</p>
                      </div>
                    )}
-                   <div className="p-10 bg-gray-950 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div>
-                     <h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4>
-                     <div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10">
-                        {selectedItem.deepLogic || "Neural uplink required for deep architectural scan."}
+                   {selectedItem.deepLogic && (
+                     <div className="p-10 bg-gray-950 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div>
+                       <h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4>
+                       <div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10">
+                          {selectedItem.deepLogic}
+                       </div>
                      </div>
-                   </div>
+                   )}
                 </div>
                 {selectedItem.category === 'Hero' && selectedItem.gearSets && selectedItem.gearSets.length > 0 && (
                   <div className="space-y-6">
@@ -2181,15 +2183,30 @@ ${set.synergy}
                 </div>
                 <div className="grid grid-cols-1 gap-5">
                    {selectedItem.bestPairs && selectedItem.bestPairs.length > 0 && (
-                     <div className="p-8 bg-white/5 border border-white/10 rounded-[3rem] flex items-start gap-5">
-                        <Link2 className="text-blue-400 mt-1 shrink-0" size={24} />
-                        <div>
-                           <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-3">S-Tier Loadout Synergy</p>
-                           <div className="flex flex-wrap gap-2">
-                              {selectedItem.bestPairs.map((p: string) => (
-                                <span key={p} className="px-4 py-1.5 bg-blue-600/10 text-blue-400 text-[11px] font-black rounded-xl border border-blue-500/20 shadow-inner">{p}</span>
-                              ))}
+                     <div className="space-y-4">
+                        <h4 className="px-4 text-[11px] font-black text-cyan-500 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+                           <Link2 size={22}/> Tactical Synergy Resonance
+                        </h4>
+                        <div className="p-8 bg-cyan-900/5 border border-cyan-500/20 rounded-[3rem] flex flex-wrap gap-3 relative overflow-hidden">
+                           <div className="absolute top-0 right-0 p-4 opacity-[0.05]">
+                              <Sparkle size={60} className="animate-pulse" />
                            </div>
+                           {selectedItem.bestPairs.map((pairName: string) => {
+                              const pairedItem = findItemByName(pairName);
+                              return (
+                                <button
+                                  key={pairName}
+                                  onClick={() => { if (pairedItem) { setSelectedItem(pairedItem); playSfx('click'); } }}
+                                  className={`px-5 py-2.5 rounded-2xl border transition-all flex items-center gap-2 group/pair
+                                    ${pairedItem 
+                                      ? 'bg-cyan-600/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-600 hover:text-white hover:border-cyan-400 active:scale-95' 
+                                      : 'bg-white/5 border-white/10 text-gray-500 cursor-default'}`}
+                                >
+                                  <span className="text-xs font-black uppercase italic tracking-tighter">{pairName}</span>
+                                  {pairedItem && <ArrowUpRight size={14} className="opacity-50 group-hover/pair:opacity-100 transition-opacity" />}
+                                </button>
+                              );
+                           })}
                         </div>
                      </div>
                    )}
