@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -227,7 +226,7 @@ const App: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // CTRL + ' (Single Quote) to toggle console
       if (e.ctrlKey && e.key === "'") {
-        e.preventDefault();
+        setSearchQuery(''); // Quick internal hack to clear state if needed
         setIsConsoleVisible(prev => !prev);
         if (!isConsoleVisible) playSfx('msg');
       }
@@ -1734,19 +1733,40 @@ ${set.synergy}
                 </div>
               </div>
 
-              <div className="relative h-24 bg-gray-900/60 rounded-[2rem] border border-white/5 overflow-hidden flex items-center px-1">
-                {/* Success Zone (60% to 80%) */}
-                <div className="absolute h-full bg-green-500/20 border-x border-green-500/30" style={{ left: '60%', width: '20%' }}>
-                  <div className="h-full flex items-center justify-center opacity-40">
-                    <Zap size={20} className="text-green-500 fill-current" />
-                  </div>
+              {/* RHYTHM CIRCLE RETICLE */}
+              <div className="relative w-48 h-48 mx-auto mb-8 flex items-center justify-center">
+                {/* Center Icon */}
+                <div className={`absolute w-20 h-20 rounded-full border-4 z-10 flex items-center justify-center bg-gray-900 transition-all duration-100 ${
+                  efficiency >= 140 ? 'border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] scale-110' : 
+                  efficiency === 0 && stutterStreak === 0 ? 'border-red-500 opacity-50' : 
+                  'border-gray-600'
+                }`}>
+                   <span className="text-3xl">⚔️</span>
                 </div>
+
+                {/* SVG Track - CORRECTED SIZE */}
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 192 192">
+                  {/* Background Ring */}
+                  <circle cx="96" cy="96" r="82" fill="transparent" stroke="#1f2937" strokeWidth="12" />
+                  
+                  {/* The Perfect Zone (Green Arc) */}
+                  <circle cx="96" cy="96" r="82" fill="transparent" stroke="#15803d" strokeWidth="12"
+                    strokeDasharray="515" strokeDashoffset="160" strokeLinecap="round" className="opacity-30" />
+                  
+                  {/* The Moving Indicator (Amber Ring) */}
+                  <circle cx="96" cy="96" r="82" fill="transparent"
+                    stroke={stutterProgress >= 60 && stutterProgress <= 80 ? '#fbbf24' : '#6b7280'}
+                    strokeWidth="12" strokeDasharray="515"
+                    strokeDashoffset={515 - (515 * stutterProgress) / 100}
+                    strokeLinecap="round" className="transition-all duration-75 ease-linear" />
+                </svg>
                 
-                {/* Moving Indicator */}
-                <div 
-                  className="absolute h-full w-1.5 bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10 transition-all duration-[16ms] linear" 
-                  style={{ left: `${stutterProgress}%` }} 
-                />
+                {/* Combo Counter */}
+                {stutterStreak > 0 && (
+                  <div className="absolute -bottom-4 bg-amber-600 text-white px-3 py-1 rounded-full text-xs font-black animate-bounce shadow-lg">
+                    {stutterStreak}x COMBO
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col items-center gap-8">
