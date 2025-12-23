@@ -3,19 +3,20 @@ import { GoogleGenAI } from "@google/genai";
 import { ARCHERO_KNOWLEDGE_BASE } from "../constants";
 
 export const chatWithAI = async (message: string, history: { role: 'user' | 'model', text: string }[]) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  const contents = [
-    ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
-    { role: 'user', parts: [{ text: message }] }
-  ];
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const contents = [
+      ...history.map(h => ({ role: h.role, parts: [{ text: h.text }] })),
+      { role: 'user', parts: [{ text: message }] }
+    ];
 
-  const response = await ai.models.generateContent({
-    // Upgraded model for complex meta-build analysis and data synthesis
-    model: 'gemini-3-pro-preview',
-    contents: contents as any,
-    config: {
-      systemInstruction: `You are the ARCHERO TACTICAL MENTOR. You specialize in data synthesis and meta-build analysis.
+    const response = await ai.models.generateContent({
+      // Switched to Flash for higher rate limits and faster response times
+      model: 'gemini-3-flash-preview',
+      contents: contents as any,
+      config: {
+        systemInstruction: `You are the ARCHERO TACTICAL MENTOR. You specialize in data synthesis and meta-build analysis.
 
 YOUR MISSION:
 When the user requests a "Synthesis" or "Build Report", generate a high-fidelity tactical readout.
@@ -47,9 +48,16 @@ FORMATTING:
 - Use Markdown headers (#, ##).
 - Use **Bold** for all item names.
 - Ensure high readability with clear spacing between sections.`,
-      temperature: 0.6,
-    },
-  });
+        temperature: 0.6,
+      },
+    });
 
-  return response.text;
+    return response.text;
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    if (error.status === 429) {
+      throw new Error("RATE_LIMIT_EXCEEDED");
+    }
+    throw error;
+  }
 };

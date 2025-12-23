@@ -528,9 +528,13 @@ const App: React.FC = () => {
     try {
       const response = await chatWithAI(msg, chatHistory.map(h => ({ role: h.role, text: h.text })));
       setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response || 'Mentor offline.', timestamp: Date.now() }]);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Gemini AI Uplink Failure", e);
-      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Archived offline.", timestamp: Date.now() }]);
+      const errorMsg = e.message === "RATE_LIMIT_EXCEEDED" 
+        ? "Rate limit hit. Free tier allows 15 requests per minute. Please wait a moment."
+        : "Neural uplink interrupted. Please check your signal.";
+      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: errorMsg, timestamp: Date.now() }]);
+      showToast(errorMsg, 'error');
     } finally { setIsAiLoading(false); }
   };
 
@@ -544,9 +548,13 @@ const App: React.FC = () => {
     try {
       const response = await chatWithAI(prompt, []);
       setSimResult(response || 'Simulation timeout.');
-    } catch (e) { 
+    } catch (e: any) { 
       console.error("Simulation Synth Error", e);
-      setSimResult('Neural core error.'); 
+      const errorMsg = e.message === "RATE_LIMIT_EXCEEDED"
+        ? "Neural Core is busy (Rate Limit). Try again in 60s."
+        : "Simulation data corrupt. Resetting uplink...";
+      showToast(errorMsg, 'error');
+      setSimResult(errorMsg); 
     }
     finally { setIsSimulating(false); }
   };
