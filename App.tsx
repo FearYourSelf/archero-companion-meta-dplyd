@@ -17,14 +17,22 @@ import {
   Lightbulb, Link2, Ghost as Spook, Database, Cpu, Radio, Radar, Fingerprint as ScanIcon,
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
-  ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone
+  ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS
 } from './constants';
 import { chatWithAI } from './services/geminiService';
-import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet } from './types';
+import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry } from './types';
 import { Badge, Card } from './components/UI';
+
+// --- WEAPON PHYSICS DATA ---
+const WEAPON_SPEEDS: Record<string, { name: string; speed: number; label: string }> = {
+  'Fist': { name: 'Expedition Fist', speed: 3.5, label: 'FAST (3.5x)' },
+  'Scythe': { name: 'Death Scythe', speed: 1.2, label: 'HEAVY (1.2x)' },
+  'Blade': { name: 'Demon Blade', speed: 2.0, label: 'NORMAL (2.0x)' },
+  'Saw': { name: 'Saw Blade', speed: 4.5, label: 'EXTREME (4.5x)' },
+};
 
 // --- Fuzzy Match Logic ---
 const fuzzyMatch = (str: string, pattern: string): boolean => {
@@ -155,7 +163,13 @@ const App: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [maintenanceToast, setMaintenanceToast] = useState(false);
+  const [uiToast, setUiToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
   
+  // Console / Debug States
+  const [isConsoleVisible, setIsConsoleVisible] = useState(false);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const logsRef = useRef<LogEntry[]>([]);
+
   // persistence States
   const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean }>>(() => JSON.parse(localStorage.getItem('archero_v6_tracker') || '{}'));
   const [equippedItems, setEquippedItems] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem('archero_v6_equipped') || '[]')));
@@ -181,23 +195,88 @@ const App: React.FC = () => {
   const [stutterStreak, setStutterStreak] = useState(0);
   const [stutterActive, setStutterActive] = useState(false);
   const [stutterFeedback, setStutterFeedback] = useState<string | null>(null);
+  const [selectedWeapon, setSelectedWeapon] = useState('Blade');
+  const [efficiency, setEfficiency] = useState(0);
 
+  // Global Console Interception Logic
+  useEffect(() => {
+    const addLog = (type: LogEntry['type'], ...args: any[]) => {
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+      const newEntry: LogEntry = {
+        id: Math.random().toString(36).substring(2, 9),
+        type,
+        message,
+        timestamp: Date.now()
+      };
+      logsRef.current = [newEntry, ...logsRef.current].slice(0, 100);
+      setLogs([...logsRef.current]);
+    };
+
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+
+    console.log = (...args) => { originalLog(...args); addLog('info', ...args); };
+    console.warn = (...args) => { originalWarn(...args); addLog('warn', ...args); };
+    console.error = (...args) => { originalError(...args); addLog('error', ...args); };
+
+    window.onerror = (message, source, lineno, colno, error) => {
+      addLog('error', `Global Error: ${message} at ${source}:${lineno}:${colno}`);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // CTRL + ' (Single Quote) to toggle console
+      if (e.ctrlKey && e.key === "'") {
+        e.preventDefault();
+        setIsConsoleVisible(prev => !prev);
+        if (!isConsoleVisible) playSfx('msg');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    addLog('system', 'Neural Uplink Stable. Press CTRL + \' for Tactical Debugger.');
+
+    return () => {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Toast Auto-dismiss
+  useEffect(() => {
+    if (uiToast) {
+      const timer = setTimeout(() => setUiToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [uiToast]);
+
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
+    setUiToast({ message, type });
+    playSfx(type === 'error' ? 'error' : 'msg');
+  };
+
+  // --- STUTTER PHYSICS LOOP ---
   useEffect(() => {
     let interval: number;
     if (stutterActive) {
       interval = window.setInterval(() => {
-        setStutterProgress((prev) => {
+        setStutterProgress(prev => {
+          const speed = WEAPON_SPEEDS[selectedWeapon].speed; // Uses dynamic speed
           if (prev >= 100) {
             setStutterStreak(0);
             setStutterFeedback("MISS!");
-            return 0;
+            setEfficiency(0); // Timeout is a miss
+            return 0; // Miss/Reset
           }
-          return prev + 2;
+          return prev + speed;
         });
       }, 16);
     }
     return () => clearInterval(interval);
-  }, [stutterActive]);
+  }, [stutterActive, selectedWeapon]);
 
   // Hero Comparison state
   const [compareHeroIds, setCompareHeroIds] = useState<string[]>([]);
@@ -381,9 +460,24 @@ const App: React.FC = () => {
       DRAGON_DATA.find(d => d.id === dragons.slot2),
       DRAGON_DATA.find(d => d.id === dragons.slot3)
     ];
+    // Synergy only counts if we have 3 UNIQUE IDs (handled by onChange logic) and 3 UNIQUE TYPES
     const uniqueTypes = new Set(selected.map(s => (s as BaseItem)?.dragonType).filter(Boolean));
     return uniqueTypes.size === 3;
   }, [dragons]);
+
+  const handleEquipDragon = (slot: 'slot1' | 'slot2' | 'slot3', dragonId: string) => {
+    setDragons(prev => {
+      const next = { ...prev };
+      // Check for name/ID duplicates across slots. If found, clear previous slot.
+      if (slot !== 'slot1' && prev.slot1 === dragonId) next.slot1 = '';
+      if (slot !== 'slot2' && prev.slot2 === dragonId) next.slot2 = '';
+      if (slot !== 'slot3' && prev.slot3 === dragonId) next.slot3 = '';
+      
+      next[slot] = dragonId;
+      return next;
+    });
+    playSfx('click');
+  };
 
   const smeltEssenceYield = useMemo(() => {
     const baseline: Record<string, number> = { 'Epic': 50, 'PE': 150, 'Legendary': 500, 'AL': 1200, 'Mythic': 3500 };
@@ -435,6 +529,7 @@ const App: React.FC = () => {
       const response = await chatWithAI(msg, chatHistory.map(h => ({ role: h.role, text: h.text })));
       setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response || 'Mentor offline.', timestamp: Date.now() }]);
     } catch (e) {
+      console.error("Gemini AI Uplink Failure", e);
       setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Archived offline.", timestamp: Date.now() }]);
     } finally { setIsAiLoading(false); }
   };
@@ -449,7 +544,10 @@ const App: React.FC = () => {
     try {
       const response = await chatWithAI(prompt, []);
       setSimResult(response || 'Simulation timeout.');
-    } catch (e) { setSimResult('Neural core error.'); }
+    } catch (e) { 
+      console.error("Simulation Synth Error", e);
+      setSimResult('Neural core error.'); 
+    }
     finally { setIsSimulating(false); }
   };
 
@@ -458,7 +556,7 @@ const App: React.FC = () => {
       navigator.clipboard.writeText(simResult);
       playSfx('click');
       setIsSimMenuOpen(false);
-      alert('Report copied to clipboard!');
+      showToast('Build Report copied to tactical clipboard.', 'success');
     }
   };
 
@@ -472,6 +570,7 @@ const App: React.FC = () => {
       element.click();
       playSfx('click');
       setIsSimMenuOpen(false);
+      showToast('Tactical Report exported as .txt', 'success');
     }
   };
 
@@ -502,19 +601,19 @@ Locket: ${set.locket}
 Book: ${set.book}
 --- SYNERGY RESONANCE ---
 ${set.synergy}
---- Generated via ZV GRANDMASTER ---
+--- Generated via ZA GRANDMASTER ---
     `.trim();
     navigator.clipboard.writeText(text);
-    alert(`${set.name} configuration exported to tactical clipboard.`);
+    showToast(`${set.name} exported to clipboard.`, 'success');
   };
 
   const findItemByName = (name: string) => {
     return [...GEAR_DATA, ...DRAGON_DATA].find(i => i.name === name || i.id === name);
   }
 
-  const displayOrder: GearCategory[] = ['Hero', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book', 'Spirit', 'Dragon', 'Pet', 'Relic', 'Jewel', 'Totem', 'Egg', 'Glyph'];
-  const categoryIcons: Record<string, any> = { 'All': LayoutGrid, 'Hero': User, 'Weapon': Sword, 'Armor': Shield, 'Ring': Circle, 'Locket': Target, 'Bracelet': Zap, 'Book': Book, 'Spirit': Ghost, 'Dragon': Flame, 'Pet': Dog, 'Egg': Egg, 'Totem': Tower, 'Relic': Box, 'Jewel': Disc, 'Glyph': Layers };
-  const categoryEmojis: Record<string, string> = { 'Hero': '🦸', 'Weapon': '⚔️', 'Armor': '🛡️', 'Ring': '💍', 'Bracelet': '⚡', 'Locket': '🎯', 'Book': '📖', 'Spirit': '👻', 'Dragon': '🐉', 'Pet': '🐾', 'Relic': '🏺', 'Jewel': '💎', 'Totem': '🏛️', 'Egg': '🥚', 'Glyph': '➰' };
+  const displayOrder: GearCategory[] = ['Hero', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book', 'Spirit', 'Dragon', 'Pet', 'Relic', 'Jewel', 'Totem', 'Pet Farm Eggs', 'Glyph'];
+  const categoryIcons: Record<string, any> = { 'All': LayoutGrid, 'Hero': User, 'Weapon': Sword, 'Armor': Shield, 'Ring': Circle, 'Locket': Target, 'Bracelet': Zap, 'Book': Book, 'Spirit': Ghost, 'Dragon': Flame, 'Pet': Dog, 'Pet Farm Eggs': Egg, 'Totem': Tower, 'Relic': Box, 'Jewel': Disc, 'Glyph': Layers };
+  const categoryEmojis: Record<string, string> = { 'Hero': '🦸', 'Weapon': '⚔️', 'Armor': '🛡️', 'Ring': '💍', 'Bracelet': '⚡', 'Locket': '🎯', 'Book': '📖', 'Spirit': '👻', 'Dragon': '🐉', 'Pet': '🐾', 'Relic': '🏺', 'Jewel': '💎', 'Totem': '🏛️', 'Pet Farm Eggs': '🥚', 'Glyph': '➰' };
 
   const filteredJewels = useMemo(() => JEWEL_DATA.filter(j => jewelFilterSlot === 'All' || j.slots.includes(jewelFilterSlot)), [jewelFilterSlot]);
   
@@ -561,8 +660,8 @@ ${set.synergy}
         return {
           card: 'bg-yellow-600/5 border-yellow-500/20 hover:border-yellow-500/40',
           iconContainer: 'bg-yellow-600/20 border-yellow-500/30 text-yellow-500',
-          tooltip: 'border-yellow-500/30 text-yellow-400',
-          arrow: 'border-yellow-500/30'
+          tooltip: 'border-orange-500/30 text-yellow-400',
+          arrow: 'border-orange-500/30'
         };
       default:
         return {
@@ -606,7 +705,7 @@ ${set.synergy}
       >
         <p className="text-[8px] font-black text-gray-500 uppercase mb-1 flex items-center gap-1"><Icon size={10}/> {label}</p>
         <div className="flex items-center justify-between gap-1">
-          <p className="text-[11px] font-black text-gray-200 uppercase italic truncate">{name}</p>
+          <p className="text-[11px] font-black text-gray-200 uppercase italic whitespace-normal leading-tight">{name}</p>
           {item && <ArrowUpRight size={10} className="text-blue-400 shrink-0" />}
         </div>
       </div>
@@ -633,11 +732,101 @@ ${set.synergy}
   return (
     <div className="h-screen w-full bg-[#030712] text-gray-100 flex flex-col font-sans max-w-3xl mx-auto relative overflow-hidden border-x border-white/5 shadow-4xl">
       
+      {/* GLOBAL TOAST (Fixed to Top to avoid obstructing Bottom Nav) */}
+      {uiToast && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[11000] animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-none">
+          <div className={`px-6 py-3 rounded-full border shadow-4xl flex items-center gap-3 backdrop-blur-3xl ${
+            uiToast.type === 'success' ? 'bg-green-950/90 border-green-500/30 text-green-400' : 
+            uiToast.type === 'error' ? 'bg-red-950/90 border-red-500/30 text-red-400' :
+            'bg-blue-950/90 border-blue-500/30 text-blue-400'
+          }`}>
+            {uiToast.type === 'success' ? <CheckCircle2 size={16} /> : <Info size={16} />}
+            <span className="text-[10px] font-black uppercase tracking-widest italic">{uiToast.message}</span>
+          </div>
+        </div>
+      )}
+
       {maintenanceToast && (
         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] animate-in fade-in zoom-in duration-300 pointer-events-none text-center">
           <div className="px-12 py-8 bg-gray-950/95 border-2 border-orange-500/60 rounded-[3rem] shadow-4xl flex flex-col items-center gap-4">
              <AlertTriangle className="text-orange-500 animate-pulse" size={32} />
              <p className="text-xl font-black text-white italic uppercase tracking-tighter">Under Maintenance</p>
+          </div>
+        </div>
+      )}
+
+      {/* TACTICAL UPLINK CONSOLE (Developer Overlay) */}
+      {isConsoleVisible && (
+        <div className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-2xl flex flex-col p-8 font-mono overflow-hidden animate-in fade-in duration-300">
+          <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
+          
+          <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-6">
+            <div className="flex items-center gap-4">
+              <Terminal size={24} className="text-orange-500 animate-pulse" />
+              <div>
+                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Tactical Developer Uplink</h3>
+                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">V6.3.0 Kernel // Stream: Active</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => { navigator.clipboard.writeText(logs.map(l => `[${new Date(l.timestamp).toLocaleTimeString()}] ${l.type.toUpperCase()}: ${l.message}`).join('\n')); playSfx('click'); }}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-gray-400 hover:text-white transition-all flex items-center gap-2"
+              >
+                <Copy size={12} /> COPY LOGS
+              </button>
+              <button 
+                onClick={() => { setLogs([]); logsRef.current = []; playSfx('click'); }}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-gray-400 hover:text-white transition-all flex items-center gap-2"
+              >
+                <Trash2 size={12} /> CLEAR
+              </button>
+              <button 
+                onClick={() => { setIsConsoleVisible(false); playSfx('click'); }}
+                className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-500 transition-all shadow-lg active:scale-95"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-4">
+            {logs.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center opacity-20 space-y-4">
+                <Code size={48} className="text-gray-500 animate-pulse" />
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500">Log Buffer Empty</p>
+              </div>
+            ) : (
+              logs.map(log => (
+                <div key={log.id} className="p-4 bg-white/5 border-l-2 border-white/10 rounded-r-xl group hover:bg-white/10 transition-colors animate-in slide-in-from-left-2">
+                  <div className="flex items-start gap-4">
+                    <span className="text-[10px] text-gray-600 font-bold shrink-0 mt-1">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                    <div className="flex-1">
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md mr-3 ${
+                        log.type === 'error' ? 'bg-red-600/20 text-red-500' :
+                        log.type === 'warn' ? 'bg-amber-600/20 text-amber-500' :
+                        log.type === 'system' ? 'bg-purple-600/20 text-purple-400' :
+                        'bg-cyan-600/20 text-cyan-400'
+                      }`}>
+                        {log.type}
+                      </span>
+                      <p className={`text-xs mt-2 leading-relaxed font-medium break-all ${
+                        log.type === 'error' ? 'text-red-400 font-bold' :
+                        log.type === 'warn' ? 'text-amber-300' :
+                        'text-gray-300'
+                      }`}>
+                        {log.message}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-between opacity-30">
+            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest italic">Terminal Shortcut: CTRL + ' to Exit</p>
+            <p className="text-[8px] font-bold text-gray-700">© 2025 ZA ARMORY CORE DEBUGGER</p>
           </div>
         </div>
       )}
@@ -712,7 +901,7 @@ ${set.synergy}
                         onClick={(e) => handleInteractiveClick(e, () => { setCategoryFilter(cat as any); playSfx('click'); })} 
                         className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${categoryFilter === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}
                       >
-                        <Icon size={12} /> {cat}
+                        <Icon size={12} /> {cat === 'Hero' ? 'HEROES' : (cat === 'Pet Farm Eggs' ? 'PET FARM EGGS' : cat + 'S')}
                       </button>
                     );
                   })}
@@ -829,7 +1018,7 @@ ${set.synergy}
                   return (
                     <div key={cat} className="space-y-6">
                       <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] border-l-4 border-orange-600 pl-4 italic flex items-center gap-3">
-                        <span className="text-xl">{categoryEmojis[cat]}</span> {cat}S
+                        <span className="text-xl">{categoryEmojis[cat]}</span> {cat === 'Hero' ? 'HEROES' : (cat === 'Pet Farm Eggs' ? 'PET FARM EGGS' : cat + 'S')}
                       </h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {sortedItems.map(item => {
@@ -1028,7 +1217,7 @@ ${set.synergy}
               </div>
               <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5">
                 <p className="text-[12px] font-black text-gray-600 uppercase mb-5 tracking-[0.2em]">Effective Multiplier</p>
-                <div className="text-9xl font-black text-white italic tracking-tighter">{formulaResult.toLocaleString()}</div>
+                <div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter">{formulaResult.toLocaleString()}</div>
                 <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Base Damage Capacity</p>
               </div>
               <div className="grid grid-cols-2 gap-6">
@@ -1067,7 +1256,7 @@ ${set.synergy}
                           <CustomSelect 
                             options={DRAGON_DATA.map(d => ({ id: d.id, name: d.name, subtitle: (d as BaseItem).dragonType }))}
                             value={(dragons as any)[slot]}
-                            onChange={(val) => setDragons(p => ({...p, [slot]: val}))}
+                            onChange={(val) => handleEquipDragon(slot as any, val)}
                             placeholder={`Assign Dragon Socket ${i+1}`}
                           />
                           {selected && (
@@ -1083,7 +1272,7 @@ ${set.synergy}
                </div>
                <div className="p-8 bg-black/20 rounded-[3rem] border border-white/5">
                  <p className="text-[10px] font-black text-gray-600 uppercase mb-4 flex items-center gap-2"><Lightbulb size={12}/> Pro Tip</p>
-                 <p className="text-[11px] text-gray-400 italic leading-relaxed">Ensure one of each type (Attack, Defense, Balance) is socketed. This triggers the unique Magestone Resonance, doubling your base mana regeneration rate.</p>
+                 <p className="text-[11px] text-gray-400 italic leading-relaxed">Assign unique dragons to each socket. Resonance is triggered by having one of each Type (Attack, Defense, Balance), but the system now supports Attack-heavy squads if desired.</p>
                </div>
             </div>
           )}
@@ -1094,8 +1283,12 @@ ${set.synergy}
                <div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
                   <Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} />
-                  <p className="text-[11px] font-black text-gray-500 uppercase mb-4 tracking-[0.4em]">Integrated Essence Output</p>
-                  <div className="text-9xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div>
+                  
+                  {/* CLARIFIED LABELS */}
+                  <p className="text-[11px] font-black text-orange-500 uppercase mb-2 tracking-[0.4em]">Estimated Essence Yield</p>
+                  <div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div>
+                  <p className="text-[9px] font-black text-gray-600 uppercase mt-2 tracking-[0.2em]">Glyph Essence Units</p>
+
                   <div className="mt-12 grid grid-cols-2 gap-4">
                     <CustomSelect 
                       options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))}
@@ -1104,8 +1297,13 @@ ${set.synergy}
                     />
                     <div className="relative group">
                       <input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase">QTY</span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase tracking-widest">Qty</span>
                     </div>
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-center gap-2 opacity-60 italic">
+                    <Scroll size={12} />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">Smelt component cost: {smeltQty * 10} Scrolls</span>
                   </div>
                </div>
                <div className="space-y-4">
@@ -1257,7 +1455,7 @@ ${set.synergy}
             <div className="space-y-8 animate-in fade-in pb-12">
               <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5">
                 <p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p>
-                <div className={`text-9xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div>
+                <div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div>
                 <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1294,7 +1492,7 @@ ${set.synergy}
                </div>
                <div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5">
                  <p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projected Effective DPS</p>
-                 <div className="text-9xl font-black text-white italic tracking-tighter">{calculatedDPS.toLocaleString()}</div>
+                 <div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter">{calculatedDPS.toLocaleString()}</div>
                  <p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Integrated Combat Potency</p>
                </div>
                <div className="grid grid-cols-2 gap-4">
@@ -1508,6 +1706,26 @@ ${set.synergy}
                 <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">Master the animation cancel timing</p>
               </div>
 
+              {/* WEAPON SELECTOR */}
+              <div className="mb-6">
+                <label className="text-gray-400 text-xs uppercase font-bold tracking-widest mb-2 block">Calibrate Weapon Weight</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {Object.entries(WEAPON_SPEEDS).map(([key, data]) => (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedWeapon(key)}
+                      className={`p-2 rounded-lg text-xs font-bold border transition-all ${
+                        selectedWeapon === key 
+                        ? 'bg-amber-600 border-amber-500 text-white shadow-lg scale-105' 
+                        : 'bg-gray-800 border-gray-700 text-gray-500 hover:bg-gray-700'
+                      }`}
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="relative h-24 bg-gray-900/60 rounded-[2rem] border border-white/5 overflow-hidden flex items-center px-1">
                 {/* Success Zone (60% to 80%) */}
                 <div className="absolute h-full bg-green-500/20 border-x border-green-500/30" style={{ left: '60%', width: '20%' }}>
@@ -1524,27 +1742,61 @@ ${set.synergy}
               </div>
 
               <div className="flex flex-col items-center gap-8">
-                <div className="text-center min-h-[120px]">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Current Streak</p>
-                  <div className="text-7xl font-black text-white italic tracking-tighter">{stutterStreak}</div>
-                  {stutterFeedback && (
-                    <p className={`text-sm font-black uppercase mt-2 animate-bounce ${stutterFeedback === 'PERFECT!' ? 'text-green-500' : 'text-red-500'}`}>
-                      {stutterFeedback}
-                    </p>
-                  )}
+                {/* REAL-TIME DPS ANALYZER */}
+                <div className="grid grid-cols-2 gap-4 mb-6 w-full max-w-md">
+                  {/* Base Stat */}
+                  <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center opacity-50">
+                    <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Base Efficiency</div>
+                    <div className="text-2xl font-mono font-bold text-white">100%</div>
+                  </div>
+
+                  {/* Live Stat */}
+                  <div className={`p-4 rounded-xl border-2 text-center transition-all duration-100 ${
+                    efficiency >= 140 ? 'bg-green-900/30 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]' :
+                    efficiency === 0 ? 'bg-red-900/30 border-red-500' :
+                    'bg-gray-800 border-gray-600'
+                  }`}>
+                    <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${
+                      efficiency >= 140 ? 'text-green-400' : efficiency === 0 ? 'text-red-400' : 'text-gray-400'
+                    }`}>
+                      Current Efficiency
+                    </div>
+                    <div className={`text-3xl font-mono font-black ${
+                      efficiency >= 140 ? 'text-green-400' : efficiency === 0 ? 'text-red-500' : 'text-white'
+                    }`}>
+                      {efficiency}%
+                    </div>
+                  </div>
                 </div>
 
                 <button
                   onMouseDown={() => {
                     if (!stutterActive) return;
+                    
+                    let score = 0;
+                    let feedback = "MISS!";
+                    
                     if (stutterProgress >= 60 && stutterProgress <= 80) {
+                      // Dynamic Efficiency: Earlier is better
+                      // At 60 (perfect frame): 160% eff
+                      // At 80 (late frame): 140% eff
+                      const bonus = 20 - (stutterProgress - 60); 
+                      score = 140 + bonus;
+                      feedback = score >= 155 ? "FRAME PERFECT!" : "PERFECT!";
                       setStutterStreak(s => s + 1);
-                      setStutterFeedback("PERFECT!");
-                      setStutterProgress(0);
-                    } else {
+                    } else if (stutterProgress > 80 && stutterProgress < 100) {
+                      score = 100; // Late but didn't miss animation
+                      feedback = "LATE";
                       setStutterStreak(0);
-                      setStutterFeedback("MISS!");
+                    } else {
+                      score = 0; // Miss
+                      feedback = "MISS!";
+                      setStutterStreak(0);
                     }
+                    
+                    setEfficiency(Math.round(score));
+                    setStutterFeedback(feedback);
+                    setStutterProgress(0);
                     playSfx('click');
                   }}
                   className="w-44 h-44 rounded-full bg-orange-600 border-[10px] border-orange-500 shadow-[0_0_50px_rgba(249,115,22,0.3)] flex items-center justify-center text-white font-black text-2xl uppercase italic active:scale-90 transition-all select-none"
@@ -1557,6 +1809,7 @@ ${set.synergy}
                     setStutterActive(!stutterActive);
                     setStutterFeedback(null);
                     setStutterProgress(0);
+                    setEfficiency(0);
                     playSfx('tab');
                   }}
                   className={`px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] border transition-all ${stutterActive ? 'bg-red-600/20 border-red-500/50 text-red-500' : 'bg-green-600/20 border-green-500/50 text-green-500'}`}
@@ -1637,9 +1890,9 @@ ${set.synergy}
         </div>
       </nav>
 
-      {/* Hero Comparison Floating Bar */}
+      {/* Hero Comparison Bar (Fixed to Top to avoid obstructing Bottom Nav) */}
       {compareHeroIds.length > 0 && activeTab === 'meta' && (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[400] w-full max-w-md px-5 animate-in slide-in-from-bottom-5 duration-500">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[400] w-full max-w-md px-5 animate-in slide-in-from-top-4 duration-500">
           <div className="bg-gray-950/90 backdrop-blur-3xl border border-blue-500/30 rounded-[2rem] p-4 flex items-center justify-between shadow-4xl ring-1 ring-blue-500/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-blue-500">
@@ -1662,7 +1915,7 @@ ${set.synergy}
                 disabled={compareHeroIds.length < 2}
                 className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
               >
-                Launch Analysis
+                Launch
               </button>
             </div>
           </div>
@@ -1839,7 +2092,7 @@ ${set.synergy}
                      </div>
                    )}
                    {selectedItem.bestSkin && (
-                     <div className="p-7 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] col-span-full">
+                     <div className="p-7 bg-blue-600/10 border border-orange-500/20 rounded-[2.5rem] col-span-full">
                         <div className="flex items-center gap-3 mb-2"><StarIcon size={18} className="text-blue-500"/><p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Optimal Skin Variant</p></div>
                         <p className="text-lg font-black text-white italic">{selectedItem.bestSkin}</p>
                      </div>
@@ -1901,7 +2154,7 @@ ${set.synergy}
                         <div>
                            <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-3">Recommended Assist Protocol</p>
                            <div className="flex flex-wrap gap-2">
-                              {selectedItem.assistHeroes.map((p: string) => (
+                              {selectedItem.assistHeroes.slice(0, 3).map((p: string) => (
                                 <span key={p} className="px-4 py-1.5 bg-purple-600/10 text-purple-400 text-[11px] font-black rounded-xl border border-purple-500/20">{p}</span>
                               ))}
                            </div>
@@ -1987,7 +2240,7 @@ ${set.synergy}
                   <Terminal size={14} className="text-orange-500" />
                   <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">System Signature: v6.3.0_ZVA</span>
                </div>
-               <p className="text-[8px] font-bold text-gray-600">© 2025 ZA ARMORY CORE</p>
+               <p className="text-[8px] font-bold text-gray-700">© 2025 ZA ARMORY CORE</p>
             </div>
           </div>
         </div>

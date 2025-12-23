@@ -1,3 +1,4 @@
+
 import { Hero, BaseItem, Jewel, Relic } from './types';
 
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
@@ -76,7 +77,7 @@ export const HERO_DATA: Hero[] = [
   { 
     id: 'melinda', name: 'Melinda', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+5% Dmg to All Units', 
     desc: 'The Barrage Queen.', deepLogic: "Barrage scales exponentially with 'Diagonal Arrows' and 'Bouncy Wall'. 4-Star Trait: Acts as a Berserker modifier, increasing projectile count as HP decreases.", 
-    evo4Star: 'Barrage gains homing effect.', bestPairs: ['Expedition Fist', 'Dragon Ring'],
+    evo4Star: 'Barrage projectiles auto-target enemies (Smart Homing).', bestPairs: ['Expedition Fist', 'Dragon Ring'],
     bio: 'A high-society sharpshooter who prefers the heat of battle to the ballroom.',
     bestSkin: 'Baker Melinda', shardCost: '50 (Premium)', assistHeroes: ['Iris', 'Elaine'],
     trivia: 'Her Barrage skill is considered a "Physical" attack and benefits from raw ATK buffs.',
@@ -214,7 +215,7 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'arcane_archer', name: 'Arcane Archer', tier: 'A', category: 'Book', desc: 'Arrows.', mythicPerk: 'Titan: Duration +1s.' },
   { id: 'ice_realm', name: 'Ice Realm', tier: 'B', category: 'Book', desc: 'Freeze.' },
   { id: 'spectre', name: 'Spectre Book', tier: 'C', category: 'Book', desc: 'Summons.' },
-  { id: 'peach', name: 'Peach Book', tier: 'C', category: 'Book', desc: 'Heal.' },
+  { id: 'mystery_time', name: 'Time of Mysteries', tier: 'C', category: 'Book', desc: 'Ultimate CDR & Healing.' },
 
   // --- SPIRITS ---
   { id: 'laser_bat', name: 'Laser Bat', tier: 'A', category: 'Spirit', desc: 'Wall Pierce.', deepLogic: 'Shoots through walls. Best for applying Element debuffs safely.' },
@@ -223,6 +224,7 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'scythe_mage', name: 'Scythe Mage', tier: 'C', category: 'Spirit', desc: 'Bounce.' },
   { id: 'elf', name: 'Elf', tier: 'C', category: 'Spirit', desc: 'Fast Atk.' },
   { id: 'living_bomb', name: 'Living Bomb', tier: 'D', category: 'Spirit', desc: 'Useless.' },
+  { id: 'skel_warrior', name: 'Skeleton Warrior', tier: 'A', category: 'Spirit', desc: 'Melee Shield & Aggro', ability: 'Melee Shield & Aggro' },
 
   // --- PETS (New Ground Units) ---
   { id: 'frothy', name: 'Frothy Capy', tier: 'SS', category: 'Pet', desc: 'Immunity Bubble.', deepLogic: 'Bubble = 100% Immunity.' },
@@ -231,14 +233,14 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'bone_warrior', name: 'Bone Warrior', tier: 'A', category: 'Pet', desc: 'Melee Tank.' },
 
   // --- TOTEMS ---
-  { id: 'totem_might', name: 'Totem of Might', tier: 'SS', category: 'Totem', desc: 'Hero Stats %.' },
-  { id: 'totem_celerity', name: 'Totem of Celerity', tier: 'S', category: 'Totem', desc: 'Gear Stats %.' },
+  { id: 'totem_might', name: 'Oathblade', tier: 'SS', category: 'Totem', desc: 'Hero Stats %.' },
+  { id: 'totem_celerity', name: 'Void Crystal', tier: 'S', category: 'Totem', desc: 'Gear Stats %.' },
   { id: 'totem_vigor', name: 'Totem of Vigor', tier: 'A', category: 'Totem', desc: 'HP.' },
 
   // --- EGGS ---
-  { id: 'fire_demon', name: 'Fire Demon', tier: 'SS', category: 'Egg', desc: 'Crit Dmg +5%.' },
-  { id: 'ice_mage', name: 'Ice Mage', tier: 'S', category: 'Egg', desc: 'Airborne Dmg.' },
-  { id: 'scarlet_mage', name: 'Scarlet Mage', tier: 'S', category: 'Egg', desc: 'Crit Chance.' },
+  { id: 'fire_demon', name: 'Fire Demon', tier: 'SS', category: 'Pet Farm Eggs', desc: 'Crit Dmg +5%.' },
+  { id: 'ice_mage', name: 'Ice Mage', tier: 'S', category: 'Pet Farm Eggs', desc: 'Airborne Dmg.' },
+  { id: 'scarlet_mage', name: 'Scarlet Mage', tier: 'S', category: 'Pet Farm Eggs', desc: 'Crit Chance.' },
 
   // --- GLYPHS ---
   { id: 'glyph_devour', name: 'Glyph: Devour', tier: 'SS', category: 'Glyph', desc: 'Atk on Kill.' },
@@ -391,9 +393,9 @@ export const DRAGON_DATA: BaseItem[] = [
   { id: 'swordian', name: 'Swordian', tier: 'S', category: 'Dragon', dragonType: 'Attack', desc: 'Blade Spirit.', deepLogic: 'Best for Melee (Fist/Sword/Hammer). Buffs Hero stats and weapon range.' },
   { id: 'necrogon', name: 'Necrogon', tier: 'S', category: 'Dragon', dragonType: 'Balance', desc: 'Proj Resist.', deepLogic: 'Passive grants Projectile Resistance. Mandatory for the "Immunity Build".' },
   { id: 'geogon', name: 'Geogon', tier: 'S', category: 'Dragon', dragonType: 'Defense', desc: 'Rock Shield.', deepLogic: 'Active grants a Rock Shield that blocks damage. Great for boss tanking.' },
+  { id: 'stormra', name: 'Stormra', tier: 'S', category: 'Dragon', dragonType: 'Attack', desc: 'Lightning Ball.', deepLogic: 'Summons a lightning ball that orbits you. Great for AFK farming.' },
 
   // A TIER (Specialists)
-  { id: 'stormra', name: 'Stormra', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Lightning Ball.', deepLogic: 'Summons a lightning ball that orbits you. Great for AFK farming.' },
   { id: 'shadex', name: 'Shadex', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Collision Immune.', deepLogic: 'Active grants 100% Collision Resistance. Key for "room hugger" strats.' },
   { id: 'infernox', name: 'Infernox', tier: 'A', category: 'Dragon', dragonType: 'Attack', desc: 'Fire Bomber.', deepLogic: 'Deals splash Fire damage. Good against swarms.' },
   { id: 'glacion', name: 'Glacion', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Ice Breath.', deepLogic: 'Freezes enemies in a cone. Good crowd control.' },
@@ -402,7 +404,7 @@ export const DRAGON_DATA: BaseItem[] = [
   { id: 'noxion', name: 'Noxion', tier: 'A', category: 'Dragon', dragonType: 'Defense', desc: 'Poison Cloud.', deepLogic: 'Leaves poison trails. Weak in endgame.' },
 
   // B TIER (Fodder)
-  { id: 'ferron', name: 'Ferron', tier: 'B', category: 'Dragon', dragonType: 'Attack', desc: 'Slash.', deepLogic: 'Basic melee slash. Use as fodder for Magmar.' }
+  { id: 'ferron', name: 'Ferron', tier: 'B', category: 'Dragon', dragonType: 'Attack', desc: 'Slash.', deepLogic: 'Basic melee slash. Use as fodder for Magmar. Niche use only.' }
 ];
 
 export const REFINE_TIPS = [

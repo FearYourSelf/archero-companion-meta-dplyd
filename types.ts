@@ -1,6 +1,6 @@
 
 export type Tier = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
-export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Egg' | 'Totem' | 'Jewel' | 'Glyph';
+export type GearCategory = 'Hero' | 'Weapon' | 'Armor' | 'Ring' | 'Book' | 'Bracelet' | 'Locket' | 'Spirit' | 'Pet' | 'Dragon' | 'Relic' | 'Pet Farm Eggs' | 'Totem' | 'Jewel' | 'Glyph';
 
 export interface RarityPerk {
   rarity: 'Great' | 'Rare' | 'Epic' | 'Perfect Epic' | 'Legendary' | 'Ancient Legendary' | 'Mythic' | 'Titan Tales' | 'Chaos';
@@ -88,6 +88,9 @@ export interface CalcStats {
   weaponType: string;
 }
 
-export interface TrainingStats {
-  bestStreak: number;
+export interface LogEntry {
+  id: string;
+  type: 'info' | 'warn' | 'error' | 'system';
+  message: string;
+  timestamp: number;
 }
