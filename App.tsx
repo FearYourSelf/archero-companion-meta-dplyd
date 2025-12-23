@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -646,12 +647,11 @@ ${set.synergy}
           <div className="flex items-center gap-3">
             <Trophy className="text-orange-500 w-8 h-8" />
             <div>
-              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER</h1>
-              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZV Armory Clan Strategic Companion</p>
+              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZA GRANDMASTER</h1>
+              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZA Armory Clan Strategic Companion</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => playSfx('click')} className="p-3 bg-white/5 text-orange-500 rounded-xl hover:bg-white/10 transition-all border border-white/5"><HelpCircle size={16}/></button>
             <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-3 bg-white/5 text-gray-500 rounded-xl border border-white/5">
                 {soundEnabled ? <Volume2 size={16}/> : <VolumeX size={16}/>}
             </button>
@@ -1218,7 +1218,7 @@ ${set.synergy}
                              <Terminal size={14} className="text-blue-500" />
                              <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Checksum: VERIFIED</span>
                           </div>
-                          <p className="text-[8px] font-bold text-gray-600">© 2025 ZV GRANDMASTER CORE</p>
+                          <p className="text-[8px] font-bold text-gray-600">© 2025 ZA GRANDMASTER CORE</p>
                        </div>
                     </div>
                  </div>
@@ -1987,7 +1987,7 @@ ${set.synergy}
                   <Terminal size={14} className="text-orange-500" />
                   <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">System Signature: v6.3.0_ZVA</span>
                </div>
-               <p className="text-[8px] font-bold text-gray-600">© 2025 ZV ARMORY CORE</p>
+               <p className="text-[8px] font-bold text-gray-600">© 2025 ZA ARMORY CORE</p>
             </div>
           </div>
         </div>
