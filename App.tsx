@@ -485,7 +485,7 @@ Locket: ${set.locket}
 Book: ${set.book}
 --- SYNERGY RESONANCE ---
 ${set.synergy}
---- Generated via ZV GRANDMASTER V6.3 ---
+--- Generated via ZV GRANDMASTER ---
     `.trim();
     navigator.clipboard.writeText(text);
     alert(`${set.name} configuration exported to tactical clipboard.`);
@@ -506,9 +506,9 @@ ${set.synergy}
       const matchesTier = relicTierFilter === 'All' || r.tier === relicTierFilter;
       const matchesSource = relicSourceFilter === 'All' || r.source === relicSourceFilter;
       const matchesSearch = fuzzyMatch(r.name, searchQuery);
-      return matchesTier && matchesSource && matchesSearch;
+      return matchesSearch && (categoryFilter === 'All' || categoryFilter === 'Relic') && (!sssOnly);
     });
-  }, [relicTierFilter, relicSourceFilter, searchQuery]);
+  }, [relicTierFilter, relicSourceFilter, searchQuery, categoryFilter, sssOnly]);
 
   const filteredData = useMemo(() => {
     const adaptedJewels = JEWEL_DATA.map(j => ({ ...j, category: 'Jewel' as GearCategory, tier: 'S' as Tier, desc: j.lore || j.statType }));
@@ -630,8 +630,8 @@ ${set.synergy}
           <div className="flex items-center gap-3">
             <Trophy className="text-orange-500 w-8 h-8" />
             <div>
-              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER V6.3</h1>
-              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">Archero Strategic Protocol</p>
+              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER</h1>
+              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZV Armory Clan Strategic Companion</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -824,23 +824,23 @@ ${set.synergy}
                           return (
                             <div key={item.id} className="relative group">
                               {/* Enhanced Item Tooltip */}
-                              {(item.mythicPerk || item.deepLogic) && (
+                              {((item as any).mythicPerk || (item as any).deepLogic) && (
                                 <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 bottom-[105%] w-72 p-5 bg-gray-950/98 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in slide-in-from-bottom-2">
                                   <div className="space-y-4">
-                                    {item.mythicPerk && (
+                                    {(item as any).mythicPerk && (
                                       <div>
                                         <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                           <Sparkles size={10} /> Mythic Resonance
                                         </p>
-                                        <p className="text-[11px] text-white font-bold italic leading-relaxed bg-orange-600/5 p-2.5 rounded-xl border border-orange-500/10">"{item.mythicPerk}"</p>
+                                        <p className="text-[11px] text-white font-bold italic leading-relaxed bg-orange-600/5 p-2.5 rounded-xl border border-orange-500/10">"{(item as any).mythicPerk}"</p>
                                       </div>
                                     )}
-                                    {item.deepLogic && (
+                                    {(item as any).deepLogic && (
                                       <div>
                                         <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                           <Atom size={10} /> Neural Synthesis
                                         </p>
-                                        <p className="text-[10px] text-gray-300 font-medium italic leading-relaxed bg-blue-600/5 p-2.5 rounded-xl border border-blue-500/10">{item.deepLogic}</p>
+                                        <p className="text-[10px] text-gray-300 font-medium italic leading-relaxed bg-blue-600/5 p-2.5 rounded-xl border border-blue-500/10">{(item as any).deepLogic}</p>
                                       </div>
                                     )}
                                   </div>
@@ -1202,7 +1202,7 @@ ${set.synergy}
                              <Terminal size={14} className="text-blue-500" />
                              <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Checksum: VERIFIED</span>
                           </div>
-                          <p className="text-[8px] font-bold text-gray-600">© 2025 GRANDMASTER CORE</p>
+                          <p className="text-[8px] font-bold text-gray-600">© 2025 ZV GRANDMASTER CORE</p>
                        </div>
                     </div>
                  </div>
@@ -1396,18 +1396,13 @@ ${set.synergy}
               ) : (
                 filteredRelics.map((r, index) => {
                   const styles = getRelicStyles(r.tier);
-                  // Identify if it's in the top row to flip tooltip direction
                   const isTopRow = index < 3; 
-                  
-                  // Derive set information
                   const setBonusEffect = r.setBonus ? SET_BONUS_DESCRIPTIONS[r.setBonus] : null;
                   const requiredRelics = r.setBonus ? RELIC_DATA.filter(other => other.setBonus === r.setBonus).map(other => other.name) : [];
 
                   return (
                     <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${styles.card}`}>
-                      {/* Detailed Relic & Set Tooltip */}
                       <div className={`invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 w-64 p-5 bg-gray-950/98 backdrop-blur-3xl border rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in ${isTopRow ? 'top-[110%] slide-in-from-top-2' : '-top-4 -translate-y-full slide-in-from-bottom-2'} ${styles.tooltip}`}>
-                        
                         {r.lore && (
                           <div className="mb-4">
                             <div className="flex items-center gap-2 mb-1.5 opacity-60">
@@ -1417,19 +1412,16 @@ ${set.synergy}
                             <p className="text-[10px] text-gray-300 font-medium italic leading-relaxed text-left">"{r.lore}"</p>
                           </div>
                         )}
-
                         {r.setBonus && (
                           <div className="pt-3 border-t border-white/5 space-y-3">
                              <div className="flex items-center gap-2">
                                 <Link2 size={12} className="text-orange-500" />
                                 <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">{r.setBonus} resonance</span>
                              </div>
-                             
                              <div className="space-y-1">
                                <p className="text-[8px] font-black uppercase text-gray-500 tracking-tighter">Full Set Synergy:</p>
                                <p className="text-[11px] text-gray-200 font-bold italic leading-tight text-left">{setBonusEffect || "Synergy effect unknown."}</p>
                              </div>
-
                              <div className="space-y-1">
                                <p className="text-[8px] font-black uppercase text-gray-500 tracking-tighter">Required Relics:</p>
                                <div className="flex flex-wrap gap-1.5">
@@ -1440,10 +1432,8 @@ ${set.synergy}
                              </div>
                           </div>
                         )}
-
                         <div className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-950 rotate-45 ${isTopRow ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} ${styles.arrow}`}></div>
                       </div>
-
                       <div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${styles.iconContainer}`}>
                         <RelicIcon type={r.iconType} className="w-8 h-8" />
                       </div>
@@ -1612,9 +1602,7 @@ ${set.synergy}
                 </div>
                 <button onClick={() => setIsCompareModalOpen(false)} className="p-4 bg-white/5 rounded-full border border-white/10 text-gray-400 hover:text-white transition-all"><X size={24}/></button>
               </div>
-
               <div className="grid grid-cols-[180px_repeat(auto-fit,minmax(200px,1fr))] gap-6 min-w-[700px]">
-                {/* Comparison Labels */}
                 <div className="space-y-6 pt-24">
                   {['Tier', 'Global Bonus (L120)', 'Shard Cost', 'Unique Effect', 'Deep Logic', 'Evo 4★'].map(label => (
                     <div key={label} className="h-24 flex items-center px-4 bg-white/5 rounded-2xl border border-white/5">
@@ -1622,42 +1610,33 @@ ${set.synergy}
                     </div>
                   ))}
                 </div>
-
-                {/* Hero Data Columns */}
                 {comparedHeroes.map(hero => (
                   <div key={hero.id} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="p-6 bg-gray-900/60 border border-white/10 rounded-3xl text-center flex flex-col items-center gap-4">
                       <div className="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-3xl">🦸</div>
                       <h3 className="text-xl font-black text-white uppercase italic truncate w-full">{hero.name}</h3>
                     </div>
-                    
                     <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center">
                       <Badge tier={hero.tier} />
                     </div>
-
                     <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center">
                       <p className="text-sm font-black text-orange-500 italic uppercase">{hero.globalBonus120}</p>
                     </div>
-
                     <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center">
                       <p className="text-[11px] font-bold text-purple-400 uppercase italic leading-tight">{hero.shardCost || "Event Exclusive"}</p>
                     </div>
-
                     <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar">
                       <p className="text-[10px] font-medium text-blue-400 italic leading-snug">{hero.uniqueEffect || "Standard Build"}</p>
                     </div>
-
                     <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar">
                       <p className="text-[10px] font-medium text-gray-300 italic leading-snug">{hero.deepLogic || "Scan missing."}</p>
                     </div>
-
                     <div className="h-24 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar">
                       <p className="text-[10px] font-medium text-yellow-500/80 italic leading-snug">{hero.evo4Star || "Passive Only"}</p>
                     </div>
                   </div>
                 ))}
               </div>
-
               <div className="mt-14 pt-8 border-t border-white/5 flex items-center justify-between opacity-30 min-w-[600px]">
                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 italic">Targeting specific synergies for high-wave chapters.</p>
                 <p className="text-[8px] font-bold text-gray-700 uppercase">Archive Analysis: Complete</p>
@@ -1672,9 +1651,7 @@ ${set.synergy}
           <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => setSelectedItem(null)} />
           <div className="relative w-full max-w-2xl bg-[#030712] border border-white/10 rounded-[3.5rem] p-8 sm:p-14 max-h-[92vh] overflow-y-auto no-scrollbar animate-in zoom-in-95 shadow-4xl ring-1 ring-white/5">
             <button onClick={() => setSelectedItem(null)} className="absolute top-10 right-10 p-5 bg-white/5 rounded-full border border-white/10 active:scale-90 transition-transform z-20 hover:bg-white/10"><X size={32}/></button>
-            
             <div className="space-y-12">
-              {/* Header Info */}
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge tier={selectedItem.tier} />
@@ -1684,9 +1661,7 @@ ${set.synergy}
                 <h2 className="text-5xl sm:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2>
                 <p className="text-[15px] text-gray-400 font-medium italic opacity-90 leading-relaxed max-w-lg">{selectedItem.desc}</p>
               </div>
-
               <div className="grid grid-cols-1 gap-10">
-                {/* Tactical Analysis & Bio */}
                 <div className="space-y-4">
                    {selectedItem.bio && (
                      <div className="p-8 bg-gray-900/40 rounded-[2.5rem] border border-white/5 space-y-3">
@@ -1694,7 +1669,6 @@ ${set.synergy}
                         <p className="text-[13px] text-gray-300 font-medium leading-relaxed italic">"{selectedItem.bio}"</p>
                      </div>
                    )}
-                   
                    <div className="p-10 bg-gray-950 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group">
                      <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div>
                      <h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4>
@@ -1703,8 +1677,6 @@ ${set.synergy}
                      </div>
                    </div>
                 </div>
-
-                {/* META EVOLUTION HISTORY SECTION */}
                 {selectedItem.category === 'Hero' && selectedItem.historicalTiers && selectedItem.historicalTiers.length > 0 && (
                   <div className="space-y-6">
                     <h4 className="px-4 text-[11px] font-black text-orange-500 uppercase tracking-[0.3em] flex items-center gap-3 italic"><Milestone size={22}/> Meta Evolution History</h4>
@@ -1730,8 +1702,6 @@ ${set.synergy}
                     </div>
                   </div>
                 )}
-
-                {/* RECOMMENDED GEAR SETS SECTION */}
                 {selectedItem.category === 'Hero' && selectedItem.gearSets && selectedItem.gearSets.length > 0 && (
                   <div className="space-y-6">
                     <h4 className="px-4 text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] flex items-center gap-3 italic"><Swords size={22}/> Recommended Gear Sets</h4>
@@ -1752,7 +1722,6 @@ ${set.synergy}
                                 <Copy size={12} /> EXPORT BUILD
                               </button>
                            </div>
-                           
                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
                              <BuildSlot label="Weapon" name={set.weapon} icon={Sword} />
                              <BuildSlot label="Armor" name={set.armor} icon={Shield} />
@@ -1763,18 +1732,15 @@ ${set.synergy}
                                <BuildSlot key={rIdx} label={`Ring ${rIdx + 1}`} name={ringName} icon={Circle} />
                              ))}
                            </div>
-
                            <div className="p-5 bg-blue-600/5 border border-blue-500/10 rounded-2xl">
                              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1 italic">Set Synergy Resonance</p>
-                             <p className="text-[13px] text-gray-300 font-medium leading-relaxed italic">"{set.synergy}"</p>
+                             <p className="text-[13px] text-gray-300 font-medium italic leading-relaxed italic">"{set.synergy}"</p>
                            </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-
-                {/* Specific Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                    {selectedItem.globalBonus120 && (
                      <div className="p-7 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem] group hover:bg-orange-600/15 transition-colors">
@@ -1801,8 +1767,6 @@ ${set.synergy}
                      </div>
                    )}
                 </div>
-
-                {/* Gear Specifics: Perks & Unique */}
                 <div className="space-y-6">
                    {selectedItem.mythicPerk && (
                      <div className="p-9 bg-gradient-to-br from-orange-600/20 to-transparent border border-orange-500/40 rounded-[3rem] shadow-4xl">
@@ -1810,7 +1774,6 @@ ${set.synergy}
                         <p className="text-[18px] font-black text-white italic leading-snug">"{selectedItem.mythicPerk}"</p>
                      </div>
                    )}
-
                    {selectedItem.uniqueEffect && (
                      <div className="p-8 bg-blue-900/10 border border-blue-500/20 rounded-[2.8rem] flex items-start gap-4">
                         <Zap size={24} className="text-blue-500 mt-1 shrink-0" />
@@ -1820,7 +1783,6 @@ ${set.synergy}
                         </div>
                      </div>
                    )}
-
                    {selectedItem.rarityPerks && selectedItem.rarityPerks.length > 0 && (
                      <div className="space-y-4">
                         <h5 className="px-4 text-[11px] font-black text-gray-500 uppercase tracking-widest italic flex items-center gap-2"><Layers size={14}/> Rarity Evolution Matrix</h5>
@@ -1835,8 +1797,6 @@ ${set.synergy}
                      </div>
                    )}
                 </div>
-
-                {/* Final Details: Pairs & Trivia */}
                 <div className="grid grid-cols-1 gap-5">
                    {selectedItem.bestPairs && selectedItem.bestPairs.length > 0 && (
                      <div className="p-8 bg-white/5 border border-white/10 rounded-[3rem] flex items-start gap-5">
@@ -1874,8 +1834,6 @@ ${set.synergy}
                      </div>
                    )}
                 </div>
-
-                {/* Relic Specific View */}
                 {selectedItem.category === 'Relic' && (
                    <div className="space-y-8">
                       <div className="grid grid-cols-2 gap-4">
@@ -1907,8 +1865,6 @@ ${set.synergy}
                       )}
                    </div>
                 )}
-
-                {/* Jewel Specific View */}
                 {selectedItem.category === 'Jewel' && (
                    <div className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
@@ -1940,10 +1896,8 @@ ${set.synergy}
                       </div>
                    </div>
                 )}
-
               </div>
             </div>
-            
             <div className="mt-14 pt-10 border-t border-white/5 flex items-center justify-between opacity-30">
                <div className="flex items-center gap-3">
                   <Terminal size={14} className="text-orange-500" />

@@ -1,11 +1,10 @@
-
 import { Hero, BaseItem, Jewel, Relic } from './types';
 
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
 export const HERO_DATA: Hero[] = [
   { 
     id: 'zeus', name: 'Zeus', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+8% Max HP', 
-    desc: 'The Lightning Sovereign.', deepLogic: 'Lightning chains ignore 15% Dmg Resist. At 6-stars, chain jumps have no range limit.', 
+    desc: 'The Lightning Sovereign.', deepLogic: "Attacks bypass standard projectile collision. 6-Star: Unlocks 'Static Field' (red lightning) that denies area to enemies. 3-Star: Lightning chains gain Critical Hit capability.", 
     evo4Star: 'Sustained attacks ramp up Atk Speed permanently for the room.', bestPairs: ['Celestial Hammer', 'Celestial Warplate'],
     bio: 'A celestial entity who descended to purge the darkness with righteous thunder.',
     bestSkin: 'Olympus Overlord', shardCost: '50 (Premium)', assistHeroes: ['Wukong', 'Stella'],
@@ -41,7 +40,7 @@ export const HERO_DATA: Hero[] = [
   },
   { 
     id: 'wukong', name: 'Wukong', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+8% Attack', 
-    desc: 'Master of transformation.', deepLogic: 'Golden Cudgel blocks projectiles. Clones inherit 50% Crit Rate.', 
+    desc: 'Master of transformation.', deepLogic: "The Golden Cudgel neutralizes enemy projectiles. 4-Star: 'Phantom Hair' summons a decoy clone on lethal damage. 5-Star: '72 Forms' grants temporary immunity and spinning nova attacks.", 
     evo4Star: 'Phantom Hair: Spawns mirror decoy every 10s.', bestPairs: ['Expedition Fist', 'Phantom Cloak'],
     bio: 'The Monkey King, escaped from his mountain prison to seek new challenges.',
     bestSkin: 'Cosmic Traveler', shardCost: '50 (Premium)', assistHeroes: ['Zeus', 'Dragon Girl'],
@@ -76,7 +75,7 @@ export const HERO_DATA: Hero[] = [
   },
   { 
     id: 'melinda', name: 'Melinda', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+5% Dmg to All Units', 
-    desc: 'The Barrage Queen.', deepLogic: 'Barrage intensity increases by 2% for every 1% HP missing.', 
+    desc: 'The Barrage Queen.', deepLogic: "Barrage scales exponentially with 'Diagonal Arrows' and 'Bouncy Wall'. 4-Star Trait: Acts as a Berserker modifier, increasing projectile count as HP decreases.", 
     evo4Star: 'Barrage gains homing effect.', bestPairs: ['Expedition Fist', 'Dragon Ring'],
     bio: 'A high-society sharpshooter who prefers the heat of battle to the ballroom.',
     bestSkin: 'Baker Melinda', shardCost: '50 (Premium)', assistHeroes: ['Iris', 'Elaine'],
@@ -109,10 +108,10 @@ export const HERO_DATA: Hero[] = [
       }
     ]
   },
-  { id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Ranged', desc: 'Dragon companion warrior.', deepLogic: 'Hits trigger "Dragon Mark" for 200% burst.', evo4Star: 'Dragon Breath applies Burn.', bestPairs: ['Demon Blade'], bio: 'Raised by dragons in the forgotten peaks.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "SS"}] },
-  { id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: '+17% Crit Damage', desc: 'Meteor-calling monk.', deepLogic: 'Meteors scale with Skill Damage artifacts.', bestPairs: ['Brightspear'], bio: 'A monk from the Far East who controls the falling stars.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "S"}, {update: "Buff", tier: "SS"}] },
+  { id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Ranged', desc: 'Dragon companion warrior.', deepLogic: "Summons 'Riri' (Homing Ricochet). 4-Star: 'Dragon's Ire' grants the companion Critical Hits and a stacking Blaze effect.", evo4Star: 'Dragon Breath applies Burn.', bestPairs: ['Demon Blade'], bio: 'Raised by dragons in the forgotten peaks.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "SS"}] },
+  { id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: '+17% Crit Damage', desc: 'Meteor-calling monk.', deepLogic: "Mandatory for Endgame: Grants +17% Global Crit Damage at Level 120. The 'Meteor' ability deals splash damage that ignores wall collision.", bestPairs: ['Brightspear'], bio: 'A monk from the Far East who controls the falling stars.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "S"}, {update: "Buff", tier: "SS"}] },
   { id: 'stella', name: 'Stella', tier: 'SS', category: 'Hero', globalBonus120: '+5% Dmg to Melee', desc: 'Star-weaver mage.', deepLogic: 'Star-power builds up to trigger a screen-wide supernova.', bestPairs: ['Celestial Hammer'], bio: 'She weaves the constellations into deadly weapons.', shardCost: '40 Shards', historicalTiers: [{update: "v5.5", tier: "S"}, {update: "v6.3", tier: "SS"}] },
-  { id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: '+7% Max HP', desc: 'Cherry blossom shields.', deepLogic: 'Shields block contact damage and projectiles.', bestPairs: ['Expedition Plate'], bio: 'The guardian of the sacred sakura tree.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "A"}, {update: "Skin release", tier: "SS"}] },
+  { id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: '+7% Max HP', desc: 'Cherry blossom shields.', deepLogic: "Defensive Meta. When equipped with Expedition Plate, generating hearts triggers the invincibility shield. 3-Star: Shield reflects damage back to attackers.", bestPairs: ['Expedition Plate'], bio: 'The guardian of the sacred sakura tree.', shardCost: '40 Shards', historicalTiers: [{update: "Launch", tier: "A"}, {update: "Skin release", tier: "SS"}] },
   { id: 'iris', name: 'Iris', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack Speed', desc: 'The wind-born archer.', deepLogic: 'Increases dodge after moving 3 meters.', bestPairs: ['Vest of Dexterity'], shardCost: '30 Shards', historicalTiers: [{update: "Launch", tier: "A"}, {update: "v6.3", tier: "S"}] },
   { id: 'blazo', name: 'Blazo', tier: 'S', category: 'Hero', globalBonus120: '+6% Crit Rate', desc: 'Demonic gunslinger.', deepLogic: 'Overheat mechanic triples damage but slows movement.', bestPairs: ['Demon Blade'], shardCost: '30 Shards', historicalTiers: [{update: "v4.0", tier: "SSS"}, {update: "Nerf", tier: "SS"}, {update: "Current", tier: "S"}] },
   { id: 'shingen', name: 'Shingen', tier: 'S', category: 'Hero', globalBonus120: '+10% Crit Damage', desc: 'The blade master.', deepLogic: 'Attacks faster as he hits the same enemy.', bestPairs: ['Demon Blade'], shardCost: '30 Shards', historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "S"}] },
