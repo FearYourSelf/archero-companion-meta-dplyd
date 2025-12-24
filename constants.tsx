@@ -16,6 +16,12 @@ export const HERO_DATA: Hero[] = [
       { update: "v6.1 Patch", tier: "SSS" },
       { update: "v6.3 Current", tier: "SSS" }
     ],
+    starMilestones: [
+      { stars: 3, effect: "Lightning Chain can trigger Critical Hits." },
+      { stars: 4, effect: "Attack Speed ramp-up per hit (Room duration)." },
+      { stars: 6, effect: "Static Field: Red lightning aura damages and stuns." },
+      { stars: 7, effect: "+10% Projectile Resistance (Global)", isGlobal: true }
+    ],
     gearSets: [
       {
         name: "Celestial Stormlord",
@@ -40,6 +46,12 @@ export const HERO_DATA: Hero[] = [
       { update: "v5.8 Intro", tier: "SS" },
       { update: "v5.9 Buff", tier: "SSS" },
       { update: "v6.3 Current", tier: "SSS" }
+    ],
+    starMilestones: [
+      { stars: 3, effect: "Cudgel shockwaves deal +50% Area Damage." },
+      { stars: 4, effect: "Phantom Hair: Spawns mirror decoy on room entry." },
+      { stars: 6, effect: "72 Forms: Temporary invincibility during transformation." },
+      { stars: 7, effect: "+10% Attack (Global)", isGlobal: true }
     ]
   },
   { 
@@ -53,6 +65,12 @@ export const HERO_DATA: Hero[] = [
       { update: "v4.2 Intro", tier: "S" },
       { update: "v5.0 Mastery", tier: "SS" },
       { update: "v6.3 Current", tier: "SSS" }
+    ],
+    starMilestones: [
+      { stars: 3, effect: "Barrage arrows have +20% Critical Chance." },
+      { stars: 4, effect: "Smart Homing: Barrage tracks moving targets." },
+      { stars: 6, effect: "Soul Seeker: Barrage hits restore small amount of HP." },
+      { stars: 7, effect: "+15% Critical Damage (Global)", isGlobal: true }
     ]
   },
   { 
@@ -60,127 +78,195 @@ export const HERO_DATA: Hero[] = [
     desc: 'Dragon companion warrior.', deepLogic: "Summons 'Riri' (Homing Ricochet). 4-Star: 'Dragon's Ire' grants the companion Critical Hits and a stacking Blaze effect.", 
     evo4Star: 'Dragon Breath applies Burn.', bestPairs: ['Demon Blade'], 
     bio: 'Raised by dragons in the forgotten peaks.', shardCost: '50 Shards to unlock (Special Events / $19.99)', 
-    assistHeroes: ['Wukong', 'Shingen', 'Meowgik'], historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "SS"}] 
+    assistHeroes: ['Wukong', 'Shingen', 'Meowgik'], historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "SS"}],
+    starMilestones: [
+      { stars: 3, effect: "Riri's movement speed increased by 30%." },
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: '+17% Crit Damage', 
     desc: 'Meteor-calling monk.', deepLogic: "Mandatory for Endgame: Grants +17% Global Crit Damage at Level 120.", 
     bestPairs: ['Brightspear'], bio: 'A monk from the Far East who controls the falling stars.', 
-    shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Taranis', 'Phoren', 'Urasil'] 
+    shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Taranis', 'Phoren', 'Urasil'],
+    starMilestones: [
+      { stars: 3, effect: "Meteor impact radius increased." },
+      { stars: 7, effect: "+10% Critical Damage (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'stella', name: 'Stella', tier: 'SS', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Star-weaver mage.', deepLogic: 'Star-power builds up to trigger a screen-wide supernova.', 
     bestPairs: ['Celestial Hammer'], bio: 'She weaves the constellations into deadly weapons.', 
-    shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Zeus', 'Iris', 'Elaine'] 
+    shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Zeus', 'Iris', 'Elaine'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Cherry blossom shields.', deepLogic: "Defensive Meta setup. Shields reflect damage at 3-stars.", 
     bestPairs: ['Expedition Plate'], bio: 'The guardian of the sacred sakura tree.', 
-    shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Melinda', 'Iris', 'Ophelia'] 
+    shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Melinda', 'Iris', 'Ophelia'],
+    starMilestones: [
+      { stars: 3, effect: "Shields reflect 50% of projectile damage." },
+      { stars: 7, effect: "+5% Max HP (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'iris', name: 'Iris', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'The wind-born archer.', deepLogic: 'Increases dodge after moving 3 meters.', 
     bestPairs: ['Vest of Dexterity'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
-    assistHeroes: ['Melinda', 'Elaine', 'Lina'] 
+    assistHeroes: ['Melinda', 'Elaine', 'Lina'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Dodge (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'blazo', name: 'Blazo', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Demonic gunslinger.', deepLogic: 'Overheat mechanic triples damage but slows movement.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
-    assistHeroes: ['Shade', 'Shingen', 'Phoren'] 
+    assistHeroes: ['Shade', 'Shingen', 'Phoren'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'shingen', name: 'Shingen', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'The blade master.', deepLogic: 'Attacks faster as he hits the same enemy.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
-    assistHeroes: ['Dragon Girl', 'Lina', 'Sylvan'] 
+    assistHeroes: ['Dragon Girl', 'Lina', 'Sylvan'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack Speed (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'lina', name: 'Lina', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Summons dancers.', deepLogic: 'Dancers apply a stacking slow to all enemies.', 
     bestPairs: ['Brightspear'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
-    assistHeroes: ['Sylvan', 'Iris', 'Shade'] 
+    assistHeroes: ['Sylvan', 'Iris', 'Shade'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Elemental Damage (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'gugu', name: 'Gugu', tier: 'S', category: 'Hero', globalBonus120: '+5% Max HP', 
     desc: 'Owl guardian.', deepLogic: 'Birds provide 30% damage reduction shields.', 
     bestPairs: ['Bull Ring'], shardCost: '50 Shards to unlock (Clan Shop / Clan Points)', 
-    assistHeroes: ['Helix', 'Meowgik', 'Onir'] 
+    assistHeroes: ['Helix', 'Meowgik', 'Onir'],
+    starMilestones: [
+      { stars: 7, effect: "+10% Projectile Resistance (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'shade', name: 'Shade', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'The shadow assassin.', deepLogic: 'Shadow form grants +75% Attack Speed.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
-    assistHeroes: ['Lina', 'Sylvan', 'Ophelia'] 
+    assistHeroes: ['Lina', 'Sylvan', 'Ophelia'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Elf prince.', deepLogic: 'Removes elemental skills from RNG pool.', 
     bestPairs: ['Brightspear'], shardCost: '50 Shards to unlock (Soulstone Shop / $12.99)', 
-    assistHeroes: ['Lina', 'Shade', 'Rolla'] 
+    assistHeroes: ['Lina', 'Shade', 'Rolla'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Elemental Damage (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'helix', name: 'Helix', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'The OG Fury king.', deepLogic: 'Damage increases as HP drops. Highest stability.', 
     bestPairs: ['Demon Blade'], bio: 'The son of a legendary warrior who draws power from his wounds.', 
-    shardCost: '30 Shards to unlock (1,500 Gems / Soulstones)', assistHeroes: ['Gugu', 'Meowgik', 'Onir'] 
+    shardCost: '30 Shards to unlock (1,500 Gems / Soulstones)', assistHeroes: ['Gugu', 'Meowgik', 'Onir'],
+    starMilestones: [
+      { stars: 3, effect: "Fury effect starts at 100% HP." },
+      { stars: 7, effect: "+15% Critical Damage (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'meowgik', name: 'Meowgik', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'The kitten mage.', deepLogic: 'Spawns homing kittens that ignore walls.', 
     bestPairs: ['Brightspear'], shardCost: '30 Shards to unlock (1,800 Gems / Soulstones)', 
-    assistHeroes: ['Helix', 'Gugu', 'Ayana'] 
+    assistHeroes: ['Helix', 'Gugu', 'Ayana'],
+    starMilestones: [
+      { stars: 3, effect: "Kittens travel faster and deal splash damage." },
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'ayana', name: 'Ayana', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Enchanted witch.', deepLogic: 'Portals provide temporary i-frames during travel.', 
     bestPairs: ['Phantom Cloak'], shardCost: '30 Shards to unlock (2,500 Gems / Soulstones)', 
-    assistHeroes: ['Meowgik', 'Ophelia', 'Rolla'] 
+    assistHeroes: ['Meowgik', 'Ophelia', 'Rolla'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'ophelia', name: 'Ophelia', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Spirit hunter.', deepLogic: 'Soul shards provide varying elemental buffs.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $9.99)', 
-    assistHeroes: ['Shade', 'Lina', 'Ayana'] 
+    assistHeroes: ['Shade', 'Lina', 'Ayana'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'onir', name: 'Onir', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Holy knight.', deepLogic: 'Best used for 10% Global Projectile Resistance at 7-stars.', 
     uniqueEffect: 'Global Proj Resist (7-Star)', shardCost: '50 Shards to unlock (Soulstone Shop / $9.99)', 
-    assistHeroes: ['Atreus', 'Helix', 'Phoren'] 
+    assistHeroes: ['Atreus', 'Helix', 'Phoren'],
+    starMilestones: [
+      { stars: 7, effect: "+10% Projectile Resistance (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'rolla', name: 'Rolla', tier: 'B', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Ice goddess.', deepLogic: 'Freezes enemies for longer than standard frozen effect.', 
     bestPairs: ['Death Scythe'], shardCost: '30 Shards to unlock (3,000 Gems / $9.99)', 
-    assistHeroes: ['Sylvan', 'Ayana', 'Meowgik'] 
+    assistHeroes: ['Sylvan', 'Ayana', 'Meowgik'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'taranis', name: 'Taranis', tier: 'B', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Thunder master.', deepLogic: 'Lightning arcs deal 35% splash damage.', 
     bestPairs: ['Tornado'], shardCost: '30 Shards to unlock (1,000 Gems / $4.99)', 
-    assistHeroes: ['Atreus', 'Urasil', 'Phoren'] 
+    assistHeroes: ['Atreus', 'Urasil', 'Phoren'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'phoren', name: 'Phoren', tier: 'C', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Fire master.', deepLogic: 'Burn damage lasts twice as long.', 
     bestPairs: ['Saw Blade'], shardCost: '30 Shards to unlock (50,000 Gold / Chapter 7)', 
-    assistHeroes: ['Atreus', 'Taranis', 'Urasil'] 
+    assistHeroes: ['Atreus', 'Taranis', 'Urasil'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'atreus', name: 'Atreus', tier: 'C', category: 'Hero', globalBonus120: '+7% Projectile Resistance', 
     desc: 'The rookie.', deepLogic: 'Mandatory L80/L120 for Immunity Build.', uniqueEffect: 'Immunity Key', 
     bio: 'The hero who started it all.', shardCost: 'Starter Hero (Unlock via Chapter 1)', 
-    assistHeroes: ['Helix', 'Phoren', 'Urasil'] 
+    assistHeroes: ['Helix', 'Phoren', 'Urasil'],
+    starMilestones: [
+      { stars: 7, effect: "+10% Max HP (Global)", isGlobal: true }
+    ]
   },
   { 
     id: 'uruana', name: 'Urasil', tier: 'F', category: 'Hero', globalBonus120: '+5% Attack', 
     desc: 'Poison master.', deepLogic: 'Poison damage scales poorly in late game.', 
     bestPairs: ['Tornado'], shardCost: '30 Shards to unlock (10,000 Gold / Chapter 2)', 
-    assistHeroes: ['Atreus', 'Phoren', 'Taranis'] 
+    assistHeroes: ['Atreus', 'Phoren', 'Taranis'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
   }
 ];
 

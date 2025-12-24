@@ -18,6 +18,12 @@ export interface GearSet {
   synergy: string;
 }
 
+export interface StarMilestone {
+  stars: number;
+  effect: string;
+  isGlobal?: boolean;
+}
+
 export interface BaseItem {
   id: string;
   name: string;
@@ -45,6 +51,7 @@ export interface Hero extends BaseItem {
   shardCost?: string;
   gearSets?: GearSet[];
   historicalTiers?: { update: string; tier: Tier }[];
+  starMilestones?: StarMilestone[];
 }
 
 export interface Jewel {
