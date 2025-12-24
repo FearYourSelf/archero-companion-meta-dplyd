@@ -250,4 +250,267 @@ const App: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => JSON.parse(localStorage.getItem('archero_v6_chat') || '[]'));
   const [calcStats, setCalcStats] = useState<CalcStats>(() => JSON.parse(localStorage.getItem('archero_v6_stats') || '{"baseAtk":75000,"critChance":45,"critDmg":420,"atkSpeed":60,"weaponType":"Expedition Fist"}'));
   const [fInputs, setFInputs] = useState({ baseAtk: 60000, atkPercent: 75, weaponDmgPercent: 15, critDmg: 380 });
-  const [dragons, setDragons] = useState({ slot1: DRAGON_DATA[0].id, slot2: DRAGON_
+  const [dragons, setDragons] = useState({ slot1: DRAGON_DATA[0].id, slot2: DRAGON_DATA[1].id, slot3: DRAGON_DATA[2].id });
+  const [smeltItem, setSmeltItem] = useState<'Epic' | 'PE' | 'Legendary' | 'AL' | 'Mythic'>('Legendary');
+  const [smeltQty, setSmeltQty] = useState(1);
+  const [vsItemA, setVsItemA] = useState<string>(GEAR_DATA[0]?.id || '');
+  const [vsItemB, setVsItemB] = useState<string>(GEAR_DATA[1]?.id || GEAR_DATA[0]?.id || '');
+  const [immunitySetup, setImmunitySetup] = useState({ rings: 2, atreus120: true, onir120: true, locket: true, necrogon: false });
+  const [simResult, setSimResult] = useState<string | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [buildHero, setBuildHero] = useState<string>(HERO_DATA[0]?.id || '');
+  const [aiInput, setAiInput] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isSimMenuOpen, setIsSimMenuOpen] = useState(false);
+
+  const [stutterProgress, setStutterProgress] = useState(0);
+  const [stutterStreak, setStutterStreak] = useState(0);
+  const [stutterActive, setStutterActive] = useState(false);
+  const [stutterFeedback, setStutterFeedback] = useState<string | null>(null);
+  const [selectedWeapon, setSelectedWeapon] = useState('Blade');
+  const [efficiency, setEfficiency] = useState(0);
+
+  // Talents State
+  const [currentTalent, setCurrentTalent] = useState(1);
+  const [targetTalent, setTargetTalent] = useState(100);
+
+  // Loadout Editor State
+  const [currentLoadout, setCurrentLoadout] = useState<Record<string, string>>(() => {
+    const saved = localStorage.getItem('archero_v6_wip_loadout');
+    if (saved) return JSON.parse(saved);
+    return {
+      Hero: '', Weapon: '', Armor: '', 'Ring 1': '', 'Ring 2': '', 'Spirit 1': '', 'Spirit 2': '',
+      Bracelet: '', Locket: '', Book: '', 'Dragon 1': '', 'Dragon 2': '', 'Dragon 3': ''
+    };
+  });
+  const [savedLoadouts, setSavedLoadouts] = useState<LoadoutBuild[]>(() => JSON.parse(localStorage.getItem('archero_v6_loadouts') || '[]'));
+  const [selectorActiveSlot, setSelectorActiveSlot] = useState<{ name: string; category: GearCategory } | null>(null);
+
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLElement>(null);
+  const navScrollRef = useRef<HTMLDivElement>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const farmFilterScrollRef = useRef<HTMLDivElement>(null);
+  const relicTierFilterScrollRef = useRef<HTMLDivElement>(null);
+  const relicSourceFilterScrollRef = useRef<HTMLDivElement>(null);
+  const jewelFilterScrollRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ isDragging: false, moved: false, startX: 0, scrollLeft: 0, targetRef: null as React.RefObject<HTMLElement | null> | null });
+
+  const currentDay = useMemo(() => new Date().toLocaleDateString('en-US', { weekday: 'long' }), []);
+
+  useEffect(() => {
+    const addLog = (type: LogEntry['type'], ...args: any[]) => {
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+      const newEntry: LogEntry = { id: Math.random().toString(36).substring(2, 9), type, message, timestamp: Date.now() };
+      logsRef.current = [newEntry, ...logsRef.current].slice(0, 100);
+      setLogs([...logsRef.current]);
+    };
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+    console.log = (...args) => { originalLog(...args); addLog('info', ...args); };
+    console.warn = (...args) => { originalWarn(...args); addLog('warn', ...args); };
+    console.error = (...args) => { originalError(...args); addLog('error', ...args); };
+    window.onerror = (message, source, lineno, colno, error) => { addLog('error', `Global Error: ${message} at ${source}:${lineno}:${colno}`); };
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.ctrlKey && e.key === "'") { setIsConsoleVisible(prev => !prev); if (!isConsoleVisible) playSfx('msg'); } };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => { console.log = originalLog; console.warn = originalWarn; console.error = originalError; window.removeEventListener('keydown', handleKeyDown); };
+  }, []);
+
+  useEffect(() => { if (uiToast) { const timer = setTimeout(() => setUiToast(null), 3000); return () => clearTimeout(timer); } }, [uiToast]);
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => { setUiToast({ message, type }); playSfx(type === 'error' ? 'error' : 'msg'); };
+
+  useEffect(() => { if (activeTab === 'ai' && chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' }); }, [chatHistory, activeTab]);
+
+  useEffect(() => {
+    let interval: number;
+    if (stutterActive) {
+      interval = window.setInterval(() => {
+        setStutterProgress(prev => {
+          const speed = WEAPON_SPEEDS[selectedWeapon].speed;
+          if (prev >= 100) { setStutterStreak(0); setStutterFeedback("MISS!"); setEfficiency(0); return 0; }
+          return prev + speed;
+        });
+      }, 16);
+    }
+    return () => clearInterval(interval);
+  }, [stutterActive, selectedWeapon]);
+
+  const [compareHeroIds, setCompareHeroIds] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [farmingSearch, setFarmingSearch] = useState('');
+  const [farmingCategory, setFarmingCategory] = useState<'All' | FarmingRoute['resource']>('All');
+  const [farmingSort, setFarmingSort] = useState<{ field: 'resource' | 'chapter' | 'efficiency' | 'avgTime', direction: 'asc' | 'desc' }>({ field: 'efficiency', direction: 'desc' });
+  const [expandedFarmingId, setExpandedFarmingId] = useState<string | null>(null);
+  const [jewelSimLevel, setJewelSimLevel] = useState<number>(16);
+  const [jewelFilterSlot, setJewelFilterSlot] = useState<string>('All');
+
+  const relicSources = useMemo(() => {
+    const sources = RELIC_DATA.map(r => r.source).filter(Boolean) as string[];
+    const sortedUnique = Array.from(new Set(sources)).sort((a, b) => a.localeCompare(b));
+    return ['All', ...sortedUnique];
+  }, []);
+
+  const playSfx = (type: 'click' | 'hover' | 'tab' | 'msg' | 'error') => { if (soundEnabled) { SFX.init(); SFX.play(type); } };
+
+  const handleDragStart = (e: React.MouseEvent, ref: React.RefObject<HTMLElement | null>) => {
+    if (!ref.current) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('input, select, textarea, a, button')) return;
+    ref.current.style.scrollBehavior = 'auto';
+    dragRef.current = { isDragging: true, moved: false, startX: e.pageX, scrollLeft: ref.current.scrollLeft, targetRef: ref };
+  };
+
+  useLayoutEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const d = dragRef.current;
+      if (!d.isDragging || !d.targetRef?.current) return;
+      const ref = d.targetRef.current;
+      const dx = (e.pageX - d.startX) * 1.5;
+      if (Math.abs(dx) > 8) { d.moved = true; ref.scrollLeft = d.scrollLeft - dx; }
+    };
+    const handleGlobalMouseUp = () => { const d = dragRef.current; if (d.isDragging) { if (d.targetRef?.current) { d.targetRef.current.style.scrollBehavior = 'smooth'; } d.isDragging = false; } };
+    const bars = [navScrollRef.current, categoryScrollRef.current, farmFilterScrollRef.current, relicTierFilterScrollRef.current, relicSourceFilterScrollRef.current, jewelFilterScrollRef.current];
+    const wheelListeners: {el: HTMLElement, fn: (e: WheelEvent) => void}[] = [];
+    bars.forEach(bar => {
+      if (!bar) return;
+      const onWheel = (e: WheelEvent) => { if (Math.abs(e.deltaY) > 0 || Math.abs(e.deltaX) > 0) { e.preventDefault(); bar.style.scrollBehavior = 'smooth'; const scrollAmt = e.deltaY !== 0 ? e.deltaY : e.deltaX; bar.scrollBy({ left: scrollAmt * 4.5, behavior: 'smooth' }); } };
+      bar.addEventListener('wheel', onWheel, { passive: false });
+      wheelListeners.push({ el: bar, fn: onWheel });
+    });
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => { window.removeEventListener('mousemove', handleGlobalMouseMove); window.removeEventListener('mouseup', handleGlobalMouseUp); wheelListeners.forEach(({el, fn}) => el.removeEventListener('wheel', fn)); };
+  }, [activeTab]);
+
+  useEffect(() => { localStorage.setItem('archero_v6_tracker_plus_v2', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
+  useEffect(() => { localStorage.setItem('archero_v6_equipped', JSON.stringify(Array.from(equippedItems))); }, [equippedItems]);
+  useEffect(() => { localStorage.setItem('archero_v6_favorites', JSON.stringify(Array.from(favoriteHeroes))); }, [favoriteHeroes]);
+  useEffect(() => { localStorage.setItem('archero_v6_chat', JSON.stringify(chatHistory)); }, [chatHistory]);
+  useEffect(() => { localStorage.setItem('archero_v6_stats', JSON.stringify(calcStats)); }, [calcStats]);
+  useEffect(() => { localStorage.setItem('archero_v6_loadouts', JSON.stringify(savedLoadouts)); }, [savedLoadouts]);
+  useEffect(() => { localStorage.setItem('archero_v6_wip_loadout', JSON.stringify(currentLoadout)); }, [currentLoadout]);
+
+  const calculateGlobalStats = () => {
+    const totals: Record<string, number> = {};
+    const addStat = (rawBonus: string) => {
+      const match = rawBonus.match(/([+-]?\d+)%?\s*(.*)/);
+      if (match) {
+        const val = parseInt(match[1]);
+        const stat = match[2].trim() || 'General';
+        totals[stat] = (totals[stat] || 0) + val;
+      }
+    };
+    HERO_DATA.forEach(h => {
+      const userHero = unlockedHeroes[h.id];
+      if (!userHero) return;
+      if (userHero.lv120) addStat(h.globalBonus120);
+      (h.starMilestones as StarMilestone[])?.forEach(m => { if (m.isGlobal && userHero.stars >= m.stars) addStat(m.effect); });
+      (h.sunMilestones as SunMilestone[])?.forEach(m => { if (m.isGlobal && userHero.sunLevel >= m.level) addStat(m.effect); });
+    });
+    return totals;
+  };
+
+  const toggleEquip = (id: string) => { playSfx('click'); setEquippedItems(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); };
+  const toggleFavorite = (id: string) => { playSfx('click'); setFavoriteHeroes(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); };
+
+  const formulaResult = useMemo(() => { const { baseAtk, atkPercent, weaponDmgPercent, critDmg } = fInputs; return Math.round(baseAtk * (1 + atkPercent/100) * (1 + weaponDmgPercent/100) * (critDmg/100)); }, [fInputs]);
+  const calculatedDPS = useMemo(() => { const { baseAtk, critChance, critDmg, atkSpeed } = calcStats; return Math.round(baseAtk * (1 + (critChance / 100 * (critDmg / 100))) * (1 + (atkSpeed / 100))); }, [calcStats]);
+  const totalImmunity = useMemo(() => (immunitySetup.rings * 13.8) + (immunitySetup.atreus120 ? 7 : 0) + (immunitySetup.onir120 ? 10 : 0) + (immunitySetup.locket ? 15 : 0) + (immunitySetup.necrogon ? 7.5 : 0), [immunitySetup]);
+
+  const dragonSynergy = useMemo(() => {
+    const selected = [DRAGON_DATA.find(d => d.id === dragons.slot1), DRAGON_DATA.find(d => d.id === dragons.slot2), DRAGON_DATA.find(d => d.id === dragons.slot3)];
+    const uniqueTypes = new Set(selected.map(s => (s as BaseItem)?.dragonType).filter(Boolean));
+    return uniqueTypes.size === 3;
+  }, [dragons]);
+
+  const handleEquipDragon = (slot: 'slot1' | 'slot2' | 'slot3', dragonId: string) => {
+    setDragons(prev => { const next = { ...prev }; if (slot !== 'slot1' && prev.slot1 === dragonId) next.slot1 = ''; if (slot !== 'slot2' && prev.slot2 === dragonId) next.slot2 = ''; if (slot !== 'slot3' && prev.slot3 === dragonId) next.slot3 = ''; next[slot] = dragonId; return next; });
+    playSfx('click');
+  };
+
+  const smeltEssenceYield = useMemo(() => { const baseline: Record<string, number> = { 'Epic': 50, 'PE': 150, 'Legendary': 500, 'AL': 1200, 'Mythic': 3500 }; return (baseline[smeltItem] || 0) * smeltQty; }, [smeltItem, smeltQty]);
+
+  const filteredFarming = useMemo(() => {
+    const efficiencyWeight = { 'SSS': 4, 'SS': 3, 'S': 2, 'A': 1, 'B': 0 };
+    const filtered = FARMING_ROUTES.filter(route => performRobustSearch(route, farmingSearch) && (farmingCategory === 'All' || route.resource === farmingCategory));
+    return [...filtered].sort((a, b) => {
+      let valA: any = a[farmingSort.field]; let valB: any = b[farmingSort.field];
+      if (farmingSort.field === 'efficiency') { valA = (efficiencyWeight as any)[a.efficiency] || 0; valB = (efficiencyWeight as any)[b.efficiency] || 0; } else if (farmingSort.field === 'avgTime') { valA = parseFloat(a.avgTime) || 0; valB = parseFloat(b.avgTime) || 0; }
+      if (valA < valB) return farmingSort.direction === 'asc' ? -1 : 1; if (valA > valB) return farmingSort.direction === 'asc' ? 1 : -1; return 0;
+    });
+  }, [farmingSearch, farmingCategory, farmingSort]);
+
+  const talentsCost = useMemo(() => {
+    let totalGold = 0; let totalScrolls = 0; const start = Math.min(currentTalent, targetTalent); const end = Math.max(currentTalent, targetTalent);
+    for (let i = start; i < end; i++) { totalGold += Math.round(50 * Math.pow(i, 2.45) + 200); if (i > 20) totalScrolls += Math.ceil(i / 15); }
+    return { gold: totalGold, scrolls: totalScrolls };
+  }, [currentTalent, targetTalent]);
+
+  const toggleFarmingSort = (field: typeof farmingSort.field) => { playSfx('click'); setFarmingSort(prev => ({ field, direction: prev.field === field ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'desc' })); };
+
+  const handleAiSend = async () => {
+    if (!aiInput.trim()) return;
+    playSfx('msg'); const msg = aiInput; setAiInput('');
+    setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'user', text: msg, timestamp: Date.now() }]);
+    setIsAiLoading(true);
+    try {
+      const response = await chatWithAI(msg, chatHistory.map(h => ({ role: h.role, text: h.text })));
+      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response || 'Mentor offline.', timestamp: Date.now() }]);
+    } catch (e: any) {
+      const errorMsg = e.message === "RATE_LIMIT_EXCEEDED" ? "Rate limit hit. Free tier allows 15 requests per minute." : "Neural uplink interrupted.";
+      setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: errorMsg, timestamp: Date.now() }]);
+      showToast(errorMsg, 'error');
+    } finally { setIsAiLoading(false); }
+  };
+
+  const runSimulation = async () => {
+    playSfx('click'); setIsSimMenuOpen(false); setIsSimulating(true); setSimResult(null);
+    const hero = HERO_DATA.find(h => h.id === buildHero);
+    const prompt = `Advanced synthesis for ${hero?.name} at ${calcStats.baseAtk} Atk. Structure with headers and bold gear. Focus on synergy. Include BEST build: Weapon, Armor, Rings, Bracelet, Locket, Book.`;
+    try { const response = await chatWithAI(prompt, []); setSimResult(response || 'Simulation timeout.'); } catch (e: any) { const errorMsg = e.message === "RATE_LIMIT_EXCEEDED" ? "Neural Core is busy (Rate Limit). Try again in 60s." : "Simulation data corrupt."; showToast(errorMsg, 'error'); setSimResult(errorMsg); }
+    finally { setIsSimulating(false); }
+  };
+
+  const handleTabChange = (tab: typeof activeTab) => { playSfx('tab'); setActiveTab(tab); if (scrollContainerRef.current) scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleResetFilters = () => { setSearchQuery(''); setCategoryFilter('All'); setSssOnly(false); playSfx('click'); };
+  const handleExportBuild = (heroName: string, set: GearSet) => { playSfx('click'); const text = `ARCHERO TACTICAL BUILD: ${set.name}\nHero: ${heroName}\nWeapon: ${set.weapon}\nArmor: ${set.armor}\nRings: ${set.rings.join(' + ')}\nBracelet: ${set.bracelet}\nLocket: ${set.locket}\nBook: ${set.book}\nSYNERGY: ${set.synergy}`.trim(); navigator.clipboard.writeText(text); showToast(`${set.name} exported.`, 'success'); };
+  const findItemByName = (name: string) => [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA].find(i => i.name === name || i.id === name);
+  const displayOrder: GearCategory[] = ['Hero', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book', 'Spirit', 'Dragon', 'Pet', 'Relic', 'Jewel', 'Totem', 'Pet Farm Eggs', 'Glyph'];
+  const categoryIcons: Record<string, any> = { 'All': LayoutGrid, 'Hero': User, 'Weapon': Sword, 'Armor': Shield, 'Ring': Circle, 'Locket': Target, 'Bracelet': Zap, 'Book': Book, 'Spirit': Ghost, 'Dragon': Flame, 'Pet': Dog, 'Pet Farm Eggs': Egg, 'Totem': Tower, 'Relic': Box, 'Jewel': Disc, 'Glyph': Layers };
+  const categoryEmojis: Record<string, string> = { 'Hero': '🦸', 'Weapon': '⚔️', 'Armor': '🛡️', 'Ring': '💍', 'Bracelet': '⚡', 'Locket': '🎯', 'Book': '📖', 'Spirit': '👻', 'Dragon': '🐉', 'Pet': '🐾', 'Relic': '🏺', 'Jewel': '💎', 'Totem': '🏛️', 'Pet Farm Eggs': '🥚', 'Glyph': '➰' };
+
+  const filteredJewels = useMemo(() => JEWEL_DATA.filter(j => jewelFilterSlot === 'All' || j.slots.includes(jewelFilterSlot)), [jewelFilterSlot]);
+  const filteredRelics = useMemo(() => RELIC_DATA.filter(r => performRobustSearch(r, searchQuery) && (relicTierFilter === 'All' || r.tier === relicTierFilter) && (relicSourceFilter === 'All' || r.source === relicSourceFilter)), [relicTierFilter, relicSourceFilter, searchQuery]);
+  const filteredData = useMemo(() => {
+    const adaptedJewels = JEWEL_DATA.map(j => ({ ...j, category: 'Jewel' as GearCategory, tier: 'S' as Tier, desc: j.lore || j.statType }));
+    const adaptedRelics = RELIC_DATA.map(r => ({ ...r, category: 'Relic' as GearCategory, tier: 'S' as Tier, desc: r.effect }));
+    return [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA, ...adaptedJewels, ...adaptedRelics].filter(item => performRobustSearch(item, searchQuery) && (categoryFilter === 'All' || item.category === categoryFilter) && (!sssOnly || item.tier === 'SSS'));
+  }, [searchQuery, categoryFilter, sssOnly]);
+
+  const getJewelColorClasses = (color: string) => {
+    switch (color) {
+      case 'Red': return 'from-red-600/40 via-red-950/20 text-red-500 border-red-500/30';
+      case 'Blue': return 'from-blue-600/40 via-blue-950/20 text-blue-500 border-blue-500/30';
+      case 'Green': return 'from-green-600/40 via-green-950/20 text-green-500 border-green-500/30';
+      case 'Purple': return 'from-purple-600/40 via-purple-950/20 text-purple-500 border-purple-500/30';
+      case 'Yellow': return 'from-yellow-600/40 via-yellow-950/20 text-yellow-500 border-yellow-500/30';
+      case 'Teal': return 'from-teal-600/40 via-teal-950/20 text-teal-500 border-teal-500/30';
+      default: return 'from-gray-600/40 via-gray-950/20 border-white/10 text-gray-500';
+    }
+  };
+
+  const getRelicStyles = (tier: string) => {
+    switch (tier) {
+      case 'Holy': return { card: 'bg-orange-600/5 border-orange-500/20 hover:border-orange-500/40', iconContainer: 'bg-orange-600/20 border-orange-500/30 text-orange-500', tooltip: 'border-orange-500/30 text-orange-400', arrow: 'border-orange-500/30' };
+      case 'Radiant': return { card: 'bg-yellow-600/5 border-yellow-500/20 hover:border-yellow-500/40', iconContainer: 'bg-yellow-600/20 border-yellow-500/30 text-yellow-500', tooltip: 'border-orange-500/30 text-yellow-400', arrow: 'border-orange-500/30' };
+      default: return { card: 'bg-blue-600/5 border-blue-500/20 hover:border-blue-500/40', iconContainer: 'bg-blue-600/20 border-blue-500/30 text-blue-500', tooltip: 'border-blue-500/30 text-blue-400', arrow: 'border-blue-500/30' };
+    }
+  };
+
+  const handleInteractiveClick = (e: React.MouseEvent, action: () => void) => { if (dragRef.current.moved) return; action(); };
+  const SortHeader = ({ label, field, currentSort }: { label: string, field: typeof farmingSort.field, currentSort: typeof farmingSort }) => {
+    const isActive = currentSort.field === field;
+    return (
+      <button onClick={() => toggleFarmingSort(field)} className={`flex items-center gap-1 hover:text-orange-500 transition-colors group ${isActive ? 'text-orange-500' : 'text-gray-500'}`}>
+        <span className="text-[9px] font-
