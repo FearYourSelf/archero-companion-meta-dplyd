@@ -24,6 +24,17 @@ export interface StarMilestone {
   isGlobal?: boolean;
 }
 
+export interface DailyEvent {
+  id: string;
+  name: string;
+  days: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
+  desc: string;
+  loot: string[];
+  strategy: string;
+  color: string;
+  icon: string;
+}
+
 export interface BaseItem {
   id: string;
   name: string;
@@ -65,7 +76,6 @@ export interface Jewel {
   lore?: string;
 }
 
-// Added missing Relic interface for collectible artifact data
 export interface Relic {
   id: string;
   name: string;
