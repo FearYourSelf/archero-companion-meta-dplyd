@@ -1,4 +1,3 @@
-
 import { Hero, BaseItem, Jewel, Relic, SlotBonus } from './types';
 
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
@@ -25,7 +24,8 @@ export const HERO_DATA: Hero[] = [
     sunMilestones: [
       { level: 1, effect: "Static Field duration +50%." },
       { level: 2, effect: "+15% Lightning Damage (Global)", isGlobal: true },
-      { level: 3, effect: "Thunder Chain jumps to 2 extra targets." }
+      { level: 3, effect: "Thunder Chain jumps to 2 extra targets." },
+      { level: 4, effect: "Static Field duration +75%." }
     ],
     gearSets: [
       {
@@ -61,7 +61,9 @@ export const HERO_DATA: Hero[] = [
     sunMilestones: [
       { level: 1, effect: "Clone damage increased by 100%." },
       { level: 2, effect: "+10% Critical Chance (Global)", isGlobal: true },
-      { level: 3, effect: "Golden Cudgel deflects larger projectiles." }
+      { level: 3, effect: "Golden Cudgel deflects larger projectiles." },
+      { level: 4, effect: "+10% Attack Speed (Global)", isGlobal: true },
+      { level: 5, effect: "Golden Cudgel has a 20% chance to spawn a temporary decoy." }
     ]
   },
   { 
@@ -85,7 +87,8 @@ export const HERO_DATA: Hero[] = [
     sunMilestones: [
       { level: 1, effect: "Barrage arrows pierce through the first target." },
       { level: 2, effect: "+12% Max HP (Global)", isGlobal: true },
-      { level: 3, effect: "Barrage activation threshold increased to 95% HP." }
+      { level: 3, effect: "Barrage activation threshold increased to 95% HP." },
+      { level: 4, effect: "+15% Barrage Damage (Global)", isGlobal: true }
     ]
   },
   { 
@@ -96,7 +99,7 @@ export const HERO_DATA: Hero[] = [
     assistHeroes: ['Wukong', 'Shingen', 'Meowgik'], historicalTiers: [{update: "Launch", tier: "SS"}, {update: "v6.3", tier: "SS"}],
     starMilestones: [
       { stars: 3, effect: "Riri's movement speed increased by 30%." },
-      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+      { stars: 7, effect: "+10% Attack (Global)", isGlobal: true }
     ],
     sunMilestones: [
       { level: 1, effect: "Riri's attack range increased by 40%." },
@@ -111,6 +114,10 @@ export const HERO_DATA: Hero[] = [
     starMilestones: [
       { stars: 3, effect: "Meteor impact radius increased." },
       { stars: 7, effect: "+10% Critical Damage (Global)", isGlobal: true }
+    ],
+    sunMilestones: [
+      { level: 4, effect: "+15% Critical Damage (Global)", isGlobal: true },
+      { level: 5, effect: "Meteor impacts leave a burning ground for 3 seconds." }
     ]
   },
   { 
@@ -329,7 +336,7 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'lion_ring', name: 'Lion Ring', tier: 'S', category: 'Ring', desc: 'Boss Ring.', mythicPerk: 'Titan: Crit Dmg +20%.', deepLogic: 'Pure DPS. Mandatory for Boss Chapters.' },
   { id: 'vilebat_ring', name: 'Vilebat Ring', tier: 'A', category: 'Ring', desc: 'Heal on Kill.', deepLogic: 'Restores a small % of HP per kill. Effectively doubles the yield of "Heal on Kill" skills.' },
   { id: 'wolf_ring', name: 'Wolf Ring', tier: 'B', category: 'Ring', desc: 'Melee Crit Chance.', deepLogic: 'Provides 5% Crit Chance. Useful for Melee-focused heroes like Melinda or Shingen.' },
-  { id: 'serpent_ring', name: 'Serpent Ring', tier: 'B', category: 'Ring', desc: 'Dodge Chance +7%.', deepLogic: 'Core ring for Dodge builds. Also provides +10% Damage to Ranged units.' },
+  { id: 'userpent_ring', name: 'Serpent Ring', tier: 'B', category: 'Ring', desc: 'Dodge Chance +7%.', deepLogic: 'Core ring for Dodge builds. Also provides +10% Damage to Ranged units.' },
   { id: 'falcon_ring', name: 'Falcon Ring', tier: 'C', category: 'Ring', desc: 'Attack Speed +5%.', deepLogic: 'Pure attack speed buff. Recommended for slow weapons like Death Scythe.' },
   { id: 'bear_ring', name: 'Bear Ring', tier: 'C', category: 'Ring', desc: 'HP + Ground Dmg.', deepLogic: 'Increases Max HP by 5%. Best used in early-game for general survivability.' },
 

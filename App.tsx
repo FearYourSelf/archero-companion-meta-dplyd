@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -224,16 +223,16 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logsRef = useRef<LogEntry[]>([]);
 
-  // Hero Tracker State: Level 120 + Stars
-  const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean; stars: number }>>(() => {
-    const saved = localStorage.getItem('archero_v6_tracker_plus');
+  // Hero Tracker State: Level 120 + Stars + Sun Level
+  const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean; stars: number; sunLevel: number }>>(() => {
+    const saved = localStorage.getItem('archero_v6_tracker_plus_v2');
     if (saved) return JSON.parse(saved);
     // Migration fallback from older tracker
-    const old = localStorage.getItem('archero_v6_tracker');
+    const old = localStorage.getItem('archero_v6_tracker_plus');
     if (old) {
       const parsedOld = JSON.parse(old);
-      const migrated: Record<string, { lv120: boolean; stars: number }> = {};
-      Object.keys(parsedOld).forEach(k => migrated[k] = { lv120: !!parsedOld[k].lv120, stars: 0 });
+      const migrated: Record<string, { lv120: boolean; stars: number; sunLevel: number }> = {};
+      Object.keys(parsedOld).forEach(k => migrated[k] = { ...parsedOld[k], sunLevel: 0 });
       return migrated;
     }
     return {};
@@ -364,7 +363,7 @@ const App: React.FC = () => {
     return () => { window.removeEventListener('mousemove', handleGlobalMouseMove); window.removeEventListener('mouseup', handleGlobalMouseUp); wheelListeners.forEach(({el, fn}) => el.removeEventListener('wheel', fn)); };
   }, [activeTab]);
 
-  useEffect(() => { localStorage.setItem('archero_v6_tracker_plus', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
+  useEffect(() => { localStorage.setItem('archero_v6_tracker_plus_v2', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
   useEffect(() => { localStorage.setItem('archero_v6_equipped', JSON.stringify(Array.from(equippedItems))); }, [equippedItems]);
   useEffect(() => { localStorage.setItem('archero_v6_favorites', JSON.stringify(Array.from(favoriteHeroes))); }, [favoriteHeroes]);
   useEffect(() => { localStorage.setItem('archero_v6_chat', JSON.stringify(chatHistory)); }, [chatHistory]);
@@ -374,7 +373,6 @@ const App: React.FC = () => {
     const totals: Record<string, number> = {};
     
     const addStat = (rawBonus: string) => {
-      // Regex to handle formats like "+8% Attack", "+17% Crit Damage", "+10 Projectile Resistance"
       const match = rawBonus.match(/([+-]?\d+)%?\s*(.*)/);
       if (match) {
         const val = parseInt(match[1]);
@@ -392,9 +390,16 @@ const App: React.FC = () => {
         addStat(h.globalBonus120);
       }
 
-      // Star Global Bonuses (Aggregated)
-      h.starMilestones?.forEach(m => {
+      // Star Global Bonuses
+      (h.starMilestones as StarMilestone[])?.forEach(m => {
         if (m.isGlobal && userHero.stars >= m.stars) {
+          addStat(m.effect);
+        }
+      });
+
+      // Sun Global Bonuses (Dynamic Calculation for v6.3)
+      (h.sunMilestones as SunMilestone[])?.forEach(m => {
+        if (m.isGlobal && userHero.sunLevel >= m.level) {
           addStat(m.effect);
         }
       });
@@ -773,14 +778,14 @@ const App: React.FC = () => {
                   ))}
                   {Object.keys(calculateGlobalStats()).length === 0 && (
                     <div className="col-span-full py-4 text-center opacity-30 text-[9px] font-black uppercase tracking-widest italic">
-                      No global stats active. Level 120 or Star 7 required.
+                      No global stats active. Level 120 or Evolution required.
                     </div>
                   )}
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {HERO_DATA.map(h => {
-                  const userData = unlockedHeroes[h.id] || { lv120: false, stars: 0 };
+                  const userData = unlockedHeroes[h.id] || { lv120: false, stars: 0, sunLevel: 0 };
                   return (
                     <div key={h.id} className="p-5 bg-gray-900/60 border border-white/5 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-orange-500/20 transition-all">
                       <div className="flex items-center gap-4">
@@ -791,7 +796,7 @@ const App: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between md:justify-end gap-6">
+                      <div className="flex items-center justify-between md:justify-end gap-6 flex-wrap">
                         {/* Star Selector */}
                         <div className="flex flex-col gap-1.5">
                           <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Star Evolution</span>
@@ -802,7 +807,7 @@ const App: React.FC = () => {
                                 onClick={() => {
                                   setUnlockedHeroes(p => ({
                                     ...p, 
-                                    [h.id]: { ...p[h.id], stars: (p[h.id]?.stars === starNum) ? starNum - 1 : starNum, lv120: !!p[h.id]?.lv120 }
+                                    [h.id]: { ...p[h.id], stars: (p[h.id]?.stars === starNum) ? starNum - 1 : starNum }
                                   }));
                                   playSfx('click');
                                 }} 
@@ -814,12 +819,34 @@ const App: React.FC = () => {
                           </div>
                         </div>
 
+                        {/* Sun Level Selector */}
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[8px] font-black text-orange-500/80 uppercase tracking-widest px-1">Sun Evolution</span>
+                          <div className="flex items-center gap-1.5 px-3 py-2 bg-orange-950/20 rounded-xl border border-orange-500/10">
+                            {[1,2,3,4,5].map(level => (
+                              <button 
+                                key={level} 
+                                onClick={() => {
+                                  setUnlockedHeroes(p => ({
+                                    ...p, 
+                                    [h.id]: { ...p[h.id], sunLevel: (p[h.id]?.sunLevel === level) ? level - 1 : level }
+                                  }));
+                                  playSfx('click');
+                                }} 
+                                className={`transition-all ${userData.sunLevel >= level ? 'text-orange-500' : 'text-gray-800 hover:text-gray-600'}`}
+                              >
+                                <Sun size={14} fill={userData.sunLevel >= level ? 'currentColor' : 'none'} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
                         {/* L120 Toggle */}
                         <div className="flex flex-col gap-1.5">
                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Max Level</span>
                            <button 
                              onClick={() => { 
-                               setUnlockedHeroes(p => ({...p, [h.id]: { stars: p[h.id]?.stars || 0, lv120: !p[h.id]?.lv120 }})); 
+                               setUnlockedHeroes(p => ({...p, [h.id]: { ...p[h.id], lv120: !p[h.id]?.lv120 }})); 
                                playSfx('click'); 
                              }} 
                              className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase transition-all border ${userData.lv120 ? 'bg-orange-600 border-orange-500 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-600 hover:text-gray-400'}`}
