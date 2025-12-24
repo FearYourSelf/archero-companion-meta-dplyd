@@ -24,6 +24,12 @@ export interface StarMilestone {
   isGlobal?: boolean;
 }
 
+export interface SunMilestone {
+  level: number;
+  effect: string;
+  isGlobal?: boolean;
+}
+
 export interface BaseItem {
   id: string;
   name: string;
@@ -52,6 +58,7 @@ export interface Hero extends BaseItem {
   gearSets?: GearSet[];
   historicalTiers?: { update: string; tier: Tier }[];
   starMilestones?: StarMilestone[];
+  sunMilestones?: SunMilestone[];
 }
 
 export interface Jewel {

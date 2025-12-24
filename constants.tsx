@@ -22,6 +22,11 @@ export const HERO_DATA: Hero[] = [
       { stars: 6, effect: "Static Field: Red lightning aura damages and stuns." },
       { stars: 7, effect: "+10% Projectile Resistance (Global)", isGlobal: true }
     ],
+    sunMilestones: [
+      { level: 1, effect: "Static Field duration +50%." },
+      { level: 2, effect: "+15% Lightning Damage (Global)", isGlobal: true },
+      { level: 3, effect: "Thunder Chain jumps to 2 extra targets." }
+    ],
     gearSets: [
       {
         name: "Celestial Stormlord",
@@ -52,6 +57,11 @@ export const HERO_DATA: Hero[] = [
       { stars: 4, effect: "Phantom Hair: Spawns mirror decoy on room entry." },
       { stars: 6, effect: "72 Forms: Temporary invincibility during transformation." },
       { stars: 7, effect: "+10% Attack (Global)", isGlobal: true }
+    ],
+    sunMilestones: [
+      { level: 1, effect: "Clone damage increased by 100%." },
+      { level: 2, effect: "+10% Critical Chance (Global)", isGlobal: true },
+      { level: 3, effect: "Golden Cudgel deflects larger projectiles." }
     ]
   },
   { 
@@ -71,6 +81,11 @@ export const HERO_DATA: Hero[] = [
       { stars: 4, effect: "Smart Homing: Barrage tracks moving targets." },
       { stars: 6, effect: "Soul Seeker: Barrage hits restore small amount of HP." },
       { stars: 7, effect: "+15% Critical Damage (Global)", isGlobal: true }
+    ],
+    sunMilestones: [
+      { level: 1, effect: "Barrage arrows pierce through the first target." },
+      { level: 2, effect: "+12% Max HP (Global)", isGlobal: true },
+      { level: 3, effect: "Barrage activation threshold increased to 95% HP." }
     ]
   },
   { 
@@ -82,6 +97,10 @@ export const HERO_DATA: Hero[] = [
     starMilestones: [
       { stars: 3, effect: "Riri's movement speed increased by 30%." },
       { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ],
+    sunMilestones: [
+      { level: 1, effect: "Riri's attack range increased by 40%." },
+      { level: 3, effect: "+5% Damage Resistance (Global)", isGlobal: true }
     ]
   },
   { 
@@ -168,7 +187,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: '+5% Elemental Damage', 
     desc: 'Elf prince.', deepLogic: 'Removes elemental skills from RNG pool.', 
     bestPairs: ['Brightspear'], shardCost: '50 Shards to unlock (Soulstone Shop / $12.99)', 
     assistHeroes: ['Lina', 'Shade', 'Rolla'],
@@ -215,7 +234,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'onir', name: 'Onir', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'onir', name: 'Onir', tier: 'A', category: 'Hero', globalBonus120: '+10% Projectile Resistance', 
     desc: 'Holy knight.', deepLogic: 'Best used for 10% Global Projectile Resistance at 7-stars.', 
     uniqueEffect: 'Global Proj Resist (7-Star)', shardCost: '50 Shards to unlock (Soulstone Shop / $9.99)', 
     assistHeroes: ['Atreus', 'Helix', 'Phoren'],
@@ -389,68 +408,44 @@ export const JEWEL_DATA: Jewel[] = [
   { id: 'kunzite', name: 'Kunzite', color: 'Teal', statType: 'Dmg to Elites/Bosses', baseStat: 12, statPerLevel: 28, slots: ['Armor', 'Book'], lore: 'Slayer\'s choice for high-priority targets.' }
 ];
 
-export const JEWEL_SLOT_BONUSES: Record<string, SlotBonus[]> = {
-  'Weapon': [
-    { level: 16, effect: 'Attack +3%' },
-    { level: 28, effect: 'Damage to Air Units +10%' },
-    { level: 33, effect: 'Attack +5%' },
-    { level: 38, effect: 'Final Attack +5%' }
-  ],
-  'Armor': [
-    { level: 16, effect: 'Max HP +3%' },
-    { level: 28, effect: 'Damage Resistance +2%' },
-    { level: 33, effect: 'Max HP +5%' },
-    { level: 38, effect: 'Damage Resistance +5%' }
-  ],
-  'Ring': [
-    { level: 16, effect: 'Gold Drop +5%' },
-    { level: 28, effect: 'Critical Chance +2%' },
-    { level: 33, effect: 'Gold Drop +10%' },
-    { level: 38, effect: 'Critical Chance +5%' }
-  ],
-  'Bracelet': [
-    { level: 16, effect: 'Attack +2%' },
-    { level: 28, effect: 'Critical Damage +10%' },
-    { level: 33, effect: 'Attack +4%' },
-    { level: 38, effect: 'Critical Damage +15%' }
-  ],
-  'Locket': [
-    { level: 16, effect: 'Healing +5%' },
-    { level: 28, effect: 'Max HP +3%' },
-    { level: 33, effect: 'Healing +10%' },
-    { level: 38, effect: 'Max HP +6%' }
-  ],
-  'Book': [
-    { level: 16, effect: 'Mana Regeneration +5%' },
-    { level: 28, effect: 'Skill Damage +5%' },
-    { level: 33, effect: 'Mana Regeneration +10%' },
-    { level: 38, effect: 'Spellbook Effect +10%' }
-  ]
-};
-
 export const RELIC_DATA: Relic[] = [
   // --- HOLY RELICS (Pink/Red - SS Tier) ---
-  { id: 'spear_yggdrasil', name: 'Spear of Yggdrasil', tier: 'Holy', effect: 'Attack +% & Attack Speed +%', lore: 'The ultimate offensive relic. Boosts both raw damage and how fast you hit.', source: 'Pink/Red Archive' },
-  { id: 'bloodstained_sword', name: 'Bloodstained Sword', tier: 'Holy', effect: 'Attack +% & Crit Rate +%', lore: 'Best for Critical Hit builds. Often mistranslated as "Cursed Sword."', source: 'Pink/Red Archive' },
-  { id: 'starcluster_rage', name: 'Starcluster Rage', tier: 'Holy', effect: 'Crit Damage +%', lore: 'Massive boost to critical hit damage. Essential for "Big Number" builds.', source: 'Pink/Red Archive' },
-  { id: 'demon_king_eye_corrected', name: "Demon King's Eye", tier: 'Holy', effect: 'Projectile Resistance +% & Dark Damage +%', lore: 'Mandatory for the endgame "Immunity Build" to reduce incoming damage.', source: 'Pink/Red Archive' },
-  { id: 'gilded_medal', name: 'Gilded Medal', tier: 'Holy', effect: 'Max HP +% & Damage Resistance +%', lore: 'The best defensive relic in the game. Pure tank stats.', source: 'Pink/Red Archive' },
-  { id: 'dragon_gem_new', name: 'Dragon Gem', tier: 'Holy', effect: 'All Elemental Damage +%', lore: 'Boosts Fire, Ice, Poison, and Lightning damage globally.', source: 'Pink/Red Archive' },
+  { id: 'spear_yggdrasil', name: 'Spear of Yggdrasil', tier: 'Holy', effect: 'Attack +% & Attack Speed +%', lore: 'The ultimate offensive relic. Boosts both raw damage and how fast you hit.', source: 'Relic Chest / Events', iconType: 'Arrow' },
+  { id: 'bloodstained_sword', name: 'Bloodstained Sword', tier: 'Holy', effect: 'Attack +% & Crit Rate +%', lore: 'Best for Critical Hit builds. Often mistranslated as "Cursed Sword."', source: 'Relic Chest / Events', iconType: 'Sword' },
+  { id: 'starcluster_rage', name: 'Starcluster Rage', tier: 'Holy', effect: 'Crit Damage +%', lore: 'Massive boost to critical hit damage. Essential for "Big Number" builds.', source: 'Relic Chest / Events', iconType: 'Gem' },
+  { id: 'demon_king_eye', name: "Demon King's Eye", tier: 'Holy', effect: 'Projectile Resistance +% & Dark Damage +%', lore: 'Mandatory for the endgame "Immunity Build" to reduce incoming damage.', source: 'Relic Chest / Events', iconType: 'Eye' },
+  { id: 'gilded_medal', name: 'Gilded Medal', tier: 'Holy', effect: 'Max HP +% & Damage Resistance +%', lore: 'The best defensive relic in the game. Pure tank stats.', source: 'Relic Chest / Events', iconType: 'Gem' },
+  { id: 'dragon_gem', name: 'Dragon Gem', tier: 'Holy', effect: 'All Elemental Damage +%', lore: 'Boosts Fire, Ice, Poison, and Lightning damage globally.', source: 'Relic Chest / Events', iconType: 'Gem' },
+  { id: 'radiant_heart', name: 'Radiant Heart', tier: 'Holy', effect: 'Healing Effect +% & HP Drop Rate +%', lore: 'A pulsing heart of pure light that revitalizes the weary.', source: 'Relic Chest / Events', iconType: 'Cup' },
+  { id: 'ring_dragon', name: 'Ring of the Dragon', tier: 'Holy', effect: 'Crit Chance +% & Dragon Dmg +%', lore: 'Forged in dragonfire, it grants the ferocity of the beasts.', source: 'Relic Chest / Events', iconType: 'Gem' },
+  { id: 'sword_brave', name: 'Sword of the Brave', tier: 'Holy', effect: 'Attack +% & Boss Dmg +%', lore: 'A legendary blade said to have slain a thousand tyrants.', source: 'Relic Chest / Events', iconType: 'Sword' },
 
   // --- RADIANT RELICS (Yellow/Gold - S Tier) ---
-  { id: 'golden_apple_new', name: 'Golden Apple', tier: 'Radiant', effect: 'Max HP +% & Healing Effect +%', lore: 'Makes Red Hearts heal for more. Great for survival.', source: 'Yellow/Gold Archive' },
-  { id: 'mirror_truth_new', name: 'Mirror of Truth', tier: 'Radiant', effect: 'Crit Chance +% & Accuracy', lore: 'Helps hit enemies that have high dodge rates.', source: 'Yellow/Gold Archive' },
-  { id: 'ancient_map_new', name: 'Ancient Map', tier: 'Radiant', effect: 'Movement Speed +% & Trap Resistance', lore: 'Reduces damage from spikes/saws and makes you move faster.', source: 'Yellow/Gold Archive' },
-  { id: 'hero_cape_new', name: "Hero's Cape", tier: 'Radiant', effect: 'Damage Resistance +%', lore: 'General damage reduction. Good all-rounder for defense.', source: 'Yellow/Gold Archive' },
-  { id: 'pharaoh_scepter', name: "Pharaoh's Scepter", tier: 'Radiant', effect: 'Crit Chance +% & Skill Damage +%', lore: 'Boosts damage from abilities (like Meteors/Stars).', source: 'Yellow/Gold Archive' },
-  { id: 'prometheus_fire', name: "Prometheus's Fire", tier: 'Radiant', effect: 'Attack + (Flat) & Fire Damage +%', lore: 'Specifically buffs Fire damage (good for Phoren/Lina).', source: 'Yellow/Gold Archive' },
+  { id: 'golden_apple', name: 'Golden Apple', tier: 'Radiant', effect: 'Max HP +% & Healing Effect +%', lore: 'Makes Red Hearts heal for more. Great for survival.', source: 'Chapters / Chests', iconType: 'Cup' },
+  { id: 'mirror_truth', name: 'Mirror of Truth', tier: 'Radiant', effect: 'Crit Chance +% & Accuracy', lore: 'Helps hit enemies that have high dodge rates.', source: 'Chapters / Chests', iconType: 'Mirror' },
+  { id: 'ancient_map', name: 'Ancient Map', tier: 'Radiant', effect: 'Movement Speed +% & Trap Resistance', lore: 'Reduces damage from spikes/saws and makes you move faster.', source: 'Expedition', iconType: 'Map' },
+  { id: 'hero_cape', name: "Hero's Cape", tier: 'Radiant', effect: 'Damage Resistance +%', lore: 'General damage reduction. Good all-rounder for defense.', source: 'Chapters / Chests', iconType: 'Shield' },
+  { id: 'pharaoh_scepter', name: "Pharaoh's Scepter", tier: 'Radiant', effect: 'Crit Chance +% & Skill Damage +%', lore: 'Boosts damage from abilities (like Meteors/Stars).', source: 'Chapters / Chests', iconType: 'Sword' },
+  { id: 'prometheus_fire', name: "Prometheus's Fire", tier: 'Radiant', effect: 'Attack + (Flat) & Fire Damage +%', lore: 'Specifically buffs Fire damage (good for Phoren/Lina).', source: 'Tower Defense', iconType: 'Gem' },
+  { id: 'golden_bunny', name: 'Golden Bunny', tier: 'Radiant', effect: 'Attack +5% (at 4★)', lore: 'Event Exclusive. Highly sought after for its massive raw Attack boost.', source: 'Special Events Only', iconType: 'Dog' },
+  { id: 'fabled_arrow', name: 'Fabled Arrow', tier: 'Radiant', effect: 'Attack +3-5% (Gem Spend)', lore: 'A legendary arrow that pierces through time. Resonance with Smiling Mask.', source: 'Gem Spending Events', iconType: 'Arrow' },
+  { id: 'smiling_mask', name: 'Smiling Mask', tier: 'Radiant', effect: 'Damage to Mobs +%', lore: 'A mysterious mask that seems to mock your enemies. Completes the set with Fabled Arrow.', source: 'Relic Chest / Events', iconType: 'Eye' },
+  { id: 'prophets_crystal', name: "Prophet's Crystal", tier: 'Radiant', effect: 'Spellbook Mana Speed +%', lore: 'Gazes into the future to hasten your magical recovery.', source: 'Chapters / Chests', iconType: 'Gem' },
 
   // --- FAINT RELICS (Blue/Purple - A/B Tier) ---
-  { id: 'broken_sword_new', name: 'Broken Sword', tier: 'Faint', effect: 'Flat Attack +', lore: 'A simple, raw number boost to your Attack stat.', source: 'Blue/Purple Archive' },
-  { id: 'rusty_key_new', name: 'Rusty Key', tier: 'Faint', effect: 'Gold Drop Rate +%', lore: 'Essential for farming runs (Up-Close Dangers).', source: 'Blue/Purple Archive' },
-  { id: 'dusty_tome_new', name: 'Dusty Tome', tier: 'Faint', effect: 'Scroll Drop Rate +%', lore: 'Helps you find more upgrade scrolls for your equipment.', source: 'Blue/Purple Archive' },
-  { id: 'lost_cross', name: 'Lost Cross', tier: 'Faint', effect: 'Flat HP +', lore: 'A simple, raw number boost to your HP.', source: 'Blue/Purple Archive' },
-  { id: 'strange_stone', name: 'Strange Stone', tier: 'Faint', effect: 'Flat Damage Resistance', lore: 'Reduces damage by a flat amount (e.g., -50).', source: 'Blue/Purple Archive' }
+  { id: 'broken_sword', name: 'Broken Sword', tier: 'Faint', effect: 'Flat Attack +', lore: 'A simple, raw number boost to your Attack stat.', source: 'Common Drops', iconType: 'Sword' },
+  { id: 'rusty_key', name: 'Rusty Key', tier: 'Faint', effect: 'Gold Drop Rate +%', lore: 'Essential for farming runs (Up-Close Dangers).', source: 'Common Drops', iconType: 'Gem' },
+  { id: 'dusty_tome', name: 'Dusty Tome', tier: 'Faint', effect: 'Scroll Drop Rate +%', lore: 'Helps you find more upgrade scrolls for your equipment.', source: 'Common Drops', iconType: 'Book' },
+  { id: 'lost_cross', name: 'Lost Cross', tier: 'Faint', effect: 'Flat HP +', lore: 'A simple, raw number boost to your HP.', source: 'Common Drops', iconType: 'Shield' },
+  { id: 'strange_stone', name: 'Strange Stone', tier: 'Faint', effect: 'Flat Damage Resistance', lore: 'Reduces damage by a flat amount (e.g., -50).', source: 'Common Drops', iconType: 'Gem' },
+  { id: 'magic_lamp', name: 'Magic Lamp', tier: 'Faint', effect: 'Ground Dmg Reduction +%', lore: 'Reduces damage taken from ground traps and melee units.', source: 'Common Drops', iconType: 'Cup' },
+  { id: 'magic_carpet', name: 'Magic Carpet', tier: 'Faint', effect: 'Gold in Cave +% & HP +%', lore: 'A flying carpet that brings fortune in hidden places.', source: 'Common Drops', iconType: 'Scroll' },
+  { id: 'poison_apple', name: 'Poison Apple', tier: 'Faint', effect: 'Movement Speed +%', lore: 'A deceptive fruit that quickens the step.', source: 'Common Drops', iconType: 'Cup' },
+  { id: 'laurel_wreath', name: 'Laurel Wreath', tier: 'Faint', effect: 'Dmg Reduce vs Elite +%', lore: 'A symbol of victory that protects against strong foes.', source: 'Common Drops', iconType: 'Shield' },
+  { id: 'four_leaf', name: 'Four-Leaf Clover', tier: 'Faint', effect: 'Dmg Reduce vs Minion +%', lore: 'Lucky charm that wards off the swarm.', source: 'Common Drops', iconType: 'Gem' },
+  { id: 'crystal_shoe', name: 'Crystal Shoe', tier: 'Faint', effect: 'Dmg Reduce vs Boss +%', lore: 'Fragile but protects against the hardest hits.', source: 'Common Drops', iconType: 'Arrow' },
+  { id: 'red_hood', name: 'Red Hood', tier: 'Faint', effect: 'Dmg Reduce vs Airborne +%', lore: 'Protects against threats from above.', source: 'Common Drops', iconType: 'Shield' },
+  { id: 'arcane_crystal', name: 'Arcane Crystal', tier: 'Faint', effect: 'Flat HP & MP Recovery', lore: 'A faint glowing stone that restores vitality.', source: 'Common Drops', iconType: 'Gem' }
 ];
 
 export const SET_BONUS_DESCRIPTIONS: Record<string, string> = {
@@ -595,3 +590,42 @@ export const REFINE_TIPS = [
   "Essence Priority: Focus on Weapon slots first for maximum impact.",
   "Smelt Protocol: Ancient Legendaries yield the best late-game efficiency."
 ];
+
+export const JEWEL_SLOT_BONUSES: Record<string, SlotBonus[]> = {
+  'Weapon': [
+    { level: 16, effect: 'Attack +3%' },
+    { level: 28, effect: 'Damage to Air Units +10%' },
+    { level: 33, effect: 'Attack +5%' },
+    { level: 38, effect: 'Final Attack +5%' }
+  ],
+  'Armor': [
+    { level: 16, effect: 'Max HP +3%' },
+    { level: 28, effect: 'Damage Resistance +2%' },
+    { level: 33, effect: 'Max HP +5%' },
+    { level: 38, effect: 'Damage Resistance +5%' }
+  ],
+  'Ring': [
+    { level: 16, effect: 'Gold Drop +5%' },
+    { level: 28, effect: 'Critical Chance +2%' },
+    { level: 33, effect: 'Gold Drop +10%' },
+    { level: 38, effect: 'Critical Chance +5%' }
+  ],
+  'Bracelet': [
+    { level: 16, effect: 'Attack +2%' },
+    { level: 28, effect: 'Critical Damage +10%' },
+    { level: 33, effect: 'Attack +4%' },
+    { level: 38, effect: 'Critical Damage +15%' }
+  ],
+  'Locket': [
+    { level: 16, effect: 'Healing +5%' },
+    { level: 28, effect: 'Max HP +3%' },
+    { level: 33, effect: 'Healing +10%' },
+    { level: 38, effect: 'Max HP +6%' }
+  ],
+  'Book': [
+    { level: 16, effect: 'Mana Regeneration +5%' },
+    { level: 28, effect: 'Skill Damage +5%' },
+    { level: 33, effect: 'Mana Regeneration +10%' },
+    { level: 38, effect: 'Spellbook Effect +10%' }
+  ]
+};

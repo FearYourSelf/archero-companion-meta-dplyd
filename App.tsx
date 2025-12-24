@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-// Added Globe to imports to fix missing name error on line 1142
 import { 
   Sword, Shield, Zap, User, Search, MessageSquare, 
   Send, BrainCircuit, Loader2, Heart, Calculator, 
@@ -19,14 +18,32 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe
+  Globe, Sun
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES
 } from './constants';
 import { chatWithAI } from './services/geminiService';
-import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone } from './types';
+import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone } from './types';
 import { Badge, Card } from './components/UI';
+
+// --- CUSTOM GAME ICONS ---
+const BowIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2.5" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M8 2C14 2 20 7 20 12C20 17 14 22 8 22" />
+    <path d="M8 2L2 12L8 22" />
+    <line x1="2" y1="12" x2="16" y2="12" />
+    <polyline points="13 8 17 12 13 16" />
+  </svg>
+);
 
 // --- WEAPON PHYSICS DATA ---
 const WEAPON_SPEEDS: Record<string, { name: string; speed: number; label: string }> = {
@@ -37,10 +54,6 @@ const WEAPON_SPEEDS: Record<string, { name: string; speed: number; label: string
 };
 
 // --- Improved Robust Search Logic ---
-/**
- * Character-based fuzzy matching. Checks if characters in 'pattern' 
- * appear in 'str' in the same relative order.
- */
 const fuzzyMatch = (str: string, pattern: string): boolean => {
   if (!pattern) return true;
   pattern = pattern.toLowerCase();
@@ -52,17 +65,10 @@ const fuzzyMatch = (str: string, pattern: string): boolean => {
   return true;
 };
 
-/**
- * High-performance search aggregator. 
- * Supports tokens, multi-field indexing (ID, Name, Desc, Perk), 
- * and falls back to fuzzy matching for typo tolerance.
- */
 const performRobustSearch = (item: any, query: string): boolean => {
   if (!query) return true;
   const q = query.toLowerCase().trim();
   const tokens = q.split(/\s+/);
-
-  // Define searchable content for this specific item
   const searchableText = [
     item.name,
     item.id,
@@ -81,24 +87,18 @@ const performRobustSearch = (item: any, query: string): boolean => {
     item.source
   ].filter(Boolean).map(val => String(val).toLowerCase());
 
-  // Every token in the query must match at least one searchable field
   return tokens.every(token => {
-    // 1. Direct substring match (Keyword search)
     const directMatch = searchableText.some(field => field.includes(token));
     if (directMatch) return true;
-
-    // 2. Fuzzy fallback for name and ID (Typo tolerance)
     return fuzzyMatch(item.name || '', token) || fuzzyMatch(item.id || '', token);
   });
 };
 
-// --- Helper for Tier Weights ---
 const getTierWeight = (t: Tier) => {
   const weights: Record<Tier, number> = { 'SSS': 7, 'SS': 6, 'S': 5, 'A': 4, 'B': 3, 'C': 2, 'D': 1, 'F': 0 };
   return weights[t] || 0;
 };
 
-// --- Custom Styled Select Component ---
 const CustomSelect: React.FC<{ 
   options: { id: string; name: string; subtitle?: string }[]; 
   value: string; 
@@ -157,6 +157,9 @@ const RelicIcon: React.FC<{ type?: string; className?: string }> = ({ type, clas
     case 'Book': return <Book className={className} />;
     case 'Cup': return <Wine className={className} />;
     case 'Arrow': return <ArrowUp className={className} />;
+    case 'Mirror': return <Scan className={className} />;
+    case 'Map': return <Map className={className} />;
+    case 'Dog': return <Dog className={className} />;
     default: return <Box className={className} />;
   }
 };
@@ -221,7 +224,21 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logsRef = useRef<LogEntry[]>([]);
 
-  const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean }>>(() => JSON.parse(localStorage.getItem('archero_v6_tracker') || '{}'));
+  // Hero Tracker State: Level 120 + Stars
+  const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean; stars: number }>>(() => {
+    const saved = localStorage.getItem('archero_v6_tracker_plus');
+    if (saved) return JSON.parse(saved);
+    // Migration fallback from older tracker
+    const old = localStorage.getItem('archero_v6_tracker');
+    if (old) {
+      const parsedOld = JSON.parse(old);
+      const migrated: Record<string, { lv120: boolean; stars: number }> = {};
+      Object.keys(parsedOld).forEach(k => migrated[k] = { lv120: !!parsedOld[k].lv120, stars: 0 });
+      return migrated;
+    }
+    return {};
+  });
+
   const [equippedItems, setEquippedItems] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem('archero_v6_equipped') || '[]')));
   const [favoriteHeroes, setFavoriteHeroes] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem('archero_v6_favorites') || '[]')));
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => JSON.parse(localStorage.getItem('archero_v6_chat') || '[]'));
@@ -247,7 +264,6 @@ const App: React.FC = () => {
   const [selectedWeapon, setSelectedWeapon] = useState('Blade');
   const [efficiency, setEfficiency] = useState(0);
 
-  // Core Refs
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
   const navScrollRef = useRef<HTMLDivElement>(null);
@@ -280,7 +296,6 @@ const App: React.FC = () => {
   useEffect(() => { if (uiToast) { const timer = setTimeout(() => setUiToast(null), 3000); return () => clearTimeout(timer); } }, [uiToast]);
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => { setUiToast({ message, type }); playSfx(type === 'error' ? 'error' : 'msg'); };
 
-  // Scroll to bottom of chat when history updates
   useEffect(() => {
     if (activeTab === 'ai' && chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -349,7 +364,7 @@ const App: React.FC = () => {
     return () => { window.removeEventListener('mousemove', handleGlobalMouseMove); window.removeEventListener('mouseup', handleGlobalMouseUp); wheelListeners.forEach(({el, fn}) => el.removeEventListener('wheel', fn)); };
   }, [activeTab]);
 
-  useEffect(() => { localStorage.setItem('archero_v6_tracker', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
+  useEffect(() => { localStorage.setItem('archero_v6_tracker_plus', JSON.stringify(unlockedHeroes)); }, [unlockedHeroes]);
   useEffect(() => { localStorage.setItem('archero_v6_equipped', JSON.stringify(Array.from(equippedItems))); }, [equippedItems]);
   useEffect(() => { localStorage.setItem('archero_v6_favorites', JSON.stringify(Array.from(favoriteHeroes))); }, [favoriteHeroes]);
   useEffect(() => { localStorage.setItem('archero_v6_chat', JSON.stringify(chatHistory)); }, [chatHistory]);
@@ -357,7 +372,33 @@ const App: React.FC = () => {
 
   const calculateGlobalStats = () => {
     const totals: Record<string, number> = {};
-    HERO_DATA.forEach(h => { if (unlockedHeroes[h.id]?.lv120) { const bonus = h.globalBonus120; const match = bonus.match(/([+-]?\d+)%?\s*(.*)/); if (match) { const val = parseInt(match[1]); const stat = match[2].trim() || 'General'; totals[stat] = (totals[stat] || 0) + val; } } });
+    
+    const addStat = (rawBonus: string) => {
+      // Regex to handle formats like "+8% Attack", "+17% Crit Damage", "+10 Projectile Resistance"
+      const match = rawBonus.match(/([+-]?\d+)%?\s*(.*)/);
+      if (match) {
+        const val = parseInt(match[1]);
+        const stat = match[2].trim() || 'General';
+        totals[stat] = (totals[stat] || 0) + val;
+      }
+    };
+
+    HERO_DATA.forEach(h => {
+      const userHero = unlockedHeroes[h.id];
+      if (!userHero) return;
+
+      // Level 120 Bonus
+      if (userHero.lv120) {
+        addStat(h.globalBonus120);
+      }
+
+      // Star Global Bonuses (Aggregated)
+      h.starMilestones?.forEach(m => {
+        if (m.isGlobal && userHero.stars >= m.stars) {
+          addStat(m.effect);
+        }
+      });
+    });
     return totals;
   };
 
@@ -503,7 +544,6 @@ const App: React.FC = () => {
   const handleHeroCompareToggle = (id: string) => { playSfx('click'); setCompareHeroIds(prev => { if (prev.includes(id)) return prev.filter(x => x !== id); if (prev.length < 3) return [...prev, id]; return prev; }); };
   const comparedHeroes = useMemo(() => HERO_DATA.filter(h => compareHeroIds.includes(h.id)), [compareHeroIds]);
 
-  // --- Comparison Verdict Logic ---
   const comparisonVerdict = useMemo(() => {
     if (comparedHeroes.length !== 2) return null;
     const [h1, h2] = comparedHeroes;
@@ -567,10 +607,10 @@ const App: React.FC = () => {
       <header className="bg-gray-950/95 backdrop-blur-3xl border-b border-white/5 p-5 shrink-0 z-[100]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Trophy className="text-orange-500 w-8 h-8" />
+            <BowIcon className="text-orange-500 w-8 h-8" />
             <div>
-              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZA GRANDMASTER</h1>
-              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZA Armory Clan Strategic Companion</p>
+              <h1 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ZV GRANDMASTER</h1>
+              <p className="text-[9px] text-orange-500 font-bold tracking-[0.2em] uppercase mt-1">ZV Armory Clan Strategic Companion</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -628,7 +668,7 @@ const App: React.FC = () => {
              )}
              {activeTab === 'relics' && (
                 <div className="space-y-3">
-                  <div ref={relicTierFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" onMouseDown={(e) => handleDragStart(e, relicTierFilterScrollRef)}>{['All', 'Holy', 'Radiant', 'Faint'].map(t => (<button key={t} onClick={(e) => handleInteractiveClick(e, () => { setRelicTierFilter(t as any); playSfx('click'); })} className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{t} Archive</button>))}</div>
+                  <div ref={relicTierFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" onMouseDown={(e) => handleDragStart(e, relicTierFilterScrollRef)}>{['All', 'Holy', 'Radiant', 'Faint'].map(t => (<button key={t} onClick={(e) => handleInteractiveClick(e, () => { setRelicTierFilter(t as any); playSfx('click'); })} className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{t} Tier</button>))}</div>
                   <div ref={relicSourceFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content border-t border-white/5 pt-2" onMouseDown={(e) => handleDragStart(e, relicSourceFilterScrollRef)}><div className="flex-shrink-0 px-3 flex items-center"><MapPin size={10} className="text-gray-600" /></div>{relicSources.map(src => (<button key={src} onClick={(e) => handleInteractiveClick(e, () => { setRelicSourceFilter(src); playSfx('click'); })} className={`flex-shrink-0 px-5 py-2 rounded-xl text-[8px] font-black uppercase transition-all border whitespace-nowrap ${relicSourceFilter === src ? 'bg-blue-600 border-blue-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-600 hover:text-gray-400'}`}>{src}</button>))}</div>
                 </div>
              )}
@@ -721,7 +761,78 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'tracker' && (
-            <div className="space-y-6 animate-in fade-in"><div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem]"><h4 className="text-[10px] font-black text-orange-500 uppercase mb-6 flex items-center gap-2 tracking-[0.3em]"><Activity size={14}/> Account Sync Protocol</h4><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Object.entries(calculateGlobalStats()).map(([stat, val]) => (<div key={stat} className="p-5 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-md"><p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{stat}</p><p className="text-2xl font-black text-white italic">+{val}%</p></div>))}</div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{HERO_DATA.map(h => (<div key={h.id} className="p-4 bg-gray-900/60 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-orange-500/20 transition-all"><div className="flex items-center gap-3"><Badge tier={h.tier} /><span className="text-xs font-black text-white italic uppercase tracking-tighter">{h.name}</span></div><button onClick={() => { setUnlockedHeroes(p => ({...p, [h.id]: { lv120: !p[h.id]?.lv120 }})); playSfx('click'); }} className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase transition-all ${unlockedHeroes[h.id]?.lv120 ? 'bg-orange-600 text-white shadow-lg' : 'bg-white/5 text-gray-600 hover:text-gray-400'}`}>{unlockedHeroes[h.id]?.lv120 ? 'Active' : 'L120'}</button></div>))}</div></div>
+            <div className="space-y-6 animate-in fade-in pb-24">
+              <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem]">
+                <h4 className="text-[10px] font-black text-orange-500 uppercase mb-6 flex items-center gap-2 tracking-[0.3em]"><Activity size={14}/> Account Sync Protocol</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(calculateGlobalStats()).map(([stat, val]) => (
+                    <div key={stat} className="p-5 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-md">
+                      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 truncate">{stat}</p>
+                      <p className="text-2xl font-black text-white italic">+{val}%</p>
+                    </div>
+                  ))}
+                  {Object.keys(calculateGlobalStats()).length === 0 && (
+                    <div className="col-span-full py-4 text-center opacity-30 text-[9px] font-black uppercase tracking-widest italic">
+                      No global stats active. Level 120 or Star 7 required.
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {HERO_DATA.map(h => {
+                  const userData = unlockedHeroes[h.id] || { lv120: false, stars: 0 };
+                  return (
+                    <div key={h.id} className="p-5 bg-gray-900/60 border border-white/5 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-orange-500/20 transition-all">
+                      <div className="flex items-center gap-4">
+                        <Badge tier={h.tier} />
+                        <div>
+                          <span className="text-sm font-black text-white italic uppercase tracking-tighter block">{h.name}</span>
+                          <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">L120: {h.globalBonus120}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between md:justify-end gap-6">
+                        {/* Star Selector */}
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Star Evolution</span>
+                          <div className="flex items-center gap-1.5 px-3 py-2 bg-black/40 rounded-xl border border-white/5">
+                            {[1,2,3,4,5,6,7,8].map(starNum => (
+                              <button 
+                                key={starNum} 
+                                onClick={() => {
+                                  setUnlockedHeroes(p => ({
+                                    ...p, 
+                                    [h.id]: { ...p[h.id], stars: (p[h.id]?.stars === starNum) ? starNum - 1 : starNum, lv120: !!p[h.id]?.lv120 }
+                                  }));
+                                  playSfx('click');
+                                }} 
+                                className={`transition-all ${userData.stars >= starNum ? 'text-yellow-500' : 'text-gray-800 hover:text-gray-600'}`}
+                              >
+                                <Star size={14} fill={userData.stars >= starNum ? 'currentColor' : 'none'} />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* L120 Toggle */}
+                        <div className="flex flex-col gap-1.5">
+                           <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Max Level</span>
+                           <button 
+                             onClick={() => { 
+                               setUnlockedHeroes(p => ({...p, [h.id]: { stars: p[h.id]?.stars || 0, lv120: !p[h.id]?.lv120 }})); 
+                               playSfx('click'); 
+                             }} 
+                             className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase transition-all border ${userData.lv120 ? 'bg-orange-600 border-orange-500 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-600 hover:text-gray-400'}`}
+                           >
+                            {userData.lv120 ? 'ACTIVE' : 'L120'}
+                           </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           {activeTab === 'formula' && (
@@ -772,7 +883,7 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'immunity' && (
-            <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p><div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[{ label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) }, { label: 'Atreus Level 80 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }, { label: 'Onir 7-Star Passive (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) }, { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, locket: v})) }].map((row, i) => (<div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between"><span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>{row.hasOwnProperty('val') ? (<input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />) : (<button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>{row.check && <CheckCircle2 size={14}/>}</button>)}</div>))}</div></div>
+            <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p><div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[{ label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) }, { label: 'Atreus Level 80 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }, { label: 'Onir 7-Star Passive (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) }, { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }].map((row, i) => (<div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between"><span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>{row.hasOwnProperty('val') ? (<input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />) : (<button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>{row.check && <CheckCircle2 size={14}/>}</button>)}</div>))}</div></div>
           )}
 
           {activeTab === 'dps' && (
@@ -795,25 +906,37 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'relics' && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pb-12">
-              {filteredRelics.length === 0 ? (<div className="col-span-full py-20 text-center opacity-30"><Search size={48} className="mx-auto mb-4" /><p className="text-xs font-black uppercase tracking-widest">No matching relics</p></div>) : (filteredRelics.map((r, index) => {
-                  const styles = getRelicStyles(r.tier); const isTopRow = index < 3; 
-                  return (
-                    <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${styles.card}`}>
-                      <div className={`invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 w-64 p-5 bg-gray-950/98 backdrop-blur-3xl border rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in ${isTopRow ? 'top-[110%] slide-in-from-top-2' : '-top-4 -translate-y-full slide-in-from-bottom-2'} ${styles.tooltip}`}>
-                        {r.lore && (<div className="mb-4"><div className="flex items-center gap-2 mb-1.5 opacity-60"><ScrollText size={10} className="shrink-0" /><span className="text-[8px] font-black uppercase tracking-widest">Tactical Intel</span></div><p className="text-[10px] text-gray-300 font-medium italic leading-relaxed text-left">"{r.lore}"</p></div>)}
-                        <div className="pt-3 border-t border-white/5 space-y-1">
-                          <p className="text-[8px] font-black uppercase text-gray-500 tracking-tighter">Primary Effect:</p>
-                          <p className="text-[10px] text-orange-400 font-bold italic leading-tight text-left">{r.effect}</p>
+            <div className="space-y-8 animate-in fade-in pb-12">
+              <div className="p-10 bg-gradient-to-br from-purple-900/10 via-gray-950 to-purple-950/5 border border-purple-500/20 rounded-[4rem] text-center shadow-4xl">
+                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4 flex items-center justify-center gap-4">
+                   <Archive size={32} className="text-purple-500 animate-pulse"/> Relic Archive Protocols
+                 </h3>
+                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] italic">Full Tactical Database Sync: V6.3.0</p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {filteredRelics.length === 0 ? (<div className="col-span-full py-20 text-center opacity-30"><Search size={48} className="mx-auto mb-4" /><p className="text-xs font-black uppercase tracking-widest">No matching relics found</p></div>) : (filteredRelics.map((r, index) => {
+                    const styles = getRelicStyles(r.tier); const isTopRow = index < 3; 
+                    return (
+                      <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${styles.card}`}>
+                        <div className={`invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 w-64 p-5 bg-gray-950/98 backdrop-blur-3xl border rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in ${isTopRow ? 'top-[110%] slide-in-from-top-2' : '-top-4 -translate-y-full slide-in-from-bottom-2'} ${styles.tooltip}`}>
+                          {r.lore && (<div className="mb-4"><div className="flex items-center gap-2 mb-1.5 opacity-60"><ScrollText size={10} className="shrink-0" /><span className="text-[8px] font-black uppercase tracking-widest">Archive Intel</span></div><p className="text-[10px] text-gray-300 font-medium italic leading-relaxed text-left">"{r.lore}"</p></div>)}
+                          <div className="pt-3 border-t border-white/5 space-y-1">
+                            <p className="text-[8px] font-black uppercase text-gray-500 tracking-tighter">Meta Benefit:</p>
+                            <p className="text-[10px] text-orange-400 font-bold italic leading-tight text-left">{r.effect}</p>
+                          </div>
+                          <div className="pt-2 border-t border-white/5">
+                             <p className="text-[8px] font-black uppercase text-gray-600 tracking-widest text-left">Source: {r.source}</p>
+                          </div>
+                          <div className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-950 rotate-45 ${isTopRow ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} ${styles.arrow}`}></div>
                         </div>
-                        <div className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-950 rotate-45 ${isTopRow ? '-top-1.5 border-l border-t' : '-bottom-1.5 border-r border-b'} ${styles.arrow}`}></div>
+                        <div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${styles.iconContainer}`}><RelicIcon type={r.iconType} className="w-8 h-8" /></div>
+                        <p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p>
+                        <div className="flex items-center gap-2 mt-1"><span className={`text-[8px] font-bold uppercase tracking-widest ${r.tier === 'Holy' ? 'text-red-400' : r.tier === 'Radiant' ? 'text-yellow-400' : 'text-blue-400'}`}>{r.tier} Archive</span></div>
                       </div>
-                      <div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${styles.iconContainer}`}><RelicIcon type={r.iconType} className="w-8 h-8" /></div>
-                      <p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p>
-                      <div className="flex items-center gap-2 mt-1"><span className={`text-[8px] font-bold uppercase tracking-widest ${r.tier === 'Holy' ? 'text-red-400' : r.tier === 'Radiant' ? 'text-yellow-400' : 'text-blue-400'}`}>{r.tier}</span></div>
-                    </div>
-                  );
-                }))}
+                    );
+                  }))}
+              </div>
             </div>
           )}
 
@@ -915,7 +1038,7 @@ const App: React.FC = () => {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950/98 backdrop-blur-3xl border-t border-white/5 p-4 flex flex-col items-center shadow-2xl">
-        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{[{ id: 'meta', icon: LayoutGrid, label: 'Archive' }, { id: 'tracker', icon: Target, label: 'Sync' }, { id: 'formula', icon: Variable, label: 'Formula' }, { id: 'dragons', icon: Flame, label: 'Dragons' }, { id: 'refine', icon: Wrench, label: 'Refine' }, { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' }, { id: 'analyze', icon: BrainCircuit, label: 'Sim' }, { id: 'lab', icon: Zap, label: 'Lab' }, { id: 'immunity', icon: Shield, label: 'Guard' }, { id: 'farming', icon: Map, label: 'Farming' }, { id: 'dps', icon: Calculator, label: 'Burst' }, { id: 'jewels', icon: Disc, label: 'Jewel' }, { id: 'relics', icon: Box, label: 'Relic' }, { id: 'ai', icon: MessageSquare, label: 'Mentor' }].map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
+        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{[{ id: 'meta', icon: LayoutGrid, label: 'Archive' }, { id: 'tracker', icon: Target, label: 'Sync' }, { id: 'formula', icon: Variable, label: 'Formula' }, { id: 'dragons', icon: Flame, label: 'Dragons' }, { id: 'refine', icon: Wrench, label: 'Refine' }, { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' }, { id: 'analyze', icon: BrainCircuit, label: 'Sim' }, { id: 'lab', icon: Zap, label: 'Lab' }, { id: 'immunity', icon: Shield, label: 'Guard' }, { id: 'farming', icon: Map, label: 'Farming' }, { id: 'dps', icon: Calculator, label: 'Burst' }, { id: 'jewels', icon: Disc, label: 'Jewel' }, { id: 'relics', icon: Box, label: 'Relic Archive' }, { id: 'ai', icon: MessageSquare, label: 'Mentor' }].map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
       </nav>
 
       {compareHeroIds.length > 0 && activeTab === 'meta' && (
@@ -1127,39 +1250,69 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Evolution Milestones Section */}
-                  {selectedItem.starMilestones && selectedItem.starMilestones.length > 0 && (
-                    <div className="space-y-6">
-                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4">
-                        <StarIcon size={20} className="text-yellow-500"/> EVOLUTION PATHWAY
-                      </h4>
-                      <div className="grid grid-cols-1 gap-4">
-                        {selectedItem.starMilestones.map((milestone: StarMilestone, mIdx: number) => (
-                          <div key={mIdx} className={`p-6 bg-gray-950 border rounded-3xl flex items-center gap-6 relative transition-all hover:bg-white/5 ${milestone.stars >= 7 ? 'border-yellow-500/40 shadow-[0_0_20px_rgba(234,179,8,0.15)]' : 'border-white/5'}`}>
-                            <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-black/60 rounded-2xl border border-white/10 shadow-inner">
-                              <span className="text-[10px] font-black text-gray-500 uppercase leading-none">Star</span>
-                              <span className="text-2xl font-black text-white italic leading-none mt-1">{milestone.stars}</span>
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              {milestone.isGlobal && (
-                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-600/20 text-blue-400 text-[8px] font-black uppercase rounded border border-blue-500/30 mb-1">
-                                  <Globe size={10} /> Global Bonus
-                                </span>
-                              )}
-                              <p className={`text-[13px] font-bold italic leading-relaxed ${milestone.stars >= 7 ? 'text-yellow-400' : 'text-gray-200'}`}>
-                                "{milestone.effect}"
-                              </p>
-                            </div>
-                            {milestone.stars >= 7 && (
-                              <div className="absolute top-2 right-4 text-[8px] font-black text-yellow-500 uppercase tracking-widest opacity-40 italic">
-                                Master Evolution
+                  {/* Evolution Milestones Grid (Stars & Sun) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    {/* Evolution Milestones Section (Stars) */}
+                    {selectedItem.starMilestones && selectedItem.starMilestones.length > 0 && (
+                      <div className="space-y-6">
+                        <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4">
+                          <StarIcon size={20} className="text-yellow-500"/> EVOLUTION PATHWAY
+                        </h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          {selectedItem.starMilestones.map((milestone: StarMilestone, mIdx: number) => (
+                            <div key={mIdx} className={`p-6 bg-gray-950 border rounded-3xl flex items-center gap-6 relative transition-all hover:bg-white/5 ${milestone.stars >= 7 ? 'border-yellow-500/40 shadow-[0_0_20px_rgba(234,179,8,0.15)]' : 'border-white/5'}`}>
+                              <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-black/60 rounded-2xl border border-white/10 shadow-inner">
+                                <span className="text-[10px] font-black text-gray-500 uppercase leading-none">Star</span>
+                                <span className="text-2xl font-black text-white italic leading-none mt-1">{milestone.stars}</span>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              <div className="flex-1 space-y-1">
+                                {milestone.isGlobal && (
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-600/20 text-blue-400 text-[8px] font-black uppercase rounded border border-blue-500/30 mb-1">
+                                    <Globe size={10} /> Global Bonus
+                                  </span>
+                                )}
+                                <p className={`text-[13px] font-bold italic leading-relaxed ${milestone.stars >= 7 ? 'text-yellow-400' : 'text-gray-200'}`}>
+                                  "{milestone.effect}"
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {/* Sun Evolution Section */}
+                    {selectedItem.sunMilestones && selectedItem.sunMilestones.length > 0 && (
+                      <div className="space-y-6">
+                        <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4">
+                          <Sun size={20} className="text-orange-500 animate-pulse"/> SUN EVOLUTION DETAILS
+                        </h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          {selectedItem.sunMilestones.map((milestone: SunMilestone, mIdx: number) => (
+                            <div key={mIdx} className="p-6 bg-orange-950/5 border border-orange-500/10 rounded-3xl flex items-center gap-6 relative transition-all hover:bg-orange-600/10">
+                              <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-orange-600/20 rounded-2xl border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+                                <span className="text-[10px] font-black text-orange-700 uppercase leading-none">Sun</span>
+                                <span className="text-2xl font-black text-orange-500 italic leading-none mt-1">{milestone.level}</span>
+                              </div>
+                              <div className="flex-1 space-y-1">
+                                {milestone.isGlobal && (
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-orange-600/20 text-orange-400 text-[8px] font-black uppercase rounded border border-orange-500/30 mb-1">
+                                    <Globe size={10} /> Solar Global
+                                  </span>
+                                )}
+                                <p className="text-[13px] font-bold italic leading-relaxed text-gray-200">
+                                  "{milestone.effect}"
+                                </p>
+                              </div>
+                              <div className="absolute top-2 right-4 text-[8px] font-black text-orange-500 uppercase tracking-widest opacity-40 italic">
+                                Radiant Protocols
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Synergy: Assists & Pairs */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
