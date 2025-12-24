@@ -72,7 +72,6 @@ export interface Jewel {
   lore?: string;
 }
 
-// Added missing Relic interface for collectible artifact data
 export interface Relic {
   id: string;
   name: string;
@@ -120,4 +119,11 @@ export interface ArcheroEvent {
   desc: string;
   proTip: string;
   color: string;
+}
+
+export interface LoadoutBuild {
+  id: string;
+  name: string;
+  slots: Record<string, string>; // Map of slot name to item ID
+  timestamp: number;
 }
