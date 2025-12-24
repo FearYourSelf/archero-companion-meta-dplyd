@@ -1,4 +1,5 @@
-import { Hero, BaseItem, Jewel, Relic, SlotBonus } from './types';
+
+import { Hero, BaseItem, Jewel, Relic, SlotBonus, ArcheroEvent } from './types';
 
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
 export const HERO_DATA: Hero[] = [
@@ -636,3 +637,69 @@ export const JEWEL_SLOT_BONUSES: Record<string, SlotBonus[]> = {
     { level: 38, effect: 'Spellbook Effect +10%' }
   ]
 };
+
+export const DAILY_EVENTS: ArcheroEvent[] = [
+  {
+    id: 'ucd',
+    name: 'Up-Close Dangers',
+    days: ['Monday', 'Wednesday', 'Friday', 'Sunday'],
+    rewards: ['Massive Gold', 'High Exp'],
+    desc: 'The best source for gold. Melee enemies rush you at high speed.',
+    proTip: 'Equip 2x Bull Rings for gold bonus. Prioritize "Greed" and "Richochet" to keep mobs at bay.',
+    color: 'orange'
+  },
+  {
+    id: 'fb',
+    name: 'Flying Bullets',
+    days: ['Tuesday', 'Thursday', 'Saturday', 'Sunday'],
+    rewards: ['Gear Drops', 'Scrolls'],
+    desc: 'Focuses on gear drops. Many ranged enemies spamming projectiles.',
+    proTip: 'Dodge focus is key. Phantom Cloak and Bulletproof Locket help survive high-density bullet rooms.',
+    color: 'blue'
+  },
+  {
+    id: 'maze',
+    name: 'Ancient Maze',
+    days: ['Monday', 'Wednesday', 'Friday', 'Sunday'],
+    rewards: ['Soulstones', 'Hero Shards'],
+    desc: 'Deep maze with varying difficulty levels. Soulstones are traded for Hero Shards.',
+    proTip: 'Choose the Orange (hardest) path for maximum Soulstone yield. Meowgik is excellent here for safe wall-peeking.',
+    color: 'purple'
+  },
+  {
+    id: 'mine',
+    name: 'Mystery Mine',
+    days: ['Tuesday', 'Thursday', 'Saturday', 'Sunday'],
+    rewards: ['Jewels', 'Equipment'],
+    desc: 'Choose your own modifiers for better loot. Primary source for late-game jewels.',
+    proTip: 'Don\'t over-greed on difficulty modifiers. Focus on "Jewel Drop Chance" above all else.',
+    color: 'teal'
+  },
+  {
+    id: 'duo',
+    name: 'Hero Duo',
+    days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    rewards: ['Gems', 'Gold Keys', 'Honor Stones'],
+    desc: 'Co-op mode with another player. Pure skill-based as gear stats are equalized.',
+    proTip: 'Communicate with your partner (emotes). Staying alive is better than rushing damage.',
+    color: 'red'
+  },
+  {
+    id: 'arena',
+    name: 'Monster Arena',
+    days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    rewards: ['Monster Eggs', 'Pet Training Material'],
+    desc: 'PVP-style pet battles. Build your monster team to defend and attack.',
+    proTip: 'Check the current Season Meta monsters. High-tier eggs yield stronger arena units.',
+    color: 'green'
+  },
+  {
+    id: 'ia',
+    name: 'Infinite Adventure',
+    days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    rewards: ['Rare Scrolls', 'Jewels', 'Relics'],
+    desc: 'Push as far as you can. Reset every 14 days.',
+    proTip: 'Enlightenment Book is mandatory. Focus on Damage Resistance over time as mobs scale infinitely.',
+    color: 'amber'
+  }
+];

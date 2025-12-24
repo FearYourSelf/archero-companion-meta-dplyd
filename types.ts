@@ -111,3 +111,13 @@ export interface LogEntry {
   message: string;
   timestamp: number;
 }
+
+export interface ArcheroEvent {
+  id: string;
+  name: string;
+  days: string[]; // ['Monday', 'Wednesday'...]
+  rewards: string[];
+  desc: string;
+  proTip: string;
+  color: string;
+}

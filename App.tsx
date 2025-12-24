@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -17,13 +18,13 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun
+  Globe, Sun, CalendarDays
 } from 'lucide-react';
 import { 
-  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES
+  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
 } from './constants';
 import { chatWithAI } from './services/geminiService';
-import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone } from './types';
+import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone, ArcheroEvent } from './types';
 import { Badge, Card } from './components/UI';
 
 // --- CUSTOM GAME ICONS ---
@@ -208,7 +209,7 @@ const SFX = {
 };
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'meta' | 'tracker' | 'analyze' | 'dps' | 'vs' | 'immunity' | 'lab' | 'jewels' | 'relics' | 'farming' | 'ai' | 'formula' | 'dragons' | 'refine'>('meta');
+  const [activeTab, setActiveTab] = useState<'meta' | 'tracker' | 'analyze' | 'dps' | 'vs' | 'immunity' | 'lab' | 'jewels' | 'relics' | 'farming' | 'ai' | 'formula' | 'dragons' | 'refine' | 'talents' | 'events'>('meta');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<GearCategory | 'All'>('All');
   const [relicTierFilter, setRelicTierFilter] = useState<'All' | 'Holy' | 'Radiant' | 'Faint'>('All');
@@ -263,6 +264,10 @@ const App: React.FC = () => {
   const [selectedWeapon, setSelectedWeapon] = useState('Blade');
   const [efficiency, setEfficiency] = useState(0);
 
+  // Talents State
+  const [currentTalent, setCurrentTalent] = useState(1);
+  const [targetTalent, setTargetTalent] = useState(100);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLElement>(null);
   const navScrollRef = useRef<HTMLDivElement>(null);
@@ -272,6 +277,9 @@ const App: React.FC = () => {
   const relicSourceFilterScrollRef = useRef<HTMLDivElement>(null);
   const jewelFilterScrollRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ isDragging: false, moved: false, startX: 0, scrollLeft: 0, targetRef: null as React.RefObject<HTMLElement | null> | null });
+
+  // Current Day for Events Tab
+  const currentDay = useMemo(() => new Date().toLocaleDateString('en-US', { weekday: 'long' }), []);
 
   useEffect(() => {
     const addLog = (type: LogEntry['type'], ...args: any[]) => {
@@ -441,6 +449,26 @@ const App: React.FC = () => {
     });
   }, [farmingSearch, farmingCategory, farmingSort]);
 
+  // Talents Calculation
+  const talentsCost = useMemo(() => {
+    let totalGold = 0;
+    let totalScrolls = 0;
+    const start = Math.min(currentTalent, targetTalent);
+    const end = Math.max(currentTalent, targetTalent);
+
+    for (let i = start; i < end; i++) {
+      // Geometric approximation for talent costs
+      // lv 1: 200, lv 50: 165k, lv 100: 1.8M, lv 200: 25M
+      totalGold += Math.round(50 * Math.pow(i, 2.45) + 200);
+      
+      // Scrolls approximation: 1 every 10 levels after lvl 20
+      if (i > 20) {
+        totalScrolls += Math.ceil(i / 15);
+      }
+    }
+    return { gold: totalGold, scrolls: totalScrolls };
+  }, [currentTalent, targetTalent]);
+
   const toggleFarmingSort = (field: typeof farmingSort.field) => { playSfx('click'); setFarmingSort(prev => ({ field, direction: prev.field === field ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'desc' })); };
 
   const handleAiSend = async () => {
@@ -571,6 +599,19 @@ const App: React.FC = () => {
     };
   }, [comparedHeroes]);
 
+  const getEventColor = (color: string) => {
+    switch (color) {
+      case 'orange': return 'from-orange-600/40 border-orange-500/30 text-orange-500';
+      case 'blue': return 'from-blue-600/40 border-blue-500/30 text-blue-500';
+      case 'purple': return 'from-purple-600/40 border-purple-500/30 text-purple-500';
+      case 'teal': return 'from-teal-600/40 border-teal-500/30 text-teal-500';
+      case 'red': return 'from-red-600/40 border-red-500/30 text-red-500';
+      case 'green': return 'from-green-600/40 border-green-500/30 text-green-500';
+      case 'amber': return 'from-amber-600/40 border-amber-500/30 text-amber-500';
+      default: return 'from-gray-600/40 border-gray-500/30 text-gray-500';
+    }
+  };
+
   return (
     <div className="h-screen w-full bg-[#030712] text-gray-100 flex flex-col font-sans max-w-3xl mx-auto relative overflow-hidden border-x border-white/5 shadow-4xl">
       {uiToast && (
@@ -619,6 +660,9 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => handleTabChange('ai')} className={`p-3 rounded-xl border transition-all ${activeTab === 'ai' ? 'bg-orange-600/20 border-orange-500/50 text-orange-500 shadow-lg shadow-orange-500/10' : 'bg-white/5 text-gray-500 border-white/5 hover:text-orange-400'}`} title="Quick Mentor Link">
+              <MessageSquare size={16} />
+            </button>
             <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-3 bg-white/5 text-gray-500 rounded-xl border border-white/5">{soundEnabled ? <Volume2 size={16}/> : <VolumeX size={16}/>}</button>
             <button onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setActiveTab('meta'); playSfx('click'); }} className="p-3 bg-white/5 text-gray-500 rounded-xl transition-all border border-white/5"><RefreshCw size={16} /></button>
           </div>
@@ -684,6 +728,73 @@ const App: React.FC = () => {
         )}
 
         <div className="px-5 py-6 space-y-8">
+          {activeTab === 'events' && (
+            <div className="space-y-10 animate-in fade-in pb-24">
+               <div className="p-10 bg-gradient-to-br from-orange-600/10 via-gray-950 to-orange-950/5 border border-orange-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
+                 <CalendarDays className="mx-auto mb-6 text-orange-500/20 group-hover:text-orange-500/40 transition-colors" size={64} />
+                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Ops Center Schedule</h3>
+                 <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.4em] italic">Real-Time Event Coordination</p>
+                 <div className="mt-8 inline-flex items-center gap-3 px-6 py-2.5 bg-white/5 border border-white/10 rounded-2xl">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <p className="text-[11px] font-black text-white uppercase tracking-widest italic">{currentDay}, 2025</p>
+                 </div>
+               </div>
+
+               <div className="space-y-6">
+                  <h4 className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] italic flex items-center gap-3 px-4">
+                    <Target size={18}/> LIVE MISSIONS TODAY
+                  </h4>
+                  <div className="grid grid-cols-1 gap-5">
+                    {DAILY_EVENTS.map(event => {
+                      const isActive = event.days.includes(currentDay);
+                      const colorStyles = getEventColor(event.color);
+                      return (
+                        <div key={event.id} className={`p-8 bg-gradient-to-r rounded-[3rem] border transition-all duration-500 ${isActive ? `${colorStyles} shadow-2xl scale-[1.02]` : 'from-gray-900/40 border-white/5 text-gray-700 opacity-60'}`}>
+                           <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-3">
+                                  <h5 className="text-xl font-black uppercase italic tracking-tighter leading-none">{event.name}</h5>
+                                  {isActive && <span className="px-2 py-0.5 bg-white text-black text-[8px] font-black uppercase rounded animate-pulse">ACTIVE</span>}
+                                </div>
+                                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">{event.days.join(' • ')}</p>
+                              </div>
+                              <div className={`p-4 rounded-2xl border ${isActive ? 'bg-black/20 border-white/10' : 'bg-black/10 border-white/5'}`}>
+                                <Clock size={16} />
+                              </div>
+                           </div>
+                           
+                           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                              <div className="space-y-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                  <Award size={12}/> High-Yield Spoils
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {event.rewards.map(r => (
+                                    <span key={r} className={`px-3 py-1 text-[9px] font-bold uppercase rounded-lg border ${isActive ? 'bg-white/10 border-white/20 text-white' : 'bg-black/20 border-white/5'}`}>{r}</span>
+                                  ))}
+                                </div>
+                                <p className="text-[11px] italic font-medium leading-relaxed opacity-80 mt-4">{event.desc}</p>
+                              </div>
+
+                              <div className={`p-6 rounded-[2rem] border ${isActive ? 'bg-black/30 border-white/10' : 'bg-black/10 border-white/5 opacity-50'}`}>
+                                <p className="text-[9px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                  <ShieldAlert size={12}/> Mentor's Briefing
+                                </p>
+                                <p className="text-[11px] font-bold italic leading-relaxed text-gray-200">"{event.proTip}"</p>
+                              </div>
+                           </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+               </div>
+
+               <div className="p-8 bg-black/20 border border-white/5 rounded-[3rem] text-center opacity-40">
+                  <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">Archero Daily Reset occurs at 16:00 UTC. Adjust strategies accordingly.</p>
+               </div>
+            </div>
+          )}
+
           {activeTab === 'meta' && (
             <div className="space-y-12">
                {displayOrder.map(cat => {
@@ -862,6 +973,72 @@ const App: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'talents' && (
+            <div className="space-y-10 animate-in fade-in pb-24">
+              <div className="p-12 bg-gradient-to-br from-orange-600/10 via-gray-950 to-orange-950/5 border border-orange-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
+                 <Trophy className="mx-auto mb-6 text-orange-500/20 group-hover:text-orange-500/40 transition-colors" size={64} />
+                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Talent Growth Matrix</h3>
+                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] italic">Strategic Leveling Cost Projection</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem] space-y-8">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Current Talent Level</label>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="205" 
+                        value={currentTalent} 
+                        onChange={(e) => setCurrentTalent(Math.max(1, parseInt(e.target.value) || 0))} 
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-2xl font-black text-white outline-none focus:border-orange-500/50 transition-all tabular-nums"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Target Talent Level</label>
+                      <input 
+                        type="number" 
+                        min="2" 
+                        max="206" 
+                        value={targetTalent} 
+                        onChange={(e) => setTargetTalent(Math.max(1, parseInt(e.target.value) || 0))} 
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-2xl font-black text-white outline-none focus:border-orange-500/50 transition-all tabular-nums"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-6 bg-blue-600/5 border border-blue-500/10 rounded-2xl flex items-start gap-4">
+                    <InfoIcon className="text-blue-500 mt-1 shrink-0" size={16} />
+                    <p className="text-[11px] text-gray-400 italic leading-relaxed">
+                      Costs increase geometrically. Projections include base scaling for the current Archero v6.3 metadata.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] shadow-inner relative group overflow-hidden">
+                    <Coins className="absolute -bottom-6 -right-6 text-orange-500/5 group-hover:rotate-12 transition-transform duration-1000" size={160} />
+                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-4">Cumulative Gold Req.</p>
+                    <div className="text-5xl font-black text-white italic tracking-tighter mb-2 tabular-nums">
+                      {talentsCost.gold.toLocaleString()}
+                    </div>
+                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest">Calculated for {Math.abs(targetTalent - currentTalent)} Upgrades</p>
+                  </div>
+
+                  <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] shadow-inner relative group overflow-hidden">
+                    <ScrollText className="absolute -bottom-6 -right-6 text-blue-500/5 group-hover:rotate-12 transition-transform duration-1000" size={160} />
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4">Total Talent Scrolls</p>
+                    <div className="text-5xl font-black text-white italic tracking-tighter mb-2 tabular-nums">
+                      {talentsCost.scrolls.toLocaleString()}
+                    </div>
+                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest">Archive Precision: High</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'formula' && (
             <div className="space-y-6 animate-in fade-in pb-12">
               <div className="p-6 bg-amber-600/10 border border-amber-500/20 rounded-3xl flex items-start gap-4">
@@ -902,11 +1079,11 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'refine' && (
-            <div className="space-y-10 animate-in fade-in pb-12"><div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group"><div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div><Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} /><p className="text-[11px] font-black text-orange-500 uppercase mb-2 tracking-[0.4em]">Estimated Essence Yield</p><div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div><p className="text-[9px] font-black text-gray-600 uppercase mt-2 tracking-[0.2em]">Glyph Essence Units</p></div><div className="mt-12 grid grid-cols-2 gap-4"><CustomSelect options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))} value={smeltItem} onChange={(v) => setSmeltItem(v as any)} placeholder="Select Rarity..." /><div className="relative group"><input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" /><span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase tracking-widest">Qty</span></div></div><div className="space-y-4"><h5 className="px-4 text-[10px] font-black text-orange-500 uppercase tracking-widest italic">Smelt Optimization Tips</h5><div className="grid grid-cols-1 gap-3">{REFINE_TIPS.map((tip, i) => (<div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl flex items-start gap-4"><ShieldCheck className="text-orange-500 mt-1 shrink-0" size={16} /><p className="text-[11px] text-gray-300 font-medium italic leading-relaxed">{tip}</p></div>))}</div></div></div>
+            <div className="space-y-10 animate-in fade-in pb-12"><div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group"><div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div><Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} /><p className="text-[11px] font-black text-orange-500 uppercase mb-2 tracking-[0.4em]">Estimated Essence Yield</p><div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div><p className="text-[9px] font-black text-gray-600 uppercase mt-2 tracking-[0.2em]">Glyph Essence Units</p></div><div className="mt-12 grid grid-cols-2 gap-4"><CustomSelect options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))} value={smeltItem} onChange={(v) => setVsItemA(v as any)} placeholder="Select Rarity..." /><div className="relative group"><input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" /><span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase tracking-widest">Qty</span></div></div><div className="space-y-4"><h5 className="px-4 text-[10px] font-black text-orange-500 uppercase tracking-widest italic">Smelt Optimization Tips</h5><div className="grid grid-cols-1 gap-3">{REFINE_TIPS.map((tip, i) => (<div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl flex items-start gap-4"><ShieldCheck className="text-orange-500 mt-1 shrink-0" size={16} /><p className="text-[11px] text-gray-300 font-medium italic leading-relaxed">{tip}</p></div>))}</div></div></div>
           )}
 
           {activeTab === 'analyze' && (
-            <div className="flex flex-col min-h-full animate-in fade-in pb-24 space-y-10"><div className={`transition-all duration-700 relative ${simResult ? 'p-8 bg-blue-900/10 border border-blue-500/20 rounded-[3rem]' : 'p-16 bg-gray-950 border-2 border-blue-500/20 rounded-[4rem] shadow-4xl'}`}>{!simResult && <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-blue-500/5 opacity-20 pointer-events-none animate-pulse"></div>}<div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none"><ScanIcon size={simResult ? 100 : 200} className="animate-pulse" /></div><div className={`relative z-10 flex flex-col items-center text-center ${simResult ? 'gap-4' : 'gap-10'}`}><div className={`transition-all duration-700 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center border border-blue-500/20 shadow-inner ${simResult ? 'w-16 h-16' : 'w-32 h-32'}`}><BrainCircuit size={simResult ? 24 : 64} className="text-blue-500 animate-pulse" /></div><div><h4 className={`${simResult ? 'text-lg' : 'text-3xl'} font-black text-white uppercase italic tracking-tighter transition-all duration-700`}>Strategic Synthesis</h4>{!simResult && <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mt-3 italic">Neural Network V6.3 Uplink</p>}</div><div className={`w-full max-w-sm transition-all ${simResult ? 'flex gap-4' : 'space-y-6'}`}><CustomSelect options={HERO_DATA.map(h => ({ id: h.id, name: h.name, subtitle: h.tier }))} value={buildHero} onChange={(val) => setBuildHero(val)} placeholder="Select Hero Target..." className="flex-1" /><button onClick={runSimulation} disabled={isSimulating} className={`transition-all duration-500 bg-blue-600 text-white font-black uppercase rounded-3xl hover:bg-blue-500 flex items-center justify-center gap-4 disabled:opacity-30 shadow-xl active:scale-95 ${simResult ? 'px-6 py-2 text-[10px]' : 'w-full py-6 text-[14px]'}`}>{isSimulating ? <Loader2 size={18} className="animate-spin"/> : <Zap size={18} className="fill-current"/>}<span>{isSimulating ? 'Processing...' : simResult ? 'RE-SYNTH' : 'INITIATE ANALYSIS'}</span></button></div></div></div>{simResult ? (<div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-700 pb-20"><div className="flex items-center justify-between px-6 relative"><div className="flex items-center gap-3"><Pulse size={16} className="text-blue-500 animate-pulse" /><span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Neural Output: Finalizing Build Path</span></div><div className="relative"><button onClick={() => setIsSimMenuOpen(!isSimMenuOpen)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-blue-500"><MoreHorizontal size={20} /></button>{isSimMenuOpen && (<div className="absolute right-0 top-full mt-2 w-48 bg-gray-950 border border-white/10 rounded-2xl py-2 shadow-4xl z-[200] animate-in fade-in slide-in-from-top-2"><button onClick={copySimResult} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><Copy size={14} /> <span>Copy to Clipboard</span></button><button onClick={exportSimResult} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><FileText size={14} /> <span>Export as .txt</span></button></div>)}</div></div><div className="p-12 bg-gray-900/60 border-l-4 border-l-blue-500 border-y border-r border-white/5 rounded-r-[4rem] rounded-l-[1.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden ring-1 ring-white/5"><div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div><div className="text-[16px] text-gray-200 leading-[2.2] italic whitespace-pre-wrap font-medium relative z-10 selection:bg-blue-500/30">{simResult.split('\n').map((line, idx) => { if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-black text-white uppercase italic tracking-tighter mb-8 border-b border-blue-500/20 pb-4">{line.replace('# ', '')}</h1>; if (line.startsWith('## ')) return <h2 key={idx} className="text-xl font-black text-blue-400 uppercase tracking-widest mt-10 mb-6">{line.replace('## ', '')}</h2>; if (line.startsWith('- ')) return <div key={idx} className="flex gap-4 mb-3"><span className="text-blue-500 mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span><span className="text-gray-300 font-medium">{line.replace('- ', '')}</span></div>; return <p key={idx} className="mb-4">{line}</p>; })}</div></div></div>) : !isSimulating && (<div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-20 animate-in fade-in duration-1000 delay-500"><Radar size={80} className="text-gray-500 mb-8 animate-ping" style={{animationDuration: '4s'}} /><div className="space-y-2"><p className="text-sm font-black uppercase tracking-[0.5em] text-gray-400">Deep Search Inactive</p><p className="text-[10px] font-bold text-gray-600 italic">Target selection required for tactical projection.</p></div></div>)}{isSimulating && (<div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in"><div className="relative"><Loader2 size={120} className="text-blue-500/20 animate-spin" /><BrainCircuit size={48} className="text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" /></div><div className="mt-12 text-center space-y-4"><p className="text-xl font-black italic text-white uppercase tracking-tighter">Synthesizing Tactical Matrix</p></div></div>)}</div>
+            <div className="flex flex-col min-h-full animate-in fade-in pb-24 space-y-10"><div className={`transition-all duration-700 relative ${simResult ? 'p-8 bg-blue-900/10 border border-blue-500/20 rounded-[3rem]' : 'p-16 bg-gray-950 border-2 border-blue-500/20 rounded-[4rem] shadow-4xl'}`}>{!simResult && <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-blue-500/5 opacity-20 pointer-events-none animate-pulse"></div>}<div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none"><ScanIcon size={simResult ? 100 : 200} className="animate-pulse" /></div><div className={`relative z-10 flex flex-col items-center text-center ${simResult ? 'gap-4' : 'gap-10'}`}><div className={`transition-all duration-700 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center border border-blue-500/20 shadow-inner ${simResult ? 'w-16 h-16' : 'w-32 h-32'}`}><BrainCircuit size={simResult ? 24 : 64} className="text-blue-500 animate-pulse" /></div><div><h4 className={`${simResult ? 'text-lg' : 'text-3xl'} font-black text-white uppercase italic tracking-tighter transition-all duration-700`}>Strategic Synthesis</h4>{!simResult && <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mt-3 italic">Neural Network V6.3 Uplink</p>}</div><div className={`w-full max-w-sm transition-all ${simResult ? 'flex gap-4' : 'space-y-6'}`}><CustomSelect options={HERO_DATA.map(h => ({ id: h.id, name: h.name, subtitle: h.tier }))} value={buildHero} onChange={(val) => setBuildHero(val)} placeholder="Select Hero Target..." className="flex-1" /><button onClick={runSimulation} disabled={isSimulating} className={`transition-all duration-500 bg-blue-600 text-white font-black uppercase rounded-3xl hover:bg-blue-500 flex items-center justify-center gap-4 disabled:opacity-30 shadow-xl active:scale-95 ${simResult ? 'px-6 py-2 text-[10px]' : 'w-full py-6 text-[14px]'}`}>{isSimulating ? <Loader2 size={18} className="animate-spin"/> : <Zap size={18} className="fill-current"/>}<span>{isSimulating ? 'Processing...' : simResult ? 'RE-SYNTH' : 'INITIATE ANALYSIS'}</span></button></div></div></div>{simResult ? (<div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-700 pb-20"><div className="flex items-center justify-between px-6 relative"><div className="flex items-center gap-3"><Pulse size={16} className="text-blue-500 animate-pulse" /><span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Neural Output: Finalizing Build Path</span></div><div className="relative"><button onClick={() => { setIsSimMenuOpen(!isSimMenuOpen); playSfx('click'); }} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-blue-500"><MoreHorizontal size={20} /></button>{isSimMenuOpen && (<div className="absolute right-0 top-full mt-2 w-48 bg-gray-950 border border-white/10 rounded-2xl py-2 shadow-4xl z-[200] animate-in fade-in slide-in-from-top-2"><button onClick={copySimResult} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><Copy size={14} /> <span>Copy to Clipboard</span></button><button onClick={exportSimResult} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><FileText size={14} /> <span>Export as .txt</span></button></div>)}</div></div><div className="p-12 bg-gray-900/60 border-l-4 border-l-blue-500 border-y border-r border-white/5 rounded-r-[4rem] rounded-l-[1.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden ring-1 ring-white/5"><div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div><div className="text-[16px] text-gray-200 leading-[2.2] italic whitespace-pre-wrap font-medium relative z-10 selection:bg-blue-500/30">{simResult.split('\n').map((line, idx) => { if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-black text-white uppercase italic tracking-tighter mb-8 border-b border-blue-500/20 pb-4">{line.replace('# ', '')}</h1>; if (line.startsWith('## ')) return <h2 key={idx} className="text-xl font-black text-blue-400 uppercase tracking-widest mt-10 mb-6">{line.replace('## ', '')}</h2>; if (line.startsWith('- ')) return <div key={idx} className="flex gap-4 mb-3"><span className="text-blue-500 mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span><span className="text-gray-300 font-medium">{line.replace('- ', '')}</span></div>; return <p key={idx} className="mb-4">{line}</p>; })}</div></div></div>) : !isSimulating && (<div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-20 animate-in fade-in duration-1000 delay-500"><Radar size={80} className="text-gray-500 mb-8 animate-ping" style={{animationDuration: '4s'}} /><div className="space-y-2"><p className="text-sm font-black uppercase tracking-[0.5em] text-gray-400">Deep Search Inactive</p><p className="text-[10px] font-bold text-gray-600 italic">Target selection required for tactical projection.</p></div></div>)}{isSimulating && (<div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in"><div className="relative"><Loader2 size={120} className="text-blue-500/20 animate-spin" /><BrainCircuit size={48} className="text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" /></div><div className="mt-12 text-center space-y-4"><p className="text-xl font-black italic text-white uppercase tracking-tighter">Synthesizing Tactical Matrix</p></div></div>)}</div>
           )}
 
           {activeTab === 'immunity' && (
@@ -1065,7 +1242,7 @@ const App: React.FC = () => {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950/98 backdrop-blur-3xl border-t border-white/5 p-4 flex flex-col items-center shadow-2xl">
-        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{[{ id: 'meta', icon: LayoutGrid, label: 'Archive' }, { id: 'tracker', icon: Target, label: 'Sync' }, { id: 'formula', icon: Variable, label: 'Formula' }, { id: 'dragons', icon: Flame, label: 'Dragons' }, { id: 'refine', icon: Wrench, label: 'Refine' }, { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' }, { id: 'analyze', icon: BrainCircuit, label: 'Sim' }, { id: 'lab', icon: Zap, label: 'Lab' }, { id: 'immunity', icon: Shield, label: 'Guard' }, { id: 'farming', icon: Map, label: 'Farming' }, { id: 'dps', icon: Calculator, label: 'Burst' }, { id: 'jewels', icon: Disc, label: 'Jewel' }, { id: 'relics', icon: Box, label: 'Relic Archive' }, { id: 'ai', icon: MessageSquare, label: 'Mentor' }].map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
+        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{[{ id: 'meta', icon: LayoutGrid, label: 'Archive' }, { id: 'events', icon: CalendarDays, label: 'Events' }, { id: 'tracker', icon: Target, label: 'Sync' }, { id: 'talents', icon: Milestone, label: 'Talents' }, { id: 'formula', icon: Variable, label: 'Formula' }, { id: 'dragons', icon: Flame, label: 'Dragons' }, { id: 'refine', icon: Wrench, label: 'Refine' }, { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' }, { id: 'analyze', icon: BrainCircuit, label: 'Sim' }, { id: 'lab', icon: Zap, label: 'Lab' }, { id: 'immunity', icon: Shield, label: 'Guard' }, { id: 'farming', icon: Map, label: 'Farming' }, { id: 'dps', icon: Calculator, label: 'Burst' }, { id: 'jewels', icon: Disc, label: 'Jewel' }, { id: 'relics', icon: Box, label: 'Relic Archive' }, { id: 'ai', icon: MessageSquare, label: 'Mentor' }].map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
       </nav>
 
       {compareHeroIds.length > 0 && activeTab === 'meta' && (
