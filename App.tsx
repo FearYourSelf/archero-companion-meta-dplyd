@@ -18,7 +18,7 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun, CalendarDays, Plus
+  Globe, Sun, CalendarDays, Plus, ArrowRight
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
@@ -26,6 +26,78 @@ import {
 import { chatWithAI } from './services/geminiService';
 import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone, ArcheroEvent, LoadoutBuild } from './types';
 import { Badge, Card } from './components/UI';
+
+// --- CUSTOM COMPONENTS FOR AI FORMATTING ---
+const FormattedMessage: React.FC<{ text: string; role: 'user' | 'model' }> = ({ text, role }) => {
+  if (role === 'user') {
+    return <p className="text-[14px] leading-relaxed font-semibold italic text-white/90">{text}</p>;
+  }
+
+  // Tactical Markdown Parser for Mentor Responses
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-4 font-sans selection:bg-cyan-500/30">
+      {lines.map((line, i) => {
+        const trimmedLine = line.trim();
+        
+        // Main Header: # TACTICAL PROFILE
+        if (trimmedLine.startsWith('# ')) {
+          return (
+            <div key={i} className="mt-6 mb-4">
+              <h3 className="text-xl font-black text-cyan-400 uppercase italic tracking-tighter border-b border-cyan-500/20 pb-2 flex items-center gap-2">
+                <Scan size={18} className="text-cyan-500" /> {trimmedLine.replace('# ', '')}
+              </h3>
+            </div>
+          );
+        }
+        
+        // Section Header: ## CORE ARCHITECTURE
+        if (trimmedLine.startsWith('## ')) {
+          return (
+            <h4 key={i} className="text-[13px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3 mt-8 mb-3 group">
+              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full group-hover:animate-ping" />
+              {trimmedLine.replace('## ', '')}
+            </h4>
+          );
+        }
+        
+        // List Item: - **Weapon**: Name
+        if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+          const content = trimmedLine.replace(/^[-*]\s+/, '');
+          return (
+            <div key={i} className="flex gap-4 text-[13px] leading-relaxed pl-2 border-l border-white/5 py-1 transition-colors hover:bg-white/5 rounded-r-lg">
+              <span className="text-cyan-500 font-black shrink-0">»</span>
+              <div className="text-gray-300">
+                {content.split(/(\*\*.*?\*\*)/g).map((part, pi) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    const itemName = part.replace(/\*\*/g, '');
+                    return <span key={pi} className="text-white font-black uppercase italic tracking-tight underline decoration-cyan-500/40 underline-offset-4 decoration-2">{itemName}</span>;
+                  }
+                  return <span key={pi}>{part}</span>;
+                })}
+              </div>
+            </div>
+          );
+        }
+
+        // Empty line
+        if (trimmedLine.length === 0) return <div key={i} className="h-2" />;
+
+        // Standard Paragraph
+        return (
+          <p key={i} className="text-[13px] text-gray-400 leading-relaxed italic font-medium">
+            {line.split(/(\*\*.*?\*\*)/g).map((part, pi) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return <span key={pi} className="text-orange-400 font-black italic">{part.replace(/\*\*/g, '')}</span>;
+              }
+              return <span key={pi}>{part}</span>;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
 
 // --- CUSTOM GAME ICONS ---
 const BowIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -558,6 +630,14 @@ const App: React.FC = () => {
       setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: errorMsg, timestamp: Date.now() }]);
       showToast(errorMsg, 'error');
     } finally { setIsAiLoading(false); }
+  };
+
+  // Add Reset Chat functionality
+  const resetChat = () => {
+    setChatHistory([]);
+    localStorage.removeItem('archero_v6_chat');
+    playSfx('error');
+    showToast("Tactical logs wiped.", "info");
   };
 
   const runSimulation = async () => {
@@ -1132,9 +1212,9 @@ const App: React.FC = () => {
             <div className="space-y-8 animate-in fade-in pb-24 relative">
               <button 
                 onClick={() => handleTabChange('meta')} 
-                className="absolute top-0 right-0 p-4 bg-white/5 rounded-2xl border border-white/10 hover:text-red-500 transition-colors z-[110]"
+                className="absolute top-0 left-0 p-4 bg-white/5 rounded-2xl border border-white/10 hover:text-orange-500 transition-all z-[110]"
               >
-                <X size={24} />
+                <ArrowRight size={24} />
               </button>
 
               <div className="p-8 bg-gradient-to-br from-blue-900/10 via-gray-950 to-blue-950/5 border border-blue-500/20 rounded-[3rem] text-center shadow-4xl relative overflow-hidden">
@@ -1527,7 +1607,7 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'analyze' && (
-            <div className="flex flex-col min-h-full animate-in fade-in pb-24 space-y-10"><div className={`transition-all duration-700 relative ${simResult ? 'p-8 bg-blue-900/10 border border-blue-500/20 rounded-[3rem]' : 'p-16 bg-gray-950 border-2 border-blue-500/20 rounded-[4rem] shadow-4xl'}`}>{!simResult && <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-blue-500/5 opacity-20 pointer-events-none animate-pulse"></div>}<div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none"><ScanIcon size={simResult ? 100 : 200} className="animate-pulse" /></div><div className={`relative z-10 flex flex-col items-center text-center ${simResult ? 'gap-4' : 'gap-10'}`}><div className={`transition-all duration-700 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center border border-blue-500/20 shadow-inner ${simResult ? 'w-16 h-16' : 'w-32 h-32'}`}><BrainCircuit size={simResult ? 24 : 64} className="text-blue-500 animate-pulse" /></div><div><h4 className={`${simResult ? 'text-lg' : 'text-3xl'} font-black text-white uppercase italic tracking-tighter transition-all duration-700`}>Strategic Synthesis</h4>{!simResult && <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mt-3 italic">Neural Network V6.3 Uplink</p>}</div><div className={`w-full max-w-sm transition-all ${simResult ? 'flex gap-4' : 'space-y-6'}`}><CustomSelect options={HERO_DATA.map(h => ({ id: h.id, name: h.name, subtitle: h.tier }))} value={buildHero} onChange={(val) => setBuildHero(val)} placeholder="Select Hero Target..." className="flex-1" /><button onClick={runSimulation} disabled={isSimulating} className={`transition-all duration-500 bg-blue-600 text-white font-black uppercase rounded-3xl hover:bg-blue-500 flex items-center justify-center gap-4 disabled:opacity-30 shadow-xl active:scale-95 ${simResult ? 'px-6 py-2 text-[10px]' : 'w-full py-6 text-[14px]'}`}>{isSimulating ? <Loader2 size={18} className="animate-spin"/> : <Zap size={18} className="fill-current"/>}<span>{isSimulating ? 'Processing...' : simResult ? 'RE-SYNTH' : 'INITIATE ANALYSIS'}</span></button></div></div></div>{simResult ? (<div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-700 pb-20"><div className="flex items-center justify-between px-6 relative"><div className="flex items-center gap-3"><Pulse size={16} className="text-blue-500 animate-pulse" /><span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Neural Output: Finalizing Build Path</span></div><div className="relative"><button onClick={() => { setIsSimMenuOpen(!isSimMenuOpen); playSfx('click'); }} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-blue-500"><MoreHorizontal size={20} /></button>{isSimMenuOpen && (<div className="absolute right-0 top-full mt-2 w-48 bg-gray-950 border border-white/10 rounded-2xl py-2 shadow-4xl z-[200] animate-in fade-in slide-in-from-top-2"><button onClick={() => { navigator.clipboard.writeText(simResult); playSfx('click'); setIsSimMenuOpen(false); showToast('Build Report copied.', 'success'); }} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><Copy size={14} /> <span>Copy to Clipboard</span></button><button onClick={() => { const element = document.createElement("a"); const file = new Blob([simResult], {type: 'text/plain'}); element.href = URL.createObjectURL(file); element.download = `Archero_Synthesis_${buildHero}_${Date.now()}.txt`; document.body.appendChild(element); element.click(); playSfx('click'); setIsSimMenuOpen(false); showToast('Tactical Report exported.', 'success'); }} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><FileText size={14} /> <span>Export as .txt</span></button></div>)}</div></div><div className="p-12 bg-gray-900/60 border-l-4 border-l-blue-500 border-y border-r border-white/5 rounded-r-[4rem] rounded-l-[1.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden ring-1 ring-white/5"><div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div><div className="text-[16px] text-gray-200 leading-[2.2] italic whitespace-pre-wrap font-medium relative z-10 selection:bg-blue-500/30">{simResult.split('\n').map((line, idx) => { if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-black text-white uppercase italic tracking-tighter mb-8 border-b border-blue-500/20 pb-4">{line.replace('# ', '')}</h1>; if (line.startsWith('## ')) return <h2 key={idx} className="text-xl font-black text-blue-400 uppercase tracking-widest mt-10 mb-6">{line.replace('## ', '')}</h2>; if (line.startsWith('- ')) return <div key={idx} className="flex gap-4 mb-3"><span className="text-blue-500 mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span><span className="text-gray-300 font-medium">{line.replace('- ', '')}</span></div>; return <p key={idx} className="mb-4">{line}</p>; })}</div></div></div>) : !isSimulating && (<div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-20 animate-in fade-in duration-1000 delay-500"><Radar size={80} className="text-gray-500 mb-8 animate-ping" style={{animationDuration: '4s'}} /><div className="space-y-2"><p className="text-sm font-black uppercase tracking-[0.5em] text-gray-400">Deep Search Inactive</p><p className="text-[10px] font-bold text-gray-600 italic">Target selection required for tactical projection.</p></div></div>)}{isSimulating && (<div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in"><div className="relative"><Loader2 size={120} className="text-blue-500/20 animate-spin" /><BrainCircuit size={48} className="text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" /></div><div className="mt-12 text-center space-y-4"><p className="text-xl font-black italic text-white uppercase tracking-tighter">Synthesizing Tactical Matrix</p></div></div>)}</div>
+            <div className="flex flex-col min-h-full animate-in fade-in pb-24 space-y-10"><div className={`transition-all duration-700 relative ${simResult ? 'p-8 bg-blue-900/10 border border-blue-500/20 rounded-[3rem]' : 'p-16 bg-gray-950 border-2 border-blue-500/20 rounded-[4rem] shadow-4xl'}`}>{!simResult && <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-blue-500/5 opacity-20 pointer-events-none animate-pulse"></div>}<div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none"><ScanIcon size={simResult ? 100 : 200} className="animate-pulse" /></div><div className={`relative z-10 flex flex-col items-center text-center ${simResult ? 'gap-4' : 'gap-10'}`}><div className={`transition-all duration-700 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center border border-blue-500/20 shadow-inner ${simResult ? 'w-16 h-16' : 'w-32 h-32'}`}><BrainCircuit size={simResult ? 24 : 64} className="text-blue-500 animate-pulse" /></div><div><h4 className={`${simResult ? 'text-lg' : 'text-3xl'} font-black text-white uppercase italic tracking-tighter transition-all duration-700`}>Strategic Synthesis</h4>{!simResult && <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mt-3 italic">Neural Network V6.3 Uplink</p>}</div><div className={`w-full max-w-sm transition-all ${simResult ? 'flex gap-4' : 'space-y-6'}`}><CustomSelect options={HERO_DATA.map(h => ({ id: h.id, name: h.name, subtitle: h.tier }))} value={buildHero} onChange={(val) => setBuildHero(val)} placeholder="Select Hero Target..." className="flex-1" /><button onClick={runSimulation} disabled={isSimulating} className={`transition-all duration-500 bg-blue-600 text-white font-black uppercase rounded-3xl hover:bg-blue-500 flex items-center justify-center gap-4 disabled:opacity-30 shadow-xl active:scale-95 ${simResult ? 'px-6 py-2 text-[10px]' : 'w-full py-6 text-[14px]'}`}>{isSimulating ? <Loader2 size={18} className="animate-spin"/> : <Zap size={18} className="fill-current"/>}<span>{isSimulating ? 'Processing...' : simResult ? 'RE-SYNTH' : 'INITIATE ANALYSIS'}</span></button></div></div></div>{simResult ? (<div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-700 pb-20"><div className="flex items-center justify-between px-6 relative"><div className="flex items-center gap-3"><Pulse size={16} className="text-blue-500 animate-pulse" /><span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Neural Output: Finalizing Build Path</span></div><div className="relative"><button onClick={() => { setIsSimMenuOpen(!isSimMenuOpen); playSfx('click'); }} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-blue-500"><MoreHorizontal size={20} /></button>{isSimMenuOpen && (<div className="absolute right-0 top-full mt-2 w-48 bg-gray-950 border border-white/10 rounded-2xl py-2 shadow-4xl z-[200] animate-in fade-in slide-in-from-top-2"><button onClick={() => { navigator.clipboard.writeText(simResult); playSfx('click'); setIsSimMenuOpen(false); showToast('Build Report copied.', 'success'); }} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><Copy size={14} /> <span>Copy to Clipboard</span></button><button onClick={() => { const element = document.createElement("a"); const file = new Blob([simResult], {type: 'text/plain'}); element.href = URL.createObjectURL(file); element.download = `Archero_Synthesis_${buildHero}_${Date.now()}.txt`; document.body.appendChild(element); element.click(); playSfx('click'); setIsSimMenuOpen(false); showToast('Tactical Report exported.', 'success'); }} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><FileText size={14} /> <span>Export as .txt</span></button></div>)}</div></div><div className="p-12 bg-gray-900/60 border-l-4 border-l-blue-500 border-y border-r border-white/5 rounded-r-[4rem] rounded-l-[1.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden ring-1 ring-white/5"><div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div><div className="text-[16px] text-gray-200 leading-[2.2] italic whitespace-pre-wrap font-medium relative z-10 selection:bg-blue-500/30"><FormattedMessage text={simResult} role="model" /></div></div></div>) : !isSimulating && (<div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-20 animate-in fade-in duration-1000 delay-500"><Radar size={80} className="text-gray-500 mb-8 animate-ping" style={{animationDuration: '4s'}} /><div className="space-y-2"><p className="text-sm font-black uppercase tracking-[0.5em] text-gray-400">Deep Search Inactive</p><p className="text-[10px] font-bold text-gray-600 italic">Target selection required for tactical projection.</p></div></div>)}{isSimulating && (<div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in"><div className="relative"><Loader2 size={120} className="text-blue-500/20 animate-spin" /><BrainCircuit size={48} className="text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" /></div><div className="mt-12 text-center space-y-4"><p className="text-xl font-black italic text-white uppercase tracking-tighter">Synthesizing Tactical Matrix</p></div></div>)}</div>
           )}
 
           {activeTab === 'immunity' && (
@@ -1623,14 +1703,61 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'ai' && (
-            <div className="flex flex-col h-[65vh] animate-in fade-in">
-              <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pb-10">
-                {chatHistory.length === 0 && (<div className="p-12 text-center space-y-6"><div className="w-24 h-24 bg-orange-600/10 border border-orange-500/20 rounded-full flex items-center justify-center mx-auto text-orange-500 animate-pulse"><Bot size={48} /></div><h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Tactical Uplink Established</h3><p className="text-xs text-gray-400 leading-relaxed italic max-w-sm mx-auto">"I'm your tactical mentor. Ask me anything about gear, boss patterns, or meta evolutions."</p></div>)}
-                {chatHistory.map(msg => (<div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[85%] p-6 rounded-[2.5rem] ${msg.role === 'user' ? 'bg-orange-600 text-white rounded-tr-none' : 'bg-gray-900 border border-white/5 text-gray-100 rounded-tl-none'}`}><p className="text-[13px] leading-[1.8] font-medium italic whitespace-pre-wrap">{msg.text}</p></div></div>))}
-                {isAiLoading && (<div className="flex justify-start"><div className="p-6 bg-gray-900/40 rounded-3xl rounded-tl-none border border-white/5 animate-pulse flex items-center gap-4"><Loader2 className="text-orange-500 animate-spin" size={16} /><span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Synchronizing neural data...</span></div></div>)}
+            <div className="flex flex-col h-[70vh] animate-in fade-in pb-10">
+              <div className="flex items-center justify-between px-6 py-4 bg-gray-950/60 border border-white/10 rounded-t-[3rem] shadow-xl">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-600/10 border border-orange-500/20 rounded-xl flex items-center justify-center text-orange-500"><Bot size={20} /></div>
+                    <div>
+                      <h4 className="text-sm font-black text-white uppercase italic tracking-tighter">Mentor Link</h4>
+                      <p className="text-[7px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Tactical Synced</p>
+                    </div>
+                 </div>
+                 <button 
+                  onClick={resetChat} 
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-500/20 rounded-xl text-[9px] font-black text-red-500 uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                 >
+                   <Trash2 size={12}/> RESET LOGS
+                 </button>
+              </div>
+              <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 p-6 bg-gray-950/40 border-x border-white/5 shadow-inner">
+                {chatHistory.length === 0 && (
+                  <div className="p-12 text-center space-y-6 opacity-30">
+                    <div className="w-20 h-20 bg-gray-900 border border-dashed border-white/10 rounded-full flex items-center justify-center mx-auto">
+                      <HelpCircle size={32} />
+                    </div>
+                    <p className="text-xs text-gray-400 font-bold italic max-w-sm mx-auto">"Inquire about specific boss patterns, hero tier lists, or gear synergy. I have full archive access."</p>
+                  </div>
+                )}
+                {chatHistory.map(msg => (
+                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-6 rounded-[2.5rem] ${msg.role === 'user' ? 'bg-orange-600 text-white rounded-tr-none' : 'bg-gray-900 border border-white/10 text-gray-100 rounded-tl-none shadow-2xl'}`}>
+                      <FormattedMessage text={msg.text} role={msg.role} />
+                    </div>
+                  </div>
+                ))}
+                {isAiLoading && (
+                  <div className="flex justify-start">
+                    <div className="p-6 bg-gray-900/40 rounded-3xl rounded-tl-none border border-white/5 animate-pulse flex items-center gap-4">
+                      <Loader2 className="text-orange-500 animate-spin" size={16} />
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Synchronizing neural data...</span>
+                    </div>
+                  </div>
+                )}
                 <div ref={chatEndRef} />
               </div>
-              <div className="p-4 bg-gray-950/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] flex items-center gap-3"><input type="text" placeholder="Inquire tactical advice..." className="flex-1 bg-transparent text-sm font-bold text-white outline-none px-4" value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSend()} /><button onClick={handleAiSend} disabled={isAiLoading || !aiInput.trim()} className="p-4 bg-orange-600 text-white rounded-2xl hover:bg-orange-500 transition-all disabled:opacity-30"><Send size={18}/></button></div>
+              <div className="p-4 bg-gray-950 border border-white/10 rounded-b-[3rem] flex items-center gap-3 shadow-2xl">
+                <input 
+                  type="text" 
+                  placeholder="Establish link query..." 
+                  className="flex-1 bg-transparent text-sm font-bold text-white outline-none px-4 py-2 selection:bg-orange-500/30" 
+                  value={aiInput} 
+                  onChange={e => setAiInput(e.target.value)} 
+                  onKeyDown={e => e.key === 'Enter' && handleAiSend()} 
+                />
+                <button onClick={handleAiSend} disabled={isAiLoading || !aiInput.trim()} className="p-4 bg-orange-600 text-white rounded-[1.5rem] hover:bg-orange-500 transition-all disabled:opacity-30 shadow-lg active:scale-95">
+                  <Send size={18}/>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1685,7 +1812,7 @@ const App: React.FC = () => {
                   {selectedItem.gearSets && selectedItem.gearSets.length > 0 && (<div className="space-y-6"><h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4"><Award size={20}/> SIGNATURE META LOADOUT</h4>{selectedItem.gearSets.map((set: GearSet, sIdx: number) => (<div key={sIdx} className="p-10 bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 rounded-[4rem] shadow-4xl space-y-10"><div className="flex items-center justify-between"><h5 className="text-2xl font-black text-white italic uppercase tracking-tighter">{set.name}</h5><button onClick={() => handleExportBuild(selectedItem.name, set)} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-blue-400 border border-white/5"><Download size={22}/></button></div><div className="grid grid-cols-2 sm:grid-cols-3 gap-5"><BuildSlot label="Weapon" name={set.weapon} icon={Sword} /><BuildSlot label="Armor" name={set.armor} icon={Shield} /><BuildSlot label="Bracelet" name={set.bracelet} icon={Zap} /><BuildSlot label="Locket" name={set.locket} icon={Target} /><BuildSlot label="Book" name={set.book} icon={Book} /><BuildSlot label="Rings" name={set.rings[0]} icon={Circle} /></div><div className="p-8 bg-orange-600/5 border border-orange-500/20 rounded-[2.5rem]"><p className="text-[10px] font-black text-orange-500 uppercase mb-4 tracking-widest flex items-center gap-2"><Sparkles size={14}/> Synergy Protocol</p><p className="text-[14px] text-gray-200 italic leading-[1.8] font-medium">{set.synergy}</p></div></div>))}</div>)}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-10"><div className="space-y-4">{selectedItem.deepLogic && (<div className="p-10 bg-gray-900 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group"><div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div><h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4><div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10 bg-black/40 p-8 rounded-[2rem] border border-white/5">{selectedItem.deepLogic}</div></div>)}</div>
+                <div className="grid grid-cols-1 gap-10"><div className="space-y-4">{selectedItem.deepLogic && (<div className="p-10 bg-gray-900 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group"><div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div><h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4><div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10 bg-black/40 p-8 rounded-[2rem] border border-white/5"><FormattedMessage text={selectedItem.deepLogic} role="model" /></div></div>)}</div>
                   {selectedItem.category === 'Totem' && (<div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem]"><p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Totem Power</p><p className="text-2xl font-black text-white italic">{selectedItem.desc}</p></div>)}
                   {selectedItem.category === 'Relic' && (<div className="space-y-8"><div className="p-8 bg-gray-900/40 rounded-[2.5rem] border border-white/5 space-y-3"><h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-2"><ScrollText size={16} /> Relic Description</h4><p className="text-[14px] text-gray-100 font-medium leading-relaxed italic bg-black/20 p-6 rounded-2xl border border-white/5">{selectedItem.lore}</p></div><div className="grid grid-cols-2 gap-4"><div className="p-6 bg-white/5 rounded-2xl border border-white/5"><p className="text-[10px] font-black text-gray-500 uppercase mb-1">Archive Source</p><p className="text-sm font-black text-white uppercase italic">{selectedItem.source || "General Archive"}</p></div><div className="p-6 bg-white/5 rounded-2xl border border-white/5"><p className="text-[10px] font-black text-gray-500 uppercase mb-1">Primary Perk</p><p className="text-sm font-black text-orange-500 uppercase italic">{selectedItem.effect}</p></div></div></div>)}
                 </div>
