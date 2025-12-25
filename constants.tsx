@@ -1,10 +1,9 @@
-
 import { Hero, BaseItem, Jewel, Relic, SlotBonus, ArcheroEvent } from './types';
 
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
 export const HERO_DATA: Hero[] = [
   { 
-    id: 'zeus', name: 'Zeus', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+8% Max HP', 
+    id: 'zeus', name: 'Zeus', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Max HP +8%', 
     desc: 'The Lightning Sovereign.', deepLogic: "Attacks bypass standard projectile collision. 6-Star: Unlocks 'Static Field' (red lightning) that denies area to enemies. 3-Star: Lightning chains gain Critical Hit capability.", 
     evo4Star: 'Sustained attacks ramp up Atk Speed permanently for the room.', bestPairs: ['Celestial Hammer', 'Celestial Warplate'],
     bio: 'A celestial entity who descended to purge the darkness with righteous thunder.',
@@ -42,7 +41,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'wukong', name: 'Wukong', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+8% Attack', 
+    id: 'wukong', name: 'Wukong', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Max HP +10%', 
     desc: 'Master of transformation.', deepLogic: "The Golden Cudgel neutralizes enemy projectiles. 4-Star: 'Phantom Hair' summons a decoy clone on lethal damage. 5-Star: '72 Forms' grants temporary immunity and spinning nova attacks.", 
     evo4Star: 'Phantom Hair: Spawns mirror decoy every 10s.', bestPairs: ['Expedition Fist', 'Phantom Cloak'],
     bio: 'The Monkey King, escaped from his mountain prison to seek new challenges.',
@@ -68,7 +67,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'melinda', name: 'Melinda', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: '+5% Attack', 
+    id: 'melinda', name: 'Melinda', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Damage to Ranged Units +8%', 
     desc: 'The Barrage Queen.', deepLogic: "Barrage scales exponentially with 'Diagonal Arrows' and 'Bouncy Wall'. 4-Star Trait: Acts as a Berserker modifier, increasing projectile count as HP decreases.", 
     evo4Star: 'Barrage projectiles auto-target enemies (Smart Homing).', bestPairs: ['Expedition Fist', 'Dragon Ring'],
     bio: 'A high-society sharpshooter who prefers the heat of battle to the ballroom.',
@@ -93,7 +92,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'dragon_girl', name: 'Dragon Girl', tier: 'SS', category: 'Hero', globalBonus120: 'Damage to Ranged Units +10%', 
     desc: 'Dragon companion warrior.', deepLogic: "Summons 'Riri' (Homing Ricochet). 4-Star: 'Dragon's Ire' grants the companion Critical Hits and a stacking Blaze effect.", 
     evo4Star: 'Dragon Breath applies Burn.', bestPairs: ['Demon Blade'], 
     bio: 'Raised by dragons in the forgotten peaks.', shardCost: '50 Shards to unlock (Special Events / $19.99)', 
@@ -108,7 +107,16 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: '+17% Crit Damage', 
+    id: 'raidara', name: 'Raidara', tier: 'SS', category: 'Hero', globalBonus120: 'Critical Damage +17%', 
+    desc: 'The shadow blade ninja.', deepLogic: 'Invisibility during dash. Massive Critical Damage stacking at L120.', 
+    bestPairs: ['Demon Blade'], bio: 'A ninja who moves faster than the human eye can track.', 
+    shardCost: '50 Shards to unlock (Special Events)', assistHeroes: ['Shade', 'Shingen', 'Melinda'],
+    starMilestones: [
+      { stars: 7, effect: "+15% Critical Damage (Global)", isGlobal: true }
+    ]
+  },
+  { 
+    id: 'taiga', name: 'Taiga', tier: 'SS', category: 'Hero', globalBonus120: 'Critical Damage +17%', 
     desc: 'Meteor-calling monk.', deepLogic: "Mandatory for Endgame: Grants +17% Global Crit Damage at Level 120.", 
     bestPairs: ['Brightspear'], bio: 'A monk from the Far East who controls the falling stars.', 
     shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Taranis', 'Phoren', 'Urasil'],
@@ -122,7 +130,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'stella', name: 'Stella', tier: 'SS', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'stella', name: 'Stella', tier: 'SS', category: 'Hero', globalBonus120: 'HP Drop Rate +7%', 
     desc: 'Star-weaver mage.', deepLogic: 'Star-power builds up to trigger a screen-wide supernova.', 
     bestPairs: ['Celestial Hammer'], bio: 'She weaves the constellations into deadly weapons.', 
     shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Zeus', 'Iris', 'Elaine'],
@@ -131,7 +139,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'elaine', name: 'Elaine', tier: 'SS', category: 'Hero', globalBonus120: 'Damage to Ground Units +9%', 
     desc: 'Cherry blossom shields.', deepLogic: "Defensive Meta setup. Shields reflect damage at 3-stars.", 
     bestPairs: ['Expedition Plate'], bio: 'The guardian of the sacred sakura tree.', 
     shardCost: '50 Shards to unlock (Soulstone Shop / $19.99)', assistHeroes: ['Melinda', 'Iris', 'Ophelia'],
@@ -141,7 +149,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'iris', name: 'Iris', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'iris', name: 'Iris', tier: 'S', category: 'Hero', globalBonus120: 'Damage to Airborne Units +10%', 
     desc: 'The wind-born archer.', deepLogic: 'Increases dodge after moving 3 meters.', 
     bestPairs: ['Vest of Dexterity'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
     assistHeroes: ['Melinda', 'Elaine', 'Lina'],
@@ -150,7 +158,16 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'blazo', name: 'Blazo', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'aquaea', name: 'Aquaea', tier: 'S', category: 'Hero', globalBonus120: 'Healing Effect of Red Hearts +12%', 
+    desc: 'Tide sovereign.', deepLogic: 'Water element attacks slow enemies. Best-in-class L120 healing bonus.', 
+    bestPairs: ['Tornado'], bio: 'The queen of the deep seas, commanding the tides.', 
+    shardCost: '50 Shards to unlock (Special Event)', assistHeroes: ['Sylvan', 'Rolla', 'Meowgik'],
+    starMilestones: [
+      { stars: 7, effect: "+10% Healing (Global)", isGlobal: true }
+    ]
+  },
+  { 
+    id: 'blazo', name: 'Blazo', tier: 'S', category: 'Hero', globalBonus120: 'Max HP +8%', 
     desc: 'Demonic gunslinger.', deepLogic: 'Overheat mechanic triples damage but slows movement.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
     assistHeroes: ['Shade', 'Shingen', 'Phoren'],
@@ -159,7 +176,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'shingen', name: 'Shingen', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'shingen', name: 'Shingen', tier: 'S', category: 'Hero', globalBonus120: 'Damage to Ground Units +6%', 
     desc: 'The blade master.', deepLogic: 'Attacks faster as he hits the same enemy.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
     assistHeroes: ['Dragon Girl', 'Lina', 'Sylvan'],
@@ -168,7 +185,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'lina', name: 'Lina', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'lina', name: 'Lina', tier: 'S', category: 'Hero', globalBonus120: 'Damage to Melee Units +9%', 
     desc: 'Summons dancers.', deepLogic: 'Dancers apply a stacking slow to all enemies.', 
     bestPairs: ['Brightspear'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
     assistHeroes: ['Sylvan', 'Iris', 'Shade'],
@@ -177,7 +194,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'gugu', name: 'Gugu', tier: 'S', category: 'Hero', globalBonus120: '+5% Max HP', 
+    id: 'gugu', name: 'Gugu', tier: 'S', category: 'Hero', globalBonus120: 'Max HP +8%', 
     desc: 'Owl guardian.', deepLogic: 'Birds provide 30% damage reduction shields.', 
     bestPairs: ['Bull Ring'], shardCost: '50 Shards to unlock (Clan Shop / Clan Points)', 
     assistHeroes: ['Helix', 'Meowgik', 'Onir'],
@@ -186,7 +203,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'shade', name: 'Shade', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'shade', name: 'Shade', tier: 'S', category: 'Hero', globalBonus120: 'Critical Damage +10%', 
     desc: 'The shadow assassin.', deepLogic: 'Shadow form grants +75% Attack Speed.', 
     bestPairs: ['Demon Blade'], shardCost: '50 Shards to unlock (Soulstone Shop / $14.99)', 
     assistHeroes: ['Lina', 'Sylvan', 'Ophelia'],
@@ -195,7 +212,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: '+5% Elemental Damage', 
+    id: 'sylvan', name: 'Sylvan', tier: 'S', category: 'Hero', globalBonus120: 'Damage to Ranged Units +9%', 
     desc: 'Elf prince.', deepLogic: 'Removes elemental skills from RNG pool.', 
     bestPairs: ['Brightspear'], shardCost: '50 Shards to unlock (Soulstone Shop / $12.99)', 
     assistHeroes: ['Lina', 'Shade', 'Rolla'],
@@ -204,7 +221,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'helix', name: 'Helix', tier: 'S', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'helix', name: 'Helix', tier: 'S', category: 'Hero', globalBonus120: 'Healing Effect of Red Hearts +10%', 
     desc: 'The OG Fury king.', deepLogic: 'Damage increases as HP drops. Highest stability.', 
     bestPairs: ['Demon Blade'], bio: 'The son of a legendary warrior who draws power from his wounds.', 
     shardCost: '30 Shards to unlock (1,500 Gems / Soulstones)', assistHeroes: ['Gugu', 'Meowgik', 'Onir'],
@@ -214,7 +231,25 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'meowgik', name: 'Meowgik', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'ryan', name: 'Ryan', tier: 'A', category: 'Hero', globalBonus120: 'Max HP +8%', 
+    desc: 'Festive warrior.', deepLogic: 'Has a revival passive. Essential for Max HP growth.', 
+    bestPairs: ['Bright Robe'], shardCost: '50 Shards to unlock (Soulstone Shop)', 
+    assistHeroes: ['Helix', 'Gugu', 'Ayana'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Max HP (Global)", isGlobal: true }
+    ]
+  },
+  { 
+    id: 'bobo', name: 'Bobo', tier: 'A', category: 'Hero', globalBonus120: 'Attack +6%', 
+    desc: 'The explosive expert.', deepLogic: 'Builds up buffs per level. High raw Attack yield.', 
+    bestPairs: ['Saw Blade'], shardCost: '30 Shards to unlock', 
+    assistHeroes: ['Helix', 'Meowgik', 'Taranis'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Attack (Global)", isGlobal: true }
+    ]
+  },
+  { 
+    id: 'meowgik', name: 'Meowgik', tier: 'A', category: 'Hero', globalBonus120: 'Dodge Chance +3%', 
     desc: 'The kitten mage.', deepLogic: 'Spawns homing kittens that ignore walls.', 
     bestPairs: ['Brightspear'], shardCost: '30 Shards to unlock (1,800 Gems / Soulstones)', 
     assistHeroes: ['Helix', 'Gugu', 'Ayana'],
@@ -224,7 +259,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'ayana', name: 'Ayana', tier: 'A', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'ayana', name: 'Ayana', tier: 'A', category: 'Hero', globalBonus120: 'Damage to Ranged Units +9%', 
     desc: 'Enchanted witch.', deepLogic: 'Portals provide temporary i-frames during travel.', 
     bestPairs: ['Phantom Cloak'], shardCost: '30 Shards to unlock (2,500 Gems / Soulstones)', 
     assistHeroes: ['Meowgik', 'Ophelia', 'Rolla'],
@@ -242,7 +277,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'onir', name: 'Onir', tier: 'A', category: 'Hero', globalBonus120: '+10% Projectile Resistance', 
+    id: 'onir', name: 'Onir', tier: 'A', category: 'Hero', globalBonus120: 'Damage to Ground Units +6%', 
     desc: 'Holy knight.', deepLogic: 'Best used for 10% Global Projectile Resistance at 7-stars.', 
     uniqueEffect: 'Global Proj Resist (7-Star)', shardCost: '50 Shards to unlock (Soulstone Shop / $9.99)', 
     assistHeroes: ['Atreus', 'Helix', 'Phoren'],
@@ -251,7 +286,16 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'rolla', name: 'Rolla', tier: 'B', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'shari', name: 'Shari', tier: 'B', category: 'Hero', globalBonus120: 'Max HP +8%', 
+    desc: 'Vine summoner.', deepLogic: 'Summons static vines. Essential for Global HP bonus.', 
+    bestPairs: ['Tornado'], shardCost: '30 Shards (Soulstones / Gems)', 
+    assistHeroes: ['Helix', 'Meowgik', 'Ayana'],
+    starMilestones: [
+      { stars: 7, effect: "+5% Max HP (Global)", isGlobal: true }
+    ]
+  },
+  { 
+    id: 'rolla', name: 'Rolla', tier: 'B', category: 'Hero', globalBonus120: 'Collision Damage Resistance +7%', 
     desc: 'Ice goddess.', deepLogic: 'Freezes enemies for longer than standard frozen effect.', 
     bestPairs: ['Death Scythe'], shardCost: '30 Shards to unlock (3,000 Gems / $9.99)', 
     assistHeroes: ['Sylvan', 'Ayana', 'Meowgik'],
@@ -260,7 +304,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'taranis', name: 'Taranis', tier: 'B', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'taranis', name: 'Taranis', tier: 'B', category: 'Hero', globalBonus120: 'Damage to Airborne Units +9%', 
     desc: 'Thunder master.', deepLogic: 'Lightning arcs deal 35% splash damage.', 
     bestPairs: ['Tornado'], shardCost: '30 Shards to unlock (1,000 Gems / $4.99)', 
     assistHeroes: ['Atreus', 'Urasil', 'Phoren'],
@@ -269,7 +313,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'phoren', name: 'Phoren', tier: 'C', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'phoren', name: 'Phoren', tier: 'C', category: 'Hero', globalBonus120: 'Damage to Ranged Units +9%', 
     desc: 'Fire master.', deepLogic: 'Burn damage lasts twice as long.', 
     bestPairs: ['Saw Blade'], shardCost: '30 Shards to unlock (50,000 Gold / Chapter 7)', 
     assistHeroes: ['Atreus', 'Taranis', 'Urasil'],
@@ -278,7 +322,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'atreus', name: 'Atreus', tier: 'C', category: 'Hero', globalBonus120: '+7% Projectile Resistance', 
+    id: 'atreus', name: 'Atreus', tier: 'C', category: 'Hero', globalBonus120: 'Projectile Resistance +7%', 
     desc: 'The rookie.', deepLogic: 'Mandatory L80/L120 for Immunity Build.', uniqueEffect: 'Immunity Key', 
     bio: 'The hero who started it all.', shardCost: 'Starter Hero (Unlock via Chapter 1)', 
     assistHeroes: ['Helix', 'Phoren', 'Urasil'],
@@ -287,7 +331,7 @@ export const HERO_DATA: Hero[] = [
     ]
   },
   { 
-    id: 'uruana', name: 'Urasil', tier: 'F', category: 'Hero', globalBonus120: '+5% Attack', 
+    id: 'uruana', name: 'Urasil', tier: 'F', category: 'Hero', globalBonus120: 'Damage to Melee Units +9%', 
     desc: 'Poison master.', deepLogic: 'Poison damage scales poorly in late game.', 
     bestPairs: ['Tornado'], shardCost: '30 Shards to unlock (10,000 Gold / Chapter 2)', 
     assistHeroes: ['Atreus', 'Phoren', 'Taranis'],
@@ -309,10 +353,16 @@ export const GEAR_DATA: BaseItem[] = [
     mythicPerk: 'Titan: Perpetual Charge.', 
     deepLogic: 'Switching to Lightning Form (Charge full) makes projectiles pierce all obstacles. While in lightning form, attack speed is capped but damage is tripled. Pairs with Celestial Warplate for 100% mana sustain.' 
   },
+  { 
+    id: 'demon_spearshield', name: 'Demon King Spearshield', tier: 'SSS', category: 'Weapon', desc: 'Hybrid Shield-Cannon.', 
+    mythicPerk: 'Titan: Cannon Mode Crit Dmg +20%.', 
+    deepLogic: 'The ultimate offense/defense hybrid. Toggles between "Shield Mode" (Blocks projectiles, melee attacks) and "Cannon Mode" (Ranged explosive AoE). Cannon mode deals splash damage, while Shield mode offers the highest survival rate in the game.' 
+  },
   { id: 'ant_sword', name: 'Antiquated Sword', tier: 'SS', category: 'Weapon', desc: 'Greatsword.', mythicPerk: 'Titan: Whirlwind Reflects 30% Dmg.', deepLogic: 'Broadsword has hidden +40% Dmg vs Bosses.' },
   { id: 'demon_blade', name: 'Demon Blade', tier: 'SS', category: 'Weapon', desc: 'Katana.', mythicPerk: 'Titan: Shadows inherit 100% Element.', deepLogic: 'Melee hits deal 1.8x damage. Do NOT take Front Arrow.' },
   { id: 'stalker_staff', name: 'Stalker Staff', tier: 'S', category: 'Weapon', desc: 'Staff.', mythicPerk: 'Titan: +15% Flight Speed.', deepLogic: 'Best for Bosses. Stack Diagonal Arrows.' },
   { id: 'brightspear', name: 'Brightspear', tier: 'A', category: 'Weapon', desc: 'Laser.', mythicPerk: 'Titan: Beam splits to 2 targets.', deepLogic: 'Projectile travel time is near-zero. Best for farming fast-moving mobs or long-range sniping in wave chapters.' },
+  { id: 'bright_robe', name: 'Bright Robe', tier: 'A', category: 'Armor', desc: 'Front Dmg Resistance + XP Boost.', deepLogic: 'The level-up speed bonus is critical for Infinite Adventure and long wave chapters to reach level 10-11 faster.' },
   { id: 'death_scythe', name: 'Death Scythe', tier: 'A', category: 'Weapon', desc: 'Scythe.', mythicPerk: 'Titan: Execute threshold <35% HP.', deepLogic: 'High knockback value helps with crowd control. The execution perk makes it a top-tier choice for high-HP mobs in late-game chapters.' },
   { id: 'tornado', name: 'Tornado', tier: 'A', category: 'Weapon', desc: 'Boomerang. Built-in Pierce and Ricochet.', deepLogic: 'Built-in Pierce and Return. Return hits deal 50% extra damage. Recommendation: Avoid Ricochet and Pierce skills as they reduce return damage.' },
   { id: 'gale_force', name: 'Gale Force', tier: 'B', category: 'Weapon', desc: 'Crossbow. Charged Shot.', deepLogic: 'High base damage but slow reload. The charged shot bypasses standard armor and deals massive crit damage.' },
@@ -324,7 +374,6 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'c_warplate', name: 'Celestial Warplate', tier: 'SSS', category: 'Armor', desc: 'Lightning Plate.', mythicPerk: 'Titan: Collision Resist +20%.', deepLogic: 'Converts dmg to Heavenly Energy. Best for wave chapters.' },
   { id: 'exp_plate', name: 'Expedition Plate', tier: 'SSS', category: 'Armor', desc: 'Heart Plate.', mythicPerk: 'Titan: Heart Drop +20%.', deepLogic: 'The core of Expedition sustain. Picking up hearts grants an Invincibility Shield and triggers Divine Grace healing.' },
   { id: 'p_cloak', name: 'Phantom Cloak', tier: 'SS', category: 'Armor', desc: 'Ice Cloak.', mythicPerk: 'Titan: Freeze +2.5s. Frozen enemies take +30% Dmg.', deepLogic: 'Meta for Boss chapters.' },
-  { id: 'bright_robe', name: 'Bright Robe', tier: 'A', category: 'Armor', desc: 'Front Dmg Resistance + XP Boost.', deepLogic: 'The level-up speed bonus is critical for Infinite Adventure and long wave chapters to reach level 10-11 faster.' },
   { id: 'shadow_robe', name: 'Shadow Robe', tier: 'A', category: 'Armor', desc: 'Deals Dark damage to nearby enemies.', deepLogic: 'Dark AoE damage scales with Hero Attack. Extremely effective in cramped wave rooms with high enemy density.' },
   { id: 'void_robe', name: 'Void Robe', tier: 'B', category: 'Armor', desc: 'Poisons all enemies in room.', deepLogic: 'Applies permanent poison to every enemy on room entry. Best for long, slow-paced wave chapters where poison can tick down high HP.' },
   { id: 'vest_dex', name: 'Vest of Dexterity', tier: 'B', category: 'Armor', desc: 'Dodge Logic.', deepLogic: '+7% Global Dodge. Essential for "Full Dodge" niche builds when paired with Serpent Rings.' },
@@ -333,6 +382,10 @@ export const GEAR_DATA: BaseItem[] = [
   // --- RINGS ---
   { id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', desc: 'Proj Resist.', mythicPerk: 'Titan: Proj Resist +13.8%.', deepLogic: 'Essential for Immunity Build. Stacks additively.' },
   { id: 'celestial_ring', name: 'Celestial Band', tier: 'SS', category: 'Ring', desc: 'Lightning Ring.', mythicPerk: 'Titan: Collision Resist +15%.', deepLogic: 'Chain Lightning scales with S-Locket.' },
+  { 
+    id: 'exp_ring', name: 'Expedition Ring', tier: 'S', category: 'Ring', desc: 'Boss Killer.', 
+    deepLogic: 'Grants raw Attack % and high Crit Chance. Unique Effect: Increases Damage to Bosses by roughly 10% (stacking). Essential for completing the Expedition Set Resonance.' 
+  },
   { id: 'bull_ring', name: 'Bull Ring', tier: 'S', category: 'Ring', desc: 'Tank Ring.', mythicPerk: 'Titan: Dmg Resist +10%.', deepLogic: 'Best for farming Gold. DR applies after Proj Resist.' },
   { id: 'lion_ring', name: 'Lion Ring', tier: 'S', category: 'Ring', desc: 'Boss Ring.', mythicPerk: 'Titan: Crit Dmg +20%.', deepLogic: 'Pure DPS. Mandatory for Boss Chapters.' },
   { id: 'vilebat_ring', name: 'Vilebat Ring', tier: 'A', category: 'Ring', desc: 'Heal on Kill.', deepLogic: 'Restores a small % of HP per kill. Effectively doubles the yield of "Heal on Kill" skills.' },
@@ -344,6 +397,10 @@ export const GEAR_DATA: BaseItem[] = [
   // --- BRACELETS ---
   { id: 'celestial_bracer', name: 'Celestial Bracer', tier: 'SS', category: 'Bracelet', desc: 'Lightning.', mythicPerk: 'Titan: Lightning Dmg +20%.' },
   { id: 'shield_bracer', name: 'Shield Bracelet', tier: 'SS', category: 'Bracelet', desc: 'Shield.', mythicPerk: 'Titan: Atk +12%.' },
+  { 
+    id: 'exp_bracelet', name: 'Expedition Bracelet', tier: 'S', category: 'Bracelet', desc: 'Crit Burst.', 
+    deepLogic: 'On entering a room, grants a massive Crit Damage boost for 3 seconds. Killing enemies extends this duration.' 
+  },
   { id: 'invincible', name: 'Invincible Bracelet', tier: 'S', category: 'Bracelet', desc: 'Invincibility.', deepLogic: '2.5s God Mode on room entry.' },
   { id: 'quickshot', name: 'Quickshot Bracelet', tier: 'A', category: 'Bracelet', desc: 'Multishot.', deepLogic: 'Entering a room gives a 2-second boost to Attack and speed. Essential for high-burst room clears.' },
   { id: 'thunder_bracer', name: 'Thunder Bracelet', tier: 'B', category: 'Bracelet', desc: 'Zap.', deepLogic: 'Deals random lightning damage to enemies on room entry. Damage scales with character level.' },
@@ -355,6 +412,10 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'bulletproof', name: 'Bulletproof Locket', tier: 'SS', category: 'Locket', desc: 'Proj Tank.', mythicPerk: 'Titan: +15% Proj Resist (<25% HP).', deepLogic: 'Key to 100% Immunity.' },
   { id: 'celestial_talisman', name: 'Celestial Talisman', tier: 'SS', category: 'Locket', desc: 'MP Gen.', deepLogic: 'Best for Mana-hungry heroes.' },
   { id: 'exp_locket', name: 'Expedition Locket', tier: 'S', category: 'Locket', desc: 'Revive.', mythicPerk: 'Titan: Atk +25% after heal.' },
+  { 
+    id: 'counter_locket_s', name: 'Counterattack Locket (S)', tier: 'S', category: 'Locket', desc: 'Fatal Counter.', 
+    deepLogic: 'When taking lethal damage, prevents death and immediately releases a massive shockwave dealing 500% Attack damage. (Cooldown: 1 per room).' 
+  },
   { id: 'angel', name: 'Angel Locket', tier: 'A', category: 'Locket', desc: 'Revive Chance.', deepLogic: 'Gives a chance to revive with 25% HP upon lethal damage. Reliability increases with rarity.' },
   { id: 'bloodthirsty', name: 'Bloodthirsty Locket', tier: 'A', category: 'Locket', desc: 'Lifesteal.', deepLogic: 'Provides a small percentage of Lifesteal when HP is below 20%. Niche survivability tool.' },
   { id: 'agile', name: 'Agile Locket', tier: 'B', category: 'Locket', desc: 'Dodge.', deepLogic: 'Increases Dodge rate significantly when HP falls below 20%.' },
@@ -365,7 +426,15 @@ export const GEAR_DATA: BaseItem[] = [
   // --- BOOKS ---
   { id: 'enlightenment', name: 'Enlightenment', tier: 'SS', category: 'Book', desc: 'Skills.', mythicPerk: 'Titan: Dmg Resist +5%.', deepLogic: 'Best for Infinite Adventure. Breaks RNG limit.' },
   { id: 'arcanum', name: 'Arcanum of Time', tier: 'SS', category: 'Book', desc: 'Time Stop.', mythicPerk: 'Titan: Duration +1s.', deepLogic: 'Freezes projectiles. Ultimate defense.' },
+  { 
+    id: 'celestial_book', name: 'Celestial Enchiridion', tier: 'SS', category: 'Book', desc: 'Lightning Form.', 
+    deepLogic: 'Active: Transforms hero into a pure Lightning entity. While active, projectiles pierce walls and deal Chain Lightning damage to all screen enemies.' 
+  },
   { id: 'giant', name: 'Giants Contract', tier: 'S', category: 'Book', desc: 'Melee.', deepLogic: 'Synergy King with Demon Blade/Fist.' },
+  { 
+    id: 'exp_book', name: 'Expedition Spellbook', tier: 'S', category: 'Book', desc: 'Auto-Heal & Haste.', 
+    deepLogic: 'Passive: Automatically generates HP hearts when moving. Active: Enters "Overdrive" state, increasing Attack Speed and Movement Speed significantly. Best for sustain.' 
+  },
   { id: 'art_combat', name: 'Art of Combat', tier: 'A', category: 'Book', desc: 'Knockback.', deepLogic: 'Passive increases knockback force. Active provides a huge DPS boost through attack speed.' },
   { id: 'arcane_archer', name: 'Arcane Archer', tier: 'A', category: 'Book', desc: 'Arrows.', mythicPerk: 'Titan: Duration +1s.', deepLogic: 'Best for boss rushing. Adds additional Front Arrows during activation.' },
   { id: 'ice_realm', name: 'Ice Realm', tier: 'B', category: 'Book', desc: 'Freeze.', deepLogic: 'Freezes all nearby enemies on activation and increases hero damage.' },
@@ -442,7 +511,7 @@ export const RELIC_DATA: Relic[] = [
 
   // --- FAINT RELICS (Blue/Purple - A/B Tier) ---
   { id: 'broken_sword', name: 'Broken Sword', tier: 'Faint', effect: 'Flat Attack +', lore: 'A simple, raw number boost to your Attack stat.', source: 'Common Drops', iconType: 'Sword' },
-  { id: 'rusty_key', name: 'Rusty Key', tier: 'Faint', effect: 'Gold Drop Rate +%', lore: 'Essential for farming runs (Up-Close Dangers).', source: 'Common Drops', iconType: 'Gem' },
+  { id: 'rusty_key', name: 'Rusty Key', tier: 'Faint', effect: 'Gold Gold Rate +%', lore: 'Essential for farming runs (Up-Close Dangers).', source: 'Common Drops', iconType: 'Gem' },
   { id: 'dusty_tome', name: 'Dusty Tome', tier: 'Faint', effect: 'Scroll Drop Rate +%', lore: 'Helps you find more upgrade scrolls for your equipment.', source: 'Common Drops', iconType: 'Book' },
   { id: 'lost_cross', name: 'Lost Cross', tier: 'Faint', effect: 'Flat HP +', lore: 'A simple, raw number boost to your HP.', source: 'Common Drops', iconType: 'Shield' },
   { id: 'strange_stone', name: 'Strange Stone', tier: 'Faint', effect: 'Flat Damage Resistance', lore: 'Reduces damage by a flat amount (e.g., -50).', source: 'Common Drops', iconType: 'Gem' },
