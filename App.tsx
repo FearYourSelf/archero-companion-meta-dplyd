@@ -18,7 +18,7 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu
+  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
@@ -289,6 +289,7 @@ const SFX = {
 };
 
 const NAV_ITEMS = [
+  { id: 'home', icon: Home, label: 'Home' },
   { id: 'meta', icon: LayoutGrid, label: 'Archive' },
   { id: 'intel', icon: Skull, label: 'Intel' },
   { id: 'dna', icon: Dna, label: 'DNA Lab' },
@@ -312,7 +313,7 @@ const NAV_ITEMS = [
 type AppTab = (typeof NAV_ITEMS)[number]['id'] | 'loadout' | 'blacksmith' | 'dna' | 'intel';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AppTab>('meta');
+  const [activeTab, setActiveTab] = useState<AppTab>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<GearCategory | 'All'>('All');
   const [relicTierFilter, setRelicTierFilter] = useState<'All' | 'Holy' | 'Radiant' | 'Faint'>('All');
@@ -1078,17 +1079,82 @@ const App: React.FC = () => {
               <MessageSquare size={16} />
             </button>
             <button 
-              onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setActiveTab('meta'); playSfx('click'); }} 
+              onClick={() => handleTabChange('home')} 
               className="p-3 bg-white/5 text-gray-500 rounded-xl transition-all border border-white/5 hover:text-orange-400"
-              title="Back to Archive"
+              title="Return to Base"
             >
-              <ChevronLeft size={16} />
+              <Home size={16} />
             </button>
           </div>
         </div>
       </header>
 
       <main ref={scrollContainerRef} className={`flex-1 overflow-y-auto no-scrollbar scroll-smooth relative ${activeTab === 'ai' ? 'overflow-hidden' : 'pb-40'}`}>
+        {activeTab === 'home' && (
+          <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 px-6 py-8 space-y-10 pb-40">
+            <div className="p-10 bg-gradient-to-br from-orange-600/10 via-gray-950 to-blue-950/5 border border-white/10 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
+               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+               <Activity className="mx-auto mb-6 text-orange-500/30 animate-pulse" size={64} />
+               <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Dashboard</h3>
+               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] italic">Archero Command Center v6.3</p>
+               <div className="mt-8 flex items-center justify-center gap-4">
+                  <div className="px-5 py-2 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-2">
+                    <Calendar size={12} className="text-orange-500" />
+                    <span className="text-[9px] font-black text-white uppercase tracking-widest">{currentDay}</span>
+                  </div>
+                  <div className="px-5 py-2 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-2">
+                    <RefreshCw size={12} className="text-blue-500" />
+                    <span className="text-[9px] font-black text-white uppercase tracking-widest">SYNCED</span>
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {NAV_ITEMS.filter(item => item.id !== 'home').map((item, idx) => (
+                <button 
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id as AppTab)}
+                  className="group relative p-8 bg-gray-950/40 border border-white/5 rounded-[2.8rem] flex flex-col items-center justify-center text-center gap-4 transition-all hover:bg-orange-600/5 hover:border-orange-500/30 hover:scale-[1.03] active:scale-95 shadow-xl animate-in fade-in zoom-in-95"
+                  style={{ animationDelay: `${idx * 40}ms` }}
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-10 transition-opacity">
+                    <item.icon size={64} className="text-orange-500" />
+                  </div>
+                  <div className="w-16 h-16 bg-white/5 rounded-[1.8rem] border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-orange-500 group-hover:bg-orange-500/10 group-hover:border-orange-500/20 transition-all shadow-inner">
+                    <item.icon size={28} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-white uppercase italic tracking-tighter group-hover:text-orange-400 transition-colors">{item.label}</h4>
+                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Launch Protocol</p>
+                  </div>
+                </button>
+              ))}
+              
+              <button 
+                onClick={() => handleTabChange('loadout')}
+                className="col-span-2 group relative p-10 bg-blue-600/10 border border-blue-500/20 rounded-[3.5rem] flex items-center justify-between transition-all hover:bg-blue-600/20 hover:border-blue-500/40 hover:scale-[1.02] active:scale-95 shadow-2xl animate-in fade-in zoom-in-95 delay-300"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 bg-blue-600/20 rounded-[2.2rem] border border-blue-500/30 flex items-center justify-center text-blue-500 shadow-inner group-hover:scale-110 transition-transform">
+                    <Shirt size={40} />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">Loadout Editor</h4>
+                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mt-1">Deploy Combat Configuration</p>
+                  </div>
+                </div>
+                <div className="p-5 bg-black/20 rounded-full border border-white/5 group-hover:translate-x-2 transition-transform">
+                  <ArrowRight size={24} className="text-blue-500" />
+                </div>
+              </button>
+            </div>
+            
+            <div className="p-8 bg-black/20 border border-dashed border-white/10 rounded-[3rem] text-center opacity-40">
+               <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest italic">Archero Command Uplink Active. Commander, your presence is required in the lab.</p>
+            </div>
+          </div>
+        )}
+
         {(activeTab === 'meta' || activeTab === 'farming' || activeTab === 'relics' || activeTab === 'jewels') && (
           <div className="sticky top-0 z-[200] bg-gray-950/90 backdrop-blur-xl border-b border-white/5 px-5 py-4 space-y-4">
              {(activeTab === 'meta' || activeTab === 'relics' || activeTab === 'farming' || activeTab === 'jewels') && (
@@ -1509,7 +1575,7 @@ const App: React.FC = () => {
             <div className="space-y-8 animate-in fade-in pb-24">
               <div className="flex items-stretch gap-4">
                 <button 
-                  onClick={() => handleTabChange('meta')} 
+                  onClick={() => handleTabChange('home')} 
                   className="px-6 bg-white/5 rounded-[2.5rem] border border-white/10 hover:text-orange-500 transition-all shadow-xl group flex items-center justify-center"
                 >
                   <ChevronLeft size={28} className="group-hover:-translate-x-1 transition-transform" />
