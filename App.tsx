@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
@@ -715,7 +714,7 @@ const App: React.FC = () => {
     if (comparedHeroes.length !== 2) return null;
     const [h1, h2] = comparedHeroes;
     const w1 = getTierWeight(h1.tier); const w2 = getTierWeight(h2.tier);
-    let analysis = w1 > w2 ? `${h1.name} has a direct tier advantage (${h1.tier} vs ${h2.tier}).` : w2 > w1 ? `${h2.name} has a direct tier advantage (${h2.tier} vs ${h1.tier}).` : "Both heroes are in the same Power Tier.";
+    let analysis = w1 > w2 ? `${h1.name} has a direct tier advantage (${h1.tier} vs ${h2.tier}).` : w2 > w1 ? `${h2.name} has a direct tier advantage (${h2.tier} vs ${h2.tier}).` : "Both heroes are in the same Power Tier.";
     const getBonusType = (s: string) => s.toLowerCase().includes('atk') || s.toLowerCase().includes('attack') ? 'Offense' : 'Defense';
     const b1 = getBonusType(h1.globalBonus120); const b2 = getBonusType(h2.globalBonus120);
     return { tierWinner: w1 > w2 ? 0 : (w2 > w1 ? 1 : null), bonusWinner: (b1 === 'Offense' && b2 === 'Defense') ? 0 : (b2 === 'Offense' && b1 === 'Defense' ? 1 : null), verdict: analysis };
@@ -984,7 +983,13 @@ const App: React.FC = () => {
             <button onClick={() => handleTabChange('ai')} className={`p-3 rounded-xl border transition-all ${activeTab === 'ai' ? 'bg-orange-600/20 border-orange-500/50 text-orange-500 shadow-lg shadow-orange-500/10' : 'bg-white/5 text-gray-500 border-white/5 hover:text-orange-400'}`} title="Quick Mentor Link">
               <MessageSquare size={16} />
             </button>
-            <button onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setActiveTab('meta'); playSfx('click'); }} className="p-3 bg-white/5 text-gray-500 rounded-xl transition-all border border-white/5"><RefreshCw size={16} /></button>
+            <button 
+              onClick={() => { setSearchQuery(''); setCategoryFilter('All'); setActiveTab('meta'); playSfx('click'); }} 
+              className="p-3 bg-white/5 text-gray-500 rounded-xl transition-all border border-white/5 hover:text-orange-400"
+              title="Back to Archive"
+            >
+              <ChevronLeft size={16} />
+            </button>
           </div>
         </div>
       </header>
@@ -1058,24 +1063,47 @@ const App: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="p-8 bg-gray-950/40 border border-white/5 rounded-[3.5rem] space-y-10 shadow-2xl backdrop-blur-xl">
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Current Star Level</label>
-                      <CustomSelect 
-                        options={[1,2,3,4,5,6].map(s => ({ id: s.toString(), name: `${s} Star` }))}
-                        value={dnaCurrentStars.toString()}
-                        onChange={(val) => setDnaCurrentStars(parseInt(val))}
-                        placeholder="Current Evolution..."
-                      />
+                  <div className="space-y-12">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end px-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Current Star Level</label>
+                        <span className="text-xl font-black text-white italic">{dnaCurrentStars} ★</span>
+                      </div>
+                      <div className="relative pt-2">
+                        <input 
+                          type="range" 
+                          min="1" 
+                          max="6" 
+                          step="1"
+                          value={dnaCurrentStars} 
+                          onChange={(e) => setDnaCurrentStars(parseInt(e.target.value))}
+                          className="w-full h-3 bg-black/60 rounded-full appearance-none cursor-pointer accent-green-500 hover:accent-green-400 transition-all shadow-inner ring-1 ring-white/10"
+                        />
+                        <div className="flex justify-between mt-2 px-1 text-[8px] font-black text-gray-700 uppercase tracking-tighter">
+                          {[1, 2, 3, 4, 5, 6].map(v => <span key={v}>{v}★</span>)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Objective Star Level</label>
-                      <CustomSelect 
-                        options={[2,3,4,5,6,7].map(s => ({ id: s.toString(), name: `${s} Star` }))}
-                        value={dnaTargetStars.toString()}
-                        onChange={(val) => setDnaTargetStars(parseInt(val))}
-                        placeholder="Target Evolution..."
-                      />
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end px-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Objective Star Level</label>
+                        <span className="text-xl font-black text-green-500 italic">{dnaTargetStars} ★</span>
+                      </div>
+                      <div className="relative pt-2">
+                        <input 
+                          type="range" 
+                          min="2" 
+                          max="7" 
+                          step="1"
+                          value={dnaTargetStars} 
+                          onChange={(e) => setDnaTargetStars(parseInt(e.target.value))}
+                          className="w-full h-3 bg-black/60 rounded-full appearance-none cursor-pointer accent-green-600 hover:accent-green-500 transition-all shadow-inner ring-1 ring-white/10"
+                        />
+                        <div className="flex justify-between mt-2 px-1 text-[8px] font-black text-gray-700 uppercase tracking-tighter">
+                          {[2, 3, 4, 5, 6, 7].map(v => <span key={v}>{v}★</span>)}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
@@ -1209,19 +1237,21 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'loadout' && (
-            <div className="space-y-8 animate-in fade-in pb-24 relative">
-              <button 
-                onClick={() => handleTabChange('meta')} 
-                className="absolute top-0 left-0 p-4 bg-white/5 rounded-2xl border border-white/10 hover:text-orange-500 transition-all z-[110]"
-              >
-                <ArrowRight size={24} />
-              </button>
+            <div className="space-y-8 animate-in fade-in pb-24">
+              <div className="flex items-stretch gap-4">
+                <button 
+                  onClick={() => handleTabChange('meta')} 
+                  className="px-6 bg-white/5 rounded-[2.5rem] border border-white/10 hover:text-orange-500 transition-all shadow-xl group flex items-center justify-center"
+                >
+                  <ChevronLeft size={28} className="group-hover:-translate-x-1 transition-transform" />
+                </button>
 
-              <div className="p-8 bg-gradient-to-br from-blue-900/10 via-gray-950 to-blue-950/5 border border-blue-500/20 rounded-[3rem] text-center shadow-4xl relative overflow-hidden">
-                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-2 flex items-center justify-center gap-4">
-                   <Shirt size={28} className="text-blue-500 animate-pulse"/> Loadout Editor
-                 </h3>
-                 <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] italic">Tactical Configuration Interface</p>
+                <div className="flex-1 p-8 bg-gradient-to-br from-blue-900/10 via-gray-950 to-blue-950/5 border border-blue-500/20 rounded-[3.5rem] text-center shadow-4xl relative overflow-hidden">
+                   <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-2 flex items-center justify-center gap-4">
+                     <Shirt size={28} className="text-blue-500 animate-pulse"/> Loadout Editor
+                   </h3>
+                   <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] italic">Tactical Configuration Interface</p>
+                </div>
               </div>
 
               {/* Build Editor (Paper Doll) */}
