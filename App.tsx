@@ -18,7 +18,7 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home
+  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home, HelpCircle as GuideIcon
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
@@ -312,6 +312,30 @@ const NAV_ITEMS = [
 
 type AppTab = (typeof NAV_ITEMS)[number]['id'] | 'loadout' | 'blacksmith' | 'dna' | 'intel';
 
+// --- TUTORIAL CONTENT ---
+const TUTORIAL_STEPS = [
+  { tab: 'home', title: "HOME DASHBOARD", text: "Welcome to ZA Grandmaster. This is your central Hub." },
+  { tab: 'meta', title: "THE ARCHIVE", text: "The complete database of Heroes and Equipment." },
+  { tab: 'intel', title: "TACTICAL INTEL", text: "Boss dossiers and tactical guides for the hardest fights." },
+  { tab: 'dna', title: "DNA LAB", text: "Calculate evolution costs (Shards, Cookies, Gold) here." },
+  { tab: 'events', title: "OPS EVENTS", text: "Check the Daily Event schedule (Up-Close Dangers, etc)." },
+  { tab: 'tracker', title: "ACCOUNT SYNC", text: "Track your Hero Levels, Stars, and Global Bonuses." },
+  { tab: 'talents', title: "TALENT MATRIX", text: "Manage and track your Talent path progress." },
+  { tab: 'formula', title: "DAMAGE FORMULA", text: "Damage calculators and math tools." },
+  { tab: 'dragons', title: "DRAGON CORE", text: "Database for Dragon Statues and tier lists." },
+  { tab: 'refine', title: "REFINE GUIDE", text: "Guide for Equipment Refinement and costs." },
+  { tab: 'vs', title: "GEAR VS", text: "Compare two items side-by-side to see which is better." },
+  { tab: 'analyze', title: "SIMULATOR", text: "Battle Simulator to test theoretical damage." },
+  { tab: 'lab', title: "REFLEX LAB", text: "Practice your Stutter Stepping timing here." },
+  { tab: 'immunity', title: "DEFENSE GUARD", text: "Defense and Damage Reduction calculator." },
+  { tab: 'farming', title: "FARMING ROUTES", text: "Guides on where to farm Gold, XP, and Items." },
+  { tab: 'dps', title: "BURST CALC", text: "Calculate your maximum burst damage potential." },
+  { tab: 'jewels', title: "JEWEL LAB", text: "Calculator for merging jewels (Level 28+)." },
+  { tab: 'relics', title: "RELIC ARCHIVE", text: "Track your Holy and Radiant relics." },
+  { tab: 'ai', title: "MENTOR AI", text: "Chat with the AI for personalized advice." },
+  { tab: 'home', title: "SYSTEM READY", text: "You have mastered the tools. Good luck, Grandmaster." }
+];
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -326,6 +350,9 @@ const App: React.FC = () => {
   const [isConsoleVisible, setIsConsoleVisible] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logsRef = useRef<LogEntry[]>([]);
+
+  // Tutorial State
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
 
   // Tracker State
   const [unlockedHeroes, setUnlockedHeroes] = useState<Record<string, { lv120: boolean; stars: number; sunLevel: number }>>(() => {
@@ -463,6 +490,14 @@ const App: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Check for First Run Tutorial
+  useEffect(() => {
+    const completed = localStorage.getItem('archero_tutorial_complete');
+    if (!completed) {
+      setTutorialStep(0);
+    }
+  }, []);
+
   const [compareHeroIds, setCompareHeroIds] = useState<string[]>([]);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [farmingSearch, setFarmingSearch] = useState('');
@@ -536,6 +571,8 @@ const App: React.FC = () => {
     });
     return totals;
   };
+
+  const globalStatsSummary = useMemo(() => calculateGlobalStats(), [unlockedHeroes]);
 
   const toggleEquip = (id: string) => {
     playSfx('click');
@@ -856,6 +893,33 @@ const App: React.FC = () => {
     playSfx('error');
   };
 
+  // Tutorial Navigation Handler
+  const handleTutorialNext = () => {
+    if (tutorialStep === null) return;
+    playSfx('click');
+    const nextStep = tutorialStep + 1;
+    if (nextStep >= TUTORIAL_STEPS.length) {
+      completeTutorial();
+    } else {
+      setTutorialStep(nextStep);
+      handleTabChange(TUTORIAL_STEPS[nextStep].tab as AppTab);
+    }
+  };
+
+  const completeTutorial = () => {
+    setTutorialStep(null);
+    localStorage.setItem('archero_tutorial_complete', 'true');
+    showToast("Training Protocol Complete.", "success");
+    handleTabChange('home');
+  };
+
+  const resetTutorial = () => {
+    localStorage.removeItem('archero_tutorial_complete');
+    setTutorialStep(0);
+    handleTabChange('home');
+    showToast("Training Simulation Initialized.", "info");
+  };
+
   const LoadoutSlot: React.FC<{ name: string; category: GearCategory; icon: any; variant?: 'hero' | 'default' }> = ({ name, category, icon: Icon, variant = 'default' }) => {
     const itemId = currentLoadout[name];
     const item = [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA].find(i => i.id === itemId);
@@ -904,6 +968,56 @@ const App: React.FC = () => {
             {uiToast.type === 'success' ? <CheckCircle2 size={16} /> : <Info size={16} />}
             <span className="text-[10px] font-black uppercase tracking-widest italic">{uiToast.message}</span>
           </div>
+        </div>
+      )}
+
+      {/* Tutorial Guide Overlay - Fixed Footer Expanded Walkthrough */}
+      {tutorialStep !== null && (
+        <div className="fixed inset-x-0 bottom-[100px] z-[12000] flex items-center justify-center p-4 pointer-events-none animate-in fade-in slide-in-from-bottom-10 duration-500">
+           <div className="relative w-full max-w-2xl bg-gray-950/95 backdrop-blur-3xl border border-orange-500/30 rounded-[2rem] p-6 shadow-[0_0_60px_rgba(249,115,22,0.15)] pointer-events-auto ring-1 ring-white/10">
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="flex-shrink-0 relative">
+                  <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
+                    <GuideIcon size={24} />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-950 animate-ping" />
+                </div>
+                
+                <div className="flex-1 text-center sm:text-left">
+                  <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.4em] italic mb-1 flex items-center justify-center sm:justify-start gap-2">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                    {TUTORIAL_STEPS[tutorialStep].title}
+                  </h4>
+                  <p className="text-[13px] font-bold text-gray-200 italic leading-snug">
+                    "{TUTORIAL_STEPS[tutorialStep].text}"
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-6">
+                  <button 
+                    onClick={completeTutorial}
+                    className="flex-1 sm:flex-none text-[9px] font-black text-gray-600 hover:text-red-500 uppercase tracking-widest transition-colors active:scale-95"
+                  >
+                    SKIP
+                  </button>
+                  <button 
+                    onClick={handleTutorialNext}
+                    className="flex-1 sm:flex-none px-8 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-orange-950/30 group"
+                  >
+                    {tutorialStep === TUTORIAL_STEPS.length - 1 ? 'FINISH' : 'NEXT'} 
+                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Progress Bar Background */}
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-900 overflow-hidden rounded-b-[2rem]">
+                <div 
+                  className="h-full bg-orange-600 transition-all duration-500" 
+                  style={{ width: `${((tutorialStep + 1) / TUTORIAL_STEPS.length) * 100}%` }}
+                />
+              </div>
+           </div>
         </div>
       )}
 
@@ -1109,6 +1223,34 @@ const App: React.FC = () => {
                </div>
             </div>
 
+            {/* Global Stats Overview Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] italic flex items-center gap-2">
+                  <Activity size={14} className="text-orange-500" /> Global Resonance
+                </h4>
+                <button onClick={() => handleTabChange('tracker')} className="text-[8px] font-black text-orange-500 uppercase tracking-widest hover:underline flex items-center gap-1">
+                  Manage Sync <ChevronRight size={10} />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {Object.entries(globalStatsSummary).length > 0 ? (
+                  Object.entries(globalStatsSummary).map(([stat, val]) => (
+                    <div key={stat} className="p-4 bg-gray-900/60 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center transition-all hover:border-orange-500/20 group">
+                      <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1 truncate w-full group-hover:text-gray-400">{stat}</p>
+                      <p className="text-xl font-black text-white italic group-hover:text-orange-500 transition-colors">+{val}%</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full p-8 bg-white/5 border border-dashed border-white/10 rounded-[2.5rem] text-center opacity-40">
+                    <Pulse size={24} className="mx-auto mb-3 text-gray-600" />
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] italic">No Global Bonuses Detected</p>
+                    <p className="text-[7px] font-bold text-gray-700 uppercase mt-1">Sync L120 or Evolutions in the Tracker protocol.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               {NAV_ITEMS.filter(item => item.id !== 'home').map((item, idx) => (
                 <button 
@@ -1149,8 +1291,14 @@ const App: React.FC = () => {
               </button>
             </div>
             
-            <div className="p-8 bg-black/20 border border-dashed border-white/10 rounded-[3rem] text-center opacity-40">
-               <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest italic">Archero Command Uplink Active. Commander, your presence is required in the lab.</p>
+            <div className="flex flex-col items-center gap-4 py-8">
+               <button 
+                onClick={resetTutorial}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-gray-500 hover:text-orange-500 transition-all uppercase tracking-widest flex items-center gap-2 italic"
+               >
+                 <GuideIcon size={14} /> Reset User Tutorial
+               </button>
+               <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest italic opacity-40">Archero Command Uplink Active. Commander, your presence is required in the lab.</p>
             </div>
           </div>
         )}
@@ -1590,7 +1738,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Build Editor (Paper Doll) */}
-              <div className="relative max-w-sm mx-auto bg-gray-900/40 p-6 rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden">
+              <div className="relative z-10 mx-auto max-w-sm bg-gray-900/40 p-6 rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.02] pointer-events-none flex items-center justify-center">
                    <UserCircle2 size={350} className="text-white" />
                 </div>
@@ -1842,13 +1990,13 @@ const App: React.FC = () => {
               <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-2.5rem">
                 <h4 className="text-[10px] font-black text-orange-500 uppercase mb-6 flex items-center gap-2 tracking-[0.3em]"><Activity size={14}/> Account Sync Protocol</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(calculateGlobalStats()).map(([stat, val]) => (
+                  {Object.entries(globalStatsSummary).map(([stat, val]) => (
                     <div key={stat} className="p-5 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-md">
                       <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 truncate">{stat}</p>
                       <p className="text-2xl font-black text-white italic">+{val}%</p>
                     </div>
                   ))}
-                  {Object.keys(calculateGlobalStats()).length === 0 && (
+                  {Object.keys(globalStatsSummary).length === 0 && (
                     <div className="col-span-full py-4 text-center opacity-30 text-[9px] font-black uppercase tracking-widest italic">
                       No global stats active. Level 120 or Evolution required.
                     </div>
@@ -2111,7 +2259,7 @@ const App: React.FC = () => {
                       <p className="text-[9px] font-black text-white italic uppercase truncate tracking-tight">Sapphires</p>
                     </div>
                   </div>
-                  <div className="relative p-4 bg-purple-600/20 border-2 border-purple-500/50 rounded-2xl flex flex-col items-center text-center gap-2 group transition-all hover:bg-purple-600/30 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                  <div className="relative p-4 bg-purple-600/20 border-2 border-purple-500/50 rounded-2xl flex flex-col items-center text-center gap-2 group transition-all hover:bg-purple-600/30 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(168,85,24,0.2)]">
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-[6px] font-black text-white px-2 py-0.5 rounded-full whitespace-nowrap tracking-widest border border-purple-400 shadow-md">BEST CHOICE</div>
                     <Sparkles size={20} className="text-purple-400 animate-pulse" />
                     <div>
@@ -2212,7 +2360,7 @@ const App: React.FC = () => {
       {selectedItem && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => setSelectedItem(null)} /><div className="relative w-full max-w-3xl bg-[#030712] border border-white/10 rounded-[3.5rem] p-8 sm:p-14 max-h-[92vh] overflow-y-auto no-scrollbar animate-in zoom-in-95 shadow-4xl ring-1 ring-white/5"><button onClick={() => setSelectedItem(null)} className="absolute top-10 right-10 p-5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-transform active:scale-90 z-20"><X size={32}/></button>
-            <div className="space-y-12 pb-10"><div className="space-y-6"><div className="flex flex-wrap items-center gap-3"><Badge tier={selectedItem.tier} /><span className="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-600/5 px-3 py-1 rounded-lg border border-orange-500/10">{selectedItem.category} Protocols</span></div><h2 className="text-5xl sm:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2><p className="text-[15px] text-gray-400 font-medium italic opacity-90 leading-relaxed max-w-lg">{selectedItem.desc}</p></div>
+            <div className="space-y-12 pb-10"><div className="space-y-6"><div className="flex wrap items-center gap-3"><Badge tier={selectedItem.tier} /><span className="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-600/5 px-3 py-1 rounded-lg border border-orange-500/10">{selectedItem.category} Protocols</span></div><h2 className="text-5xl sm:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2><p className="text-[15px] text-gray-400 font-medium italic opacity-90 leading-relaxed max-w-lg">{selectedItem.desc}</p></div>
               {selectedItem.category === 'Hero' ? (
                 <div className="space-y-10"><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="p-8 bg-gray-900 border border-white/10 rounded-[2.5rem] shadow-inner space-y-4"><h4 className="text-[10px] font-black text-gray-500 uppercase flex items-center gap-2 tracking-[0.2em]"><BookOpen size={14}/> Tactical Bio</h4><div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/5"><p className="text-[13px] text-gray-300 font-medium italic leading-[1.7]">{selectedItem.bio || "No historical data available for this unit."}</p></div></div><div className="p-8 bg-gray-900 border border-white/10 rounded-[2.5rem] shadow-inner space-y-6"><h4 className="text-[10px] font-black text-gray-500 uppercase flex items-center gap-2 tracking-[0.3em]"><Tag size={14}/> Acquisition Info</h4><div className="space-y-6"><div className="space-y-1"><p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Unlocking Threshold</p><p className="text-sm font-black text-purple-400 uppercase italic leading-tight">{selectedItem.shardCost || "Limited Event"}</p></div><div className="space-y-1"><p className="text-[8px] font-black text-gray-600 uppercase tracking-widest leading-none">Aesthetic Peak</p><p className="text-sm font-black text-yellow-500 uppercase italic leading-tight">{selectedItem.bestSkin || "Standard Issue"}</p></div><div className="space-y-1"><p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Neural Link L120 Payload</p><p className="text-sm font-black text-orange-500 uppercase italic leading-tight">{selectedItem.globalBonus120}</p></div></div></div></div><div className="grid grid-cols-1 gap-6"><div className="p-10 bg-blue-600/5 border border-blue-500/20 rounded-[3.5rem] shadow-inner relative overflow-hidden group"><div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity"><BrainCircuit size={140} /></div><h4 className="text-[11px] font-black text-blue-500 uppercase mb-8 flex items-center gap-3 tracking-[0.4em] relative z-10"><Scan size={24}/> NEURAL SYNTHESIS (META STRATEGY)</h4><div className="text-[15px] text-gray-200 font-medium leading-[2] italic whitespace-pre-wrap relative z-10 bg-black/40 p-8 rounded-[2.5rem] border border-white/5">{selectedItem.deepLogic}</div></div></div><div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     {selectedItem.starMilestones && selectedItem.starMilestones.length > 0 && (<div className="space-y-6"><h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4"><StarIcon size={20} className="text-yellow-500"/> EVOLUTION PATHWAY</h4><div className="grid grid-cols-1 gap-4">{selectedItem.starMilestones.map((milestone: StarMilestone, mIdx: number) => (<div key={mIdx} className={`p-6 bg-gray-900 border rounded-3xl flex items-center gap-6 relative transition-all hover:bg-white/5 ${milestone.stars >= 7 ? 'border-yellow-500/40 shadow-[0_0_20px_rgba(234,179,8,0.15)]' : 'border-white/5'}`}><div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-black/60 rounded-2xl border border-white/10 shadow-inner"><span className="text-[10px] font-black text-gray-500 uppercase leading-none">Star</span><span className="text-2xl font-black text-white italic leading-none mt-1">{milestone.stars}</span></div><div className="flex-1 space-y-1">{milestone.isGlobal && (<span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-600/20 text-blue-400 text-[8px] font-black uppercase rounded border border-blue-500/30 mb-1"><Globe size={10} /> Global Bonus</span>)}<p className={`text-[13px] font-bold italic leading-relaxed ${milestone.stars >= 7 ? 'text-yellow-400' : 'text-gray-200'}`}>"{milestone.effect}"</p></div></div>))}</div></div>)}
