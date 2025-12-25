@@ -17,7 +17,7 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun, CalendarDays, Plus, ArrowRight
+  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
@@ -111,7 +111,7 @@ const BowIcon: React.FC<{ className?: string }> = ({ className }) => (
   >
     <path d="M8 2C14 2 20 7 20 12C20 17 14 22 8 22" />
     <path d="M8 2L2 12L8 22" />
-    <line x1="2" y1="12" x2="16" y2="12" />
+    <line x1="2" x2="16" y1="12" y2="12" />
     <polyline points="13 8 17 12 13 16" />
   </svg>
 );
@@ -360,7 +360,7 @@ const App: React.FC = () => {
   // DNA Lab State
   const [dnaCurrentStars, setDnaCurrentStars] = useState(1);
   const [dnaTargetStars, setDnaTargetStars] = useState(2);
-  const [dnaShardResult, setDnaShardResult] = useState<number | null>(null);
+  const [dnaResult, setDnaResult] = useState<{ shards: number; cookies: number; gold: number } | null>(null);
 
   // Blacksmith State
   const [forgeCurrentLevel, setForgeCurrentLevel] = useState(1);
@@ -578,21 +578,38 @@ const App: React.FC = () => {
     return { gold: totalGold, scrolls: totalScrolls };
   }, [currentTalent, targetTalent]);
 
-  const calculateDnaShards = () => {
-    const STAR_COSTS = [20, 40, 80, 150, 250, 400];
-    let total = 0;
+  const calculateDnaEvolution = () => {
+    // Exact mapping from provided table: Shards, Cookies, Gold
+    const EVO_DATA = [
+      [10, 100, 20000],   // 1★ -> 2★ (Index 0)
+      [20, 300, 87500],   // 2★ -> 3★ (Index 1)
+      [40, 500, 157500],  // 3★ -> 4★ (Index 2)
+      [80, 1000, 285000], // 4★ -> 5★ (Index 3)
+      [150, 3000, 876000],// 5★ -> 6★ (Index 4)
+      [250, 6000, 1680000],// 6★ -> 7★ (Index 5)
+      [400, 10000, 2913000]// 7★ -> 8★ (Index 6)
+    ];
+
+    let totalShards = 0;
+    let totalCookies = 0;
+    let totalGold = 0;
+
     const start = Math.min(dnaCurrentStars, dnaTargetStars);
     const end = Math.max(dnaCurrentStars, dnaTargetStars);
-    
-    // Loop through levels to sum up costs
-    // Level 1 to 2 is index 0, Level 6 to 7 is index 5
+
+    // Summing cost steps
     for (let i = start; i < end; i++) {
-      total += STAR_COSTS[i - 1] || 0;
+      const stepCosts = EVO_DATA[i - 1];
+      if (stepCosts) {
+        totalShards += stepCosts[0];
+        totalCookies += stepCosts[1];
+        totalGold += stepCosts[2];
+      }
     }
-    
-    setDnaShardResult(total);
+
+    setDnaResult({ shards: totalShards, cookies: totalCookies, gold: totalGold });
     playSfx('click');
-    showToast(`Simulation complete: ${total} Shards required.`, 'success');
+    showToast(`Simulation complete for ${end - start} evolution levels.`, 'success');
   };
 
   const calculateBlacksmithForge = () => {
@@ -1073,14 +1090,14 @@ const App: React.FC = () => {
                         <input 
                           type="range" 
                           min="1" 
-                          max="6" 
+                          max="7" 
                           step="1"
                           value={dnaCurrentStars} 
                           onChange={(e) => setDnaCurrentStars(parseInt(e.target.value))}
                           className="w-full h-3 bg-black/60 rounded-full appearance-none cursor-pointer accent-green-500 hover:accent-green-400 transition-all shadow-inner ring-1 ring-white/10"
                         />
                         <div className="flex justify-between mt-2 px-1 text-[8px] font-black text-gray-700 uppercase tracking-tighter">
-                          {[1, 2, 3, 4, 5, 6].map(v => <span key={v}>{v}★</span>)}
+                          {[1, 2, 3, 4, 5, 6, 7].map(v => <span key={v}>{v}★</span>)}
                         </div>
                       </div>
                     </div>
@@ -1094,57 +1111,67 @@ const App: React.FC = () => {
                         <input 
                           type="range" 
                           min="2" 
-                          max="7" 
+                          max="8" 
                           step="1"
                           value={dnaTargetStars} 
                           onChange={(e) => setDnaTargetStars(parseInt(e.target.value))}
                           className="w-full h-3 bg-black/60 rounded-full appearance-none cursor-pointer accent-green-600 hover:accent-green-500 transition-all shadow-inner ring-1 ring-white/10"
                         />
                         <div className="flex justify-between mt-2 px-1 text-[8px] font-black text-gray-700 uppercase tracking-tighter">
-                          {[2, 3, 4, 5, 6, 7].map(v => <span key={v}>{v}★</span>)}
+                          {[2, 3, 4, 5, 6, 7, 8].map(v => <span key={v}>{v}★</span>)}
                         </div>
                       </div>
                     </div>
                   </div>
                   
                   <button 
-                    onClick={calculateDnaShards}
+                    onClick={calculateDnaEvolution}
                     className="w-full py-6 bg-green-600 text-white text-[15px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-green-500 transition-all flex items-center justify-center gap-4 shadow-[0_0_40px_rgba(34,197,94,0.3)] active:scale-95 group"
                   >
-                    <FlaskConical className="group-hover:rotate-12 transition-transform" size={24}/> CALCULATE COST
+                    <FlaskConical className="group-hover:rotate-12 transition-transform" size={24}/> INITIATE EVOLUTION SCAN
                   </button>
                 </div>
 
                 <div className="flex flex-col gap-6">
-                  {dnaShardResult !== null ? (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-                      <div className="p-10 bg-gray-950 border-2 border-green-500/30 rounded-[3.5rem] shadow-[0_0_50px_rgba(34,197,94,0.1)] relative overflow-hidden group">
-                        <Activity className="absolute -bottom-8 -right-8 text-green-500/5 group-hover:scale-110 transition-transform duration-1000" size={180} />
-                        <p className="text-[11px] font-black text-green-500 uppercase tracking-[0.4em] mb-4">Total Shards Required</p>
-                        <div className="text-6xl font-black text-white italic tracking-tighter mb-2 tabular-nums drop-shadow-2xl">
-                          {dnaShardResult}
-                        </div>
-                        <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Hero Fragment Projection</p>
+                  {dnaResult ? (
+                    <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-right-4 duration-500">
+                      <div className="p-8 bg-gray-950 border border-green-500/20 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:scale-110 transition-transform"><User size={80} className="text-green-500" /></div>
+                        <p className="text-[9px] font-black text-green-500 uppercase tracking-[0.3em] mb-2">Total Hero Shards</p>
+                        <div className="text-4xl font-black text-white italic tabular-nums">{dnaResult.shards.toLocaleString()}</div>
                       </div>
 
-                      <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem]">
-                        <h4 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2"><ClipboardCheck size={14}/> Breakdown Summary</h4>
-                        <div className="space-y-2">
-                           {dnaTargetStars > dnaCurrentStars ? (
-                             [1,2,3,4,5,6].map(i => {
+                      <div className="p-8 bg-gray-950 border border-rose-500/20 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:scale-110 transition-transform"><Cookie size={80} className="text-rose-500" /></div>
+                        <p className="text-[9px] font-black text-rose-400 uppercase tracking-[0.3em] mb-2">Total Evolution Cookies</p>
+                        <div className="text-4xl font-black text-white italic tabular-nums">{dnaResult.cookies.toLocaleString()}</div>
+                      </div>
+
+                      <div className="p-8 bg-gray-950 border border-amber-500/20 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:scale-110 transition-transform"><Coins size={80} className="text-amber-500" /></div>
+                        <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.3em] mb-2">Total Gold Required</p>
+                        <div className="text-4xl font-black text-white italic tabular-nums">{dnaResult.gold.toLocaleString()}</div>
+                      </div>
+
+                      <div className="p-6 bg-black/40 border border-white/5 rounded-[2.5rem]">
+                        <h4 className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3 flex items-center gap-2"><ClipboardCheck size={12}/> Evolutionary Breakdown ({dnaCurrentStars}★ to {dnaTargetStars}★)</h4>
+                        <div className="space-y-1.5">
+                          {dnaTargetStars > dnaCurrentStars ? (
+                             Array.from({ length: 7 }, (_, i) => i + 1).map(i => {
                                if (i >= dnaCurrentStars && i < dnaTargetStars) {
-                                 const costs = [20, 40, 80, 150, 250, 400];
+                                 const EVO_DATA = [[10, 100, 20000], [20, 300, 87500], [40, 500, 157500], [80, 1000, 285000], [150, 3000, 876000], [250, 6000, 1680000], [400, 10000, 2913000]];
+                                 const step = EVO_DATA[i-1];
                                  return (
-                                   <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase italic">{i}★ → {i+1}★</span>
-                                      <span className="text-xs font-black text-green-500">{costs[i-1]} Fragments</span>
+                                   <div key={i} className="flex items-center justify-between text-[10px] py-1.5 border-b border-white/5 last:border-0 opacity-80">
+                                      <span className="font-bold text-gray-500 uppercase italic">{i}★ ➔ {i+1}★</span>
+                                      <span className="font-black text-white/90">{step[0]} Shards • {step[1]} Cookies • {step[2].toLocaleString()} Gold</span>
                                    </div>
                                  );
                                }
                                return null;
                              })
                            ) : (
-                             <p className="text-[10px] text-red-400 font-bold uppercase italic">Objective must exceed current level.</p>
+                             <p className="text-[10px] text-red-400 font-bold uppercase italic text-center">Protocol Error: Target level must exceed baseline.</p>
                            )}
                         </div>
                       </div>
@@ -1152,7 +1179,7 @@ const App: React.FC = () => {
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white/5 border border-dashed border-white/10 rounded-[3.5rem] opacity-30">
                        <Microscope size={60} className="mb-6" />
-                       <p className="text-[10px] font-black uppercase tracking-[0.5em] text-center">Awaiting Lab Parameters</p>
+                       <p className="text-[10px] font-black uppercase tracking-[0.5em] text-center">Awaiting Bio-Evolution Data</p>
                     </div>
                   )}
                 </div>
@@ -1198,7 +1225,7 @@ const App: React.FC = () => {
                   
                   <button 
                     onClick={calculateBlacksmithForge}
-                    className="w-full py-6 bg-orange-600 text-white text-[15px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-orange-500 transition-all flex items-center justify-center gap-4 shadow-[0_0_40px_rgba(249,115,22,0.3)] active:scale-95 group"
+                    className="w-full py-6 bg-orange-600 text-white text-[15px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-orange-500 transition-all flex items-center justify-center gap-4 shadow-[0_0_40px_rgba(34,197,94,0.3)] active:scale-95 group"
                   >
                     <Sparkles className="group-hover:rotate-12 transition-transform" size={24}/> INITIATE FORGE PROTOCOL
                   </button>
@@ -1855,26 +1882,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-const Microscope: React.FC<{ size?: number; className?: string }> = ({ size = 24, className }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M6 18h8" />
-    <path d="M3 22h18" />
-    <path d="M14 22a7 7 0 1 0 0-14h-1" />
-    <path d="M9 14h2" />
-    <path d="M9 12a2 2 0 1 1-2-2V6h6v4a2 2 0 1 1-2 2Z" />
-    <path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3" />
-  </svg>
-);
 
 export default App;
