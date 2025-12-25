@@ -18,7 +18,7 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull
+  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
@@ -288,8 +288,31 @@ const SFX = {
   }
 };
 
+const NAV_ITEMS = [
+  { id: 'meta', icon: LayoutGrid, label: 'Archive' },
+  { id: 'intel', icon: Skull, label: 'Intel' },
+  { id: 'dna', icon: Dna, label: 'DNA Lab' },
+  { id: 'events', icon: CalendarDays, label: 'Events' },
+  { id: 'tracker', icon: Target, label: 'Sync' },
+  { id: 'talents', icon: Milestone, label: 'Talents' },
+  { id: 'formula', icon: Variable, label: 'Formula' },
+  { id: 'dragons', icon: Flame, label: 'Dragons' },
+  { id: 'refine', icon: Wrench, label: 'Refine' },
+  { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' },
+  { id: 'analyze', icon: BrainCircuit, label: 'Sim' },
+  { id: 'lab', icon: Zap, label: 'Lab' },
+  { id: 'immunity', icon: Shield, label: 'Guard' },
+  { id: 'farming', icon: Map, label: 'Farming' },
+  { id: 'dps', icon: Calculator, label: 'Burst' },
+  { id: 'jewels', icon: Disc, label: 'Jewel' },
+  { id: 'relics', icon: Box, label: 'Relic Archive' },
+  { id: 'ai', icon: MessageSquare, label: 'Mentor' }
+] as const;
+
+type AppTab = (typeof NAV_ITEMS)[number]['id'] | 'loadout' | 'blacksmith' | 'dna' | 'intel';
+
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'meta' | 'tracker' | 'analyze' | 'dps' | 'vs' | 'immunity' | 'lab' | 'jewels' | 'relics' | 'farming' | 'ai' | 'formula' | 'dragons' | 'refine' | 'talents' | 'events' | 'loadout' | 'blacksmith' | 'dna' | 'intel'>('meta');
+  const [activeTab, setActiveTab] = useState<AppTab>('meta');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<GearCategory | 'All'>('All');
   const [relicTierFilter, setRelicTierFilter] = useState<'All' | 'Holy' | 'Radiant' | 'Faint'>('All');
@@ -346,6 +369,7 @@ const App: React.FC = () => {
   const [aiInput, setAiInput] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSimMenuOpen, setIsSimMenuOpen] = useState(false);
+  const [isQuickNavOpen, setIsQuickNavOpen] = useState(false);
 
   const [stutterProgress, setStutterProgress] = useState(0);
   const [stutterStreak, setStutterStreak] = useState(0);
@@ -385,6 +409,7 @@ const App: React.FC = () => {
   const relicTierFilterScrollRef = useRef<HTMLDivElement>(null);
   const relicSourceFilterScrollRef = useRef<HTMLDivElement>(null);
   const jewelFilterScrollRef = useRef<HTMLDivElement>(null);
+  const quickNavRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ isDragging: false, moved: false, startX: 0, scrollLeft: 0, targetRef: null as React.RefObject<HTMLElement | null> | null });
 
   const currentDay = useMemo(() => new Date().toLocaleDateString('en-US', { weekday: 'long' }), []);
@@ -426,6 +451,16 @@ const App: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [stutterActive, selectedWeapon]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (quickNavRef.current && !quickNavRef.current.contains(e.target as Node)) {
+        setIsQuickNavOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const [compareHeroIds, setCompareHeroIds] = useState<string[]>([]);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
@@ -699,7 +734,7 @@ const App: React.FC = () => {
     finally { setIsSimulating(false); }
   };
 
-  const handleTabChange = (tab: typeof activeTab) => { playSfx('tab'); setActiveTab(tab); if (scrollContainerRef.current) scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleTabChange = (tab: AppTab) => { playSfx('tab'); setActiveTab(tab); if (scrollContainerRef.current) scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' }); setIsQuickNavOpen(false); };
   const handleResetFilters = () => { setSearchQuery(''); setCategoryFilter('All'); setSssOnly(false); playSfx('click'); };
   const handleExportBuild = (heroName: string, set: GearSet) => { playSfx('click'); const text = `ARCHERO TACTICAL BUILD: ${set.name}\nHero: ${heroName}\nWeapon: ${set.weapon}\nArmor: ${set.armor}\nRings: ${set.rings.join(' + ')}\nBracelet: ${set.bracelet}\nLocket: ${set.locket}\nBook: ${set.book}\nSYNERGY: ${set.synergy}`.trim(); navigator.clipboard.writeText(text); showToast(`${set.name} exported.`, 'success'); };
   const findItemByName = (name: string) => [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA].find(i => i.name === name || i.id === name);
@@ -1056,16 +1091,46 @@ const App: React.FC = () => {
       <main ref={scrollContainerRef} className={`flex-1 overflow-y-auto no-scrollbar scroll-smooth relative ${activeTab === 'ai' ? 'overflow-hidden' : 'pb-40'}`}>
         {(activeTab === 'meta' || activeTab === 'farming' || activeTab === 'relics' || activeTab === 'jewels') && (
           <div className="sticky top-0 z-[200] bg-gray-950/90 backdrop-blur-xl border-b border-white/5 px-5 py-4 space-y-4">
-             {(activeTab === 'meta' || activeTab === 'relics') && (
+             {(activeTab === 'meta' || activeTab === 'relics' || activeTab === 'farming' || activeTab === 'jewels') && (
                 <div className="flex items-center gap-3">
+                  {/* Quick Nav Dropdown */}
+                  <div className="relative" ref={quickNavRef}>
+                    <button 
+                      onClick={() => { setIsQuickNavOpen(!isQuickNavOpen); playSfx('click'); }}
+                      className={`p-3 rounded-2xl border transition-all flex items-center justify-center gap-2 ${isQuickNavOpen ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-500 hover:text-orange-500'}`}
+                    >
+                      <Menu size={20} />
+                      <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest italic">QUICK NAV</span>
+                      <ChevronDown size={14} className={`transition-transform duration-300 ${isQuickNavOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isQuickNavOpen && (
+                      <div className="absolute top-[120%] left-0 w-64 bg-gray-950/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] py-4 shadow-4xl z-[1000] animate-in fade-in slide-in-from-top-2 max-h-[70vh] overflow-y-auto no-scrollbar ring-1 ring-white/5">
+                        <div className="px-6 mb-4">
+                          <p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.4em] italic">Jump to Protocol</p>
+                        </div>
+                        {NAV_ITEMS.map((item) => (
+                          <button 
+                            key={item.id}
+                            onClick={() => handleTabChange(item.id as AppTab)}
+                            className={`w-full px-6 py-3.5 flex items-center gap-4 transition-all hover:bg-orange-600/10 border-b border-white/5 last:border-0 ${activeTab === item.id ? 'text-orange-500 bg-white/5' : 'text-gray-400 hover:text-white'}`}
+                          >
+                            <item.icon size={18} className={activeTab === item.id ? 'animate-pulse' : 'opacity-40'} />
+                            <span className="text-[11px] font-black uppercase tracking-tighter italic">{item.label}</span>
+                            {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 bg-orange-500 rounded-full"></div>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="relative group flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
                     <input 
                       type="text" 
-                      placeholder={`Search by name, ID, or effect...`} 
+                      placeholder={`Search ${activeTab === 'meta' ? 'Archive' : activeTab === 'relics' ? 'Relics' : activeTab === 'farming' ? 'Routes' : 'Jewels'}...`} 
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" 
-                      value={searchQuery} 
-                      onChange={(e) => setSearchQuery(e.target.value)} 
+                      value={activeTab === 'farming' ? farmingSearch : searchQuery} 
+                      onChange={(e) => activeTab === 'farming' ? setFarmingSearch(e.target.value) : setSearchQuery(e.target.value)} 
                     />
                   </div>
                   {activeTab === 'meta' && (
@@ -1086,16 +1151,6 @@ const App: React.FC = () => {
              )}
              {activeTab === 'farming' && (
                 <div className="space-y-4">
-                  <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={16} />
-                    <input 
-                      type="text" 
-                      placeholder="Search routes by chapter, loot, or hero..." 
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-2.5 pl-11 pr-4 text-[10px] font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" 
-                      value={farmingSearch} 
-                      onChange={(e) => setFarmingSearch(e.target.value)} 
-                    />
-                  </div>
                   <div ref={farmFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" onMouseDown={(e) => handleDragStart(e, farmFilterScrollRef)}>{['All', 'Gear', 'Gold', 'Shards', 'Jewels', 'Runes', 'Exp'].map(cat => (<button key={cat} onClick={(e) => handleInteractiveClick(e, () => { setFarmingCategory(cat as any); playSfx('click'); })} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${farmingCategory === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{cat}</button>))}</div>
                 </div>
              )}
@@ -1353,44 +1408,69 @@ const App: React.FC = () => {
             <div className="space-y-10 animate-in fade-in pb-24">
               <div className="p-12 bg-gradient-to-br from-blue-900/10 via-gray-950 to-orange-950/5 border border-white/10 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
-                 <Hammer className="mx-auto mb-6 text-orange-500/20 group-hover:text-orange-500/40 transition-all duration-700 group-hover:scale-110" size={80} />
+                 <div className="relative mx-auto mb-8 w-24 h-24 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full animate-pulse"></div>
+                    <Atom className="absolute inset-0 text-orange-500/10 animate-spin-slow" size={96} />
+                    <Hammer className="relative text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.6)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700" size={64} />
+                    <Sparkle className="absolute top-0 right-0 text-orange-400 animate-ping" size={20} />
+                 </div>
                  <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">Blacksmith Forge</h3>
                  <p className="text-[11px] text-gray-400 font-black uppercase tracking-[0.5em] italic">Tactical Gear Scaling Projection</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="p-8 bg-gray-950/40 border border-white/5 rounded-[3.5rem] space-y-10 shadow-2xl backdrop-blur-xl">
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Current Level</label>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max="149" 
-                        value={forgeCurrentLevel} 
-                        onChange={(e) => setForgeCurrentLevel(Math.max(1, parseInt(e.target.value) || 0))}
-                        className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Objective Level</label>
-                      <input 
-                        type="number" 
-                        min="2" 
-                        max="150" 
-                        value={forgeTargetLevel} 
-                        onChange={(e) => setForgeTargetLevel(Math.max(1, parseInt(e.target.value) || 0))}
-                        className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
-                      />
+                <div className="space-y-6">
+                  {/* Calibration Slot to fill space highlighted in Screenshot 2 */}
+                  <div className="p-6 bg-gray-950/40 border border-white/5 rounded-[2.5rem] shadow-xl backdrop-blur-xl group hover:border-orange-500/20 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-black/60 rounded-2xl border border-dashed border-white/10 flex items-center justify-center text-gray-700 group-hover:text-orange-500/40 transition-colors">
+                        <Package size={24} />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Component Calibration</p>
+                        <h4 className="text-xs font-bold text-gray-400 uppercase italic mt-1">Status: Awaiting Slot In</h4>
+                      </div>
                     </div>
                   </div>
-                  
-                  <button 
-                    onClick={calculateBlacksmithForge}
-                    className="w-full py-6 bg-orange-600 text-white text-[15px] font-black uppercase tracking-[0.3em] rounded-[2rem] hover:bg-orange-500 transition-all flex items-center justify-center gap-4 shadow-[0_0_40px_rgba(34,197,94,0.3)] active:scale-95 group"
-                  >
-                    <Sparkles className="group-hover:rotate-12 transition-transform" size={24}/> INITIATE FORGE PROTOCOL
-                  </button>
+
+                  <div className="p-8 bg-gray-950/40 border border-white/5 rounded-[3rem] space-y-10 shadow-2xl backdrop-blur-xl">
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Current Level</label>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          max="149" 
+                          value={forgeCurrentLevel} 
+                          onChange={(e) => setForgeCurrentLevel(Math.max(1, parseInt(e.target.value) || 0))}
+                          className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Objective Level</label>
+                        <input 
+                          type="number" 
+                          min="2" 
+                          max="150" 
+                          value={forgeTargetLevel} 
+                          onChange={(e) => setForgeTargetLevel(Math.max(1, parseInt(e.target.value) || 0))}
+                          className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
+                        />
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={calculateBlacksmithForge}
+                      className="w-full py-7 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-[15px] font-black uppercase tracking-[0.4em] rounded-[2.2rem] hover:from-orange-500 hover:to-orange-600 transition-all flex flex-col items-center justify-center shadow-[0_0_50px_rgba(249,115,22,0.3)] active:scale-95 group relative overflow-hidden border border-orange-400/30"
+                    >
+                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.1] pointer-events-none"></div>
+                      <div className="flex items-center gap-4 mb-0.5">
+                        <Hammer className="group-hover:rotate-12 transition-transform drop-shadow-md" size={24}/> 
+                        <span>INITIATE FORGE PROTOCOL</span>
+                      </div>
+                      <span className="text-[8px] opacity-60 tracking-[0.3em] font-bold">SYNCCED // SYSTEM READY</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-6">
@@ -2027,7 +2107,7 @@ const App: React.FC = () => {
       </main>
 
       <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-950/98 backdrop-blur-3xl border-t border-white/5 p-4 flex flex-col items-center shadow-2xl">
-        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{[{ id: 'meta', icon: LayoutGrid, label: 'Archive' }, { id: 'intel', icon: Skull, label: 'Intel' }, { id: 'dna', icon: Dna, label: 'DNA Lab' }, { id: 'events', icon: CalendarDays, label: 'Events' }, { id: 'tracker', icon: Target, label: 'Sync' }, { id: 'talents', icon: Milestone, label: 'Talents' }, { id: 'formula', icon: Variable, label: 'Formula' }, { id: 'dragons', icon: Flame, label: 'Dragons' }, { id: 'refine', icon: Wrench, label: 'Refine' }, { id: 'vs', icon: ArrowRightLeft, label: 'Gear Vs' }, { id: 'analyze', icon: BrainCircuit, label: 'Sim' }, { id: 'lab', icon: Zap, label: 'Lab' }, { id: 'immunity', icon: Shield, label: 'Guard' }, { id: 'farming', icon: Map, label: 'Farming' }, { id: 'dps', icon: Calculator, label: 'Burst' }, { id: 'jewels', icon: Disc, label: 'Jewel' }, { id: 'relics', icon: Box, label: 'Relic Archive' }, { id: 'ai', icon: MessageSquare, label: 'Mentor' }].map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
+        <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{NAV_ITEMS.map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
       </nav>
 
       {compareHeroIds.length > 0 && activeTab === 'meta' && (
