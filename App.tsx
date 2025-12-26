@@ -117,6 +117,92 @@ const BowIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+// --- TUTORIAL COMPONENT ---
+function Tutorial({ onClose, onNext, step, totalSteps, currentTab }: { onClose: () => void, onNext: (tab: string) => void, step: number, totalSteps: number, currentTab: string }) {
+  // The list of tabs to visit in order
+  const tutorialSteps = [
+    { id: 'home', title: 'HOME DASHBOARD', text: 'Welcome to ZA Grandmaster. This is your central Hub.' },
+    { id: 'meta', title: 'THE ARCHIVE', text: 'The complete database of Heroes and Equipment.' },
+    { id: 'intel', title: 'INTEL', text: 'Boss dossiers and tactical guides.' },
+    { id: 'dna', title: 'DNA LAB', text: 'Calculate evolution costs here.' },
+    { id: 'events', title: 'EVENTS', text: 'Check the Daily Event schedule.' },
+    { id: 'tracker', title: 'SYNC', text: 'Track your Hero Levels and Stars.' },
+    { id: 'talents', title: 'TALENTS', text: 'Manage your Talent path progress.' },
+    { id: 'formula', title: 'FORMULA', text: 'Damage calculators and math tools.' },
+    { id: 'dragons', title: 'DRAGONS', text: 'Database for Dragon Statues.' },
+    { id: 'blacksmith', title: 'BLACKSMITH', text: 'Guide for Refinement and costs.' },
+    { id: 'vs', title: 'GEAR VS', text: 'Compare items side-by-side.' },
+    { id: 'analyze', title: 'SIMULATOR', text: 'Test theoretical damage.' },
+    { id: 'lab', title: 'LAB', text: 'Practice Stutter Stepping here.' },
+    { id: 'immunity', title: 'GUARD', text: 'Defense and Damage Reduction calculator.' },
+    { id: 'farming', title: 'FARMING', text: 'Guides on where to farm Gold and XP.' },
+    { id: 'dps', title: 'BURST', text: 'Calculate max burst damage potential.' },
+    { id: 'jewels', title: 'JEWEL', text: 'Calculator for merging jewels.' },
+    { id: 'relics', title: 'RELICS', text: 'Track your Holy and Radiant relics.' },
+    { id: 'ai', title: 'MENTOR AI', text: 'Chat with the AI for advice.' },
+    { id: 'xp', title: 'MISSION COMPLETE', text: 'Welcome to your best companion, Archer' }
+  ];
+
+  const currentStepData = tutorialSteps[step - 1] || tutorialSteps[0];
+
+  // Helper to handle navigation
+  const handleNext = () => {
+    if (step < tutorialSteps.length) {
+      const nextTabId = tutorialSteps[step].id;
+      onNext(nextTabId);
+    } else {
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[15000] flex items-center justify-center p-6 bg-black/50 backdrop-blur-[2px] animate-in fade-in duration-300">
+      {/* Centered Box */}
+      <div className="bg-gray-900 border border-orange-500 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative mb-20 animate-in zoom-in-95 duration-300">
+        {/* Floating Icon */}
+        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-orange-600 p-3 rounded-full border-4 border-gray-900 shadow-lg">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        {/* Content */}
+        <div className="mt-6 text-center">
+          <h3 className="text-orange-500 font-black tracking-widest uppercase text-[10px] mb-2">GUIDE INTELLIGENCE</h3>
+          <h2 className="text-white text-xl font-bold mb-4">{currentStepData.title}</h2>
+          <p className="text-gray-300 text-sm leading-relaxed mb-6 italic">
+            "{currentStepData.text}"
+          </p>
+        </div>
+        {/* Footer: Dots & Buttons */}
+        <div className="flex items-center justify-between mt-4 border-t border-gray-800 pt-4">
+          <button 
+            onClick={onClose}
+            className="text-gray-500 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors"
+          >
+            Skip
+          </button>
+          {/* Progress Dots */}
+          <div className="flex space-x-1">
+            {tutorialSteps.map((_, i) => (
+              <div 
+                key={i} 
+                className={`h-1.5 rounded-full transition-all duration-300 ${i + 1 === step ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-700'}`}
+                style={{ display: Math.abs(i + 1 - step) > 2 ? 'none' : 'block' }}
+              />
+            ))}
+          </div>
+          <button 
+            onClick={handleNext}
+            className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold py-2 px-6 rounded-full transition-all shadow-lg active:scale-95"
+          >
+            {step === tutorialSteps.length ? 'FINISH' : 'NEXT >'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- WEAPON PHYSICS DATA ---
 const WEAPON_SPEEDS: Record<string, { name: string; speed: number; label: string }> = {
   'Fist': { name: 'Expedition Fist', speed: 3.5, label: 'FAST (3.5x)' },
@@ -313,31 +399,6 @@ const NAV_ITEMS = [
 
 type AppTab = (typeof NAV_ITEMS)[number]['id'] | 'loadout' | 'blacksmith' | 'dna' | 'intel';
 
-// --- TUTORIAL CONTENT ---
-const TUTORIAL_STEPS = [
-  { tab: 'home', title: "HOME DASHBOARD", text: "Welcome to ZA Grandmaster. This is your central Hub." },
-  { tab: 'meta', title: "THE ARCHIVE", text: "The complete database of Heroes and Equipment." },
-  { tab: 'intel', title: "TACTICAL INTEL", text: "Boss dossiers and tactical guides for the hardest fights." },
-  { tab: 'dna', title: "DNA LAB", text: "Calculate evolution costs (Shards, Cookies, Gold) here." },
-  { tab: 'events', title: "OPS EVENTS", text: "Check the Daily Event schedule (Up-Close Dangers, etc)." },
-  { tab: 'xp', title: "XP PROTOCOLS", text: "Learn the secrets of maximum XP gain and efficient leveling." },
-  { tab: 'tracker', title: "ACCOUNT SYNC", text: "Track your Hero Levels, Stars, and Global Bonuses." },
-  { tab: 'talents', title: "TALENT MATRIX", text: "Manage and track your Talent path progress." },
-  { tab: 'formula', title: "DAMAGE FORMULA", text: "Damage calculators and math tools." },
-  { tab: 'dragons', title: "DRAGON CORE", text: "Database for Dragon Statues and tier lists." },
-  { tab: 'refine', title: "REFINE GUIDE", text: "Guide for Equipment Refinement and costs." },
-  { tab: 'vs', title: "GEAR VS", text: "Compare two items side-by-side to see which is better." },
-  { tab: 'analyze', title: "SIMULATOR", text: "Battle Simulator to test theoretical damage." },
-  { tab: 'lab', title: "REFLEX LAB", text: "Practice your Stutter Stepping timing here." },
-  { tab: 'immunity', title: "DEFENSE GUARD", text: "Defense and Damage Reduction calculator." },
-  { tab: 'farming', title: "FARMING ROUTES", text: "Guides on where to farm Gold, XP, and Items." },
-  { tab: 'dps', title: "BURST CALC", text: "Calculate your maximum burst damage potential." },
-  { tab: 'jewels', title: "JEWEL LAB", text: "Calculator for merging jewels (Level 28+)." },
-  { tab: 'relics', title: "RELIC ARCHIVE", text: "Track your Holy and Radiant relics." },
-  { tab: 'ai', title: "MENTOR AI", text: "Chat with the AI for personalized advice." },
-  { tab: 'home', title: "SYSTEM READY", text: "You have mastered the tools. Good luck, Grandmaster." }
-];
-
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -496,7 +557,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const completed = localStorage.getItem('archero_tutorial_complete');
     if (!completed) {
-      setTutorialStep(0);
+      setTutorialStep(1); // 1-based step for new component
     }
   }, []);
 
@@ -746,7 +807,6 @@ const App: React.FC = () => {
     setActiveTab('ai'); // Switch to mentor tab immediately
     
     try {
-      // Use slice to avoid sending too much context if history is huge
       const response = await chatWithAI(prompt, chatHistory.slice(-10).map(h => ({ role: h.role, text: h.text })));
       setChatHistory(prev => [...prev, { id: Date.now().toString(), role: 'model', text: response || 'Mentor offline.', timestamp: Date.now() }]);
     } catch (e: any) {
@@ -758,7 +818,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Add Reset Chat functionality
   const resetChat = () => {
     setChatHistory([]);
     localStorage.removeItem('archero_v6_chat');
@@ -881,7 +940,6 @@ const App: React.FC = () => {
   };
 
   const handleEquipBuild = (build: LoadoutBuild) => {
-    // Overwrite editor state with the selected build
     setCurrentLoadout({ ...build.slots });
     showToast(`Deployed protocol "${build.name}".`, 'success');
   };
@@ -896,16 +954,10 @@ const App: React.FC = () => {
   };
 
   // Tutorial Navigation Handler
-  const handleTutorialNext = () => {
-    if (tutorialStep === null) return;
+  const handleTutorialStepChange = (tabId: string) => {
     playSfx('click');
-    const nextStep = tutorialStep + 1;
-    if (nextStep >= TUTORIAL_STEPS.length) {
-      completeTutorial();
-    } else {
-      setTutorialStep(nextStep);
-      handleTabChange(TUTORIAL_STEPS[nextStep].tab as AppTab);
-    }
+    setTutorialStep(prev => (prev !== null ? prev + 1 : null));
+    handleTabChange(tabId as AppTab);
   };
 
   const completeTutorial = () => {
@@ -917,7 +969,7 @@ const App: React.FC = () => {
 
   const resetTutorial = () => {
     localStorage.removeItem('archero_tutorial_complete');
-    setTutorialStep(0);
+    setTutorialStep(1);
     handleTabChange('home');
     showToast("Training Simulation Initialized.", "info");
   };
@@ -954,7 +1006,6 @@ const App: React.FC = () => {
             <X size={10} />
           </button>
         )}
-        {/* Pulsing indicator for active slot in build view */}
         {isEditing && (
           <div className="absolute inset-0 rounded-[1.8rem] border-2 border-orange-500 animate-ping opacity-20 pointer-events-none" />
         )}
@@ -973,54 +1024,15 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Tutorial Guide Overlay - Fixed Footer Expanded Walkthrough */}
+      {/* Standalone Tutorial Component */}
       {tutorialStep !== null && (
-        <div className="fixed inset-x-0 bottom-[100px] z-[12000] flex items-center justify-center p-4 pointer-events-none animate-in fade-in slide-in-from-bottom-10 duration-500">
-           <div className="relative w-full max-w-2xl bg-gray-950/95 backdrop-blur-3xl border border-orange-500/30 rounded-[2rem] p-6 shadow-[0_0_60px_rgba(249,115,22,0.15)] pointer-events-auto ring-1 ring-white/10">
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="flex-shrink-0 relative">
-                  <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
-                    <GuideIcon size={24} />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-950 animate-ping" />
-                </div>
-                
-                <div className="flex-1 text-center sm:text-left">
-                  <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.4em] italic mb-1 flex items-center justify-center sm:justify-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-                    {TUTORIAL_STEPS[tutorialStep].title}
-                  </h4>
-                  <p className="text-[13px] font-bold text-gray-200 italic leading-snug">
-                    "{TUTORIAL_STEPS[tutorialStep].text}"
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-6">
-                  <button 
-                    onClick={completeTutorial}
-                    className="flex-1 sm:flex-none text-[9px] font-black text-gray-600 hover:text-red-500 uppercase tracking-widest transition-colors active:scale-95"
-                  >
-                    SKIP
-                  </button>
-                  <button 
-                    onClick={handleTutorialNext}
-                    className="flex-1 sm:flex-none px-8 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-orange-950/30 group"
-                  >
-                    {tutorialStep === TUTORIAL_STEPS.length - 1 ? 'FINISH' : 'NEXT'} 
-                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
-              
-              {/* Progress Bar Background */}
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-900 overflow-hidden rounded-b-[2rem]">
-                <div 
-                  className="h-full bg-orange-600 transition-all duration-500" 
-                  style={{ width: `${((tutorialStep + 1) / TUTORIAL_STEPS.length) * 100}%` }}
-                />
-              </div>
-           </div>
-        </div>
+        <Tutorial 
+          step={tutorialStep}
+          totalSteps={20}
+          currentTab={activeTab}
+          onClose={completeTutorial}
+          onNext={handleTutorialStepChange}
+        />
       )}
 
       {/* Build Deletion Modal */}
@@ -1225,7 +1237,6 @@ const App: React.FC = () => {
                </div>
             </div>
 
-            {/* Global Stats Overview Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] italic flex items-center gap-2">
@@ -1307,56 +1318,53 @@ const App: React.FC = () => {
 
         {(activeTab === 'meta' || activeTab === 'farming' || activeTab === 'relics' || activeTab === 'jewels') && (
           <div className="sticky top-0 z-[200] bg-gray-950/90 backdrop-blur-xl border-b border-white/5 px-5 py-4 space-y-4">
-             {(activeTab === 'meta' || activeTab === 'relics' || activeTab === 'farming' || activeTab === 'jewels') && (
-                <div className="flex items-center gap-3">
-                  {/* Quick Nav Dropdown */}
-                  <div className="relative" ref={quickNavRef}>
-                    <button 
-                      onClick={() => { setIsQuickNavOpen(!isQuickNavOpen); playSfx('click'); }}
-                      className={`p-3 rounded-2xl border transition-all flex items-center justify-center gap-2 ${isQuickNavOpen ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-500 hover:text-orange-500'}`}
-                    >
-                      <Menu size={20} />
-                      <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest italic">QUICK NAV</span>
-                      <ChevronDown size={14} className={`transition-transform duration-300 ${isQuickNavOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isQuickNavOpen && (
-                      <div className="absolute top-[120%] left-0 w-64 bg-gray-950/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] py-4 shadow-4xl z-[1000] animate-in fade-in slide-in-from-top-2 max-h-[70vh] overflow-y-auto no-scrollbar ring-1 ring-white/5">
-                        <div className="px-6 mb-4">
-                          <p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.4em] italic">Jump to Protocol</p>
-                        </div>
-                        {NAV_ITEMS.map((item) => (
-                          <button 
-                            key={item.id}
-                            onClick={() => handleTabChange(item.id as AppTab)}
-                            className={`w-full px-6 py-3.5 flex items-center gap-4 transition-all hover:bg-orange-600/10 border-b border-white/5 last:border-0 ${activeTab === item.id ? 'text-orange-500 bg-white/5' : 'text-gray-400 hover:text-white'}`}
-                          >
-                            <item.icon size={18} className={activeTab === item.id ? 'animate-pulse' : 'opacity-40'} />
-                            <span className="text-[11px] font-black uppercase tracking-tighter italic">{item.label}</span>
-                            {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 bg-orange-500 rounded-full"></div>}
-                          </button>
-                        ))}
+             <div className="flex items-center gap-3">
+                <div className="relative" ref={quickNavRef}>
+                  <button 
+                    onClick={() => { setIsQuickNavOpen(!isQuickNavOpen); playSfx('click'); }}
+                    className={`p-3 rounded-2xl border transition-all flex items-center justify-center gap-2 ${isQuickNavOpen ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-500 hover:text-orange-500'}`}
+                  >
+                    <Menu size={20} />
+                    <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest italic">QUICK NAV</span>
+                    <ChevronDown size={14} className={`transition-transform duration-300 ${isQuickNavOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isQuickNavOpen && (
+                    <div className="absolute top-[120%] left-0 w-64 bg-gray-950/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] py-4 shadow-4xl z-[1000] animate-in fade-in slide-in-from-top-2 max-h-[70vh] overflow-y-auto no-scrollbar ring-1 ring-white/5">
+                      <div className="px-6 mb-4">
+                        <p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.4em] italic">Jump to Protocol</p>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="relative group flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
-                    <input 
-                      type="text" 
-                      placeholder={`Search ${activeTab === 'meta' ? 'Archive' : activeTab === 'relics' ? 'Relics' : activeTab === 'farming' ? 'Routes' : 'Jewels'}...`} 
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" 
-                      value={activeTab === 'farming' ? farmingSearch : searchQuery} 
-                      onChange={(e) => activeTab === 'farming' ? setFarmingSearch(e.target.value) : setSearchQuery(e.target.value)} 
-                    />
-                  </div>
-                  {activeTab === 'meta' && (
-                    <div className="flex items-center gap-2">
-                       <button onClick={() => { setSssOnly(!sssOnly); playSfx('click'); }} className={`p-3 rounded-2xl border transition-all ${sssOnly ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-500 hover:text-gray-300'}`} title="SSS Tier Only"><Crown size={18} /></button>
-                      <button onClick={handleResetFilters} className="p-3 bg-white/5 border border-white/10 text-gray-500 rounded-2xl hover:text-orange-500 transition-all" title="Reset Filters"><RotateCcw size={18} /></button>
+                      {NAV_ITEMS.map((item) => (
+                        <button 
+                          key={item.id}
+                          onClick={() => handleTabChange(item.id as AppTab)}
+                          className={`w-full px-6 py-3.5 flex items-center gap-4 transition-all hover:bg-orange-600/10 border-b border-white/5 last:border-0 ${activeTab === item.id ? 'text-orange-500 bg-white/5' : 'text-gray-400 hover:text-white'}`}
+                        >
+                          <item.icon size={18} className={activeTab === item.id ? 'animate-pulse' : 'opacity-40'} />
+                          <span className="text-[11px] font-black uppercase tracking-tighter italic">{item.label}</span>
+                          {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 bg-orange-500 rounded-full"></div>}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
-             )}
+
+                <div className="relative group flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+                  <input 
+                    type="text" 
+                    placeholder={`Search ${activeTab === 'meta' ? 'Archive' : activeTab === 'relics' ? 'Relics' : activeTab === 'farming' ? 'Routes' : 'Jewels'}...`} 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-[11px] font-bold outline-none focus:ring-1 focus:ring-orange-500/50 text-white transition-all shadow-inner" 
+                    value={activeTab === 'farming' ? farmingSearch : searchQuery} 
+                    onChange={(e) => activeTab === 'farming' ? setFarmingSearch(e.target.value) : setSearchQuery(e.target.value)} 
+                  />
+                </div>
+                {activeTab === 'meta' && (
+                  <div className="flex items-center gap-2">
+                     <button onClick={() => { setSssOnly(!sssOnly); playSfx('click'); }} className={`p-3 rounded-2xl border transition-all ${sssOnly ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-500 hover:text-gray-300'}`} title="SSS Tier Only"><Crown size={18} /></button>
+                    <button onClick={handleResetFilters} className="p-3 bg-white/5 border border-white/10 text-gray-500 rounded-2xl hover:text-orange-500 transition-all" title="Reset Filters"><RotateCcw size={18} /></button>
+                  </div>
+                )}
+             </div>
              {activeTab === 'meta' && (
                 <div ref={categoryScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x draggable-content touch-pan-x flex-nowrap" onMouseDown={(e) => handleDragStart(e, categoryScrollRef)}>
                   {['All', ...displayOrder].map(cat => {
@@ -1364,20 +1372,6 @@ const App: React.FC = () => {
                     return (<button key={cat} onClick={(e) => handleInteractiveClick(e, () => { setCategoryFilter(cat as any); playSfx('click'); })} className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${categoryFilter === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}><Icon size={12} /> {cat === 'Hero' ? 'HEROES' : (cat === 'Pet Farm Eggs' ? 'PET FARM EGGS' : cat + 'S')}</button>);
                   })}
                 </div>
-             )}
-             {activeTab === 'farming' && (
-                <div className="space-y-4">
-                  <div ref={farmFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" onMouseDown={(e) => handleDragStart(e, farmFilterScrollRef)}>{['All', 'Gear', 'Gold', 'Shards', 'Jewels', 'Runes', 'Exp'].map(cat => (<button key={cat} onClick={(e) => handleInteractiveClick(e, () => { setFarmingCategory(cat as any); playSfx('click'); })} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${farmingCategory === cat ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{cat}</button>))}</div>
-                </div>
-             )}
-             {activeTab === 'relics' && (
-                <div className="space-y-3">
-                  <div ref={relicTierFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" onMouseDown={(e) => handleDragStart(e, relicTierFilterScrollRef)}>{['All', 'Holy', 'Radiant', 'Faint'].map(t => (<button key={t} onClick={(e) => handleInteractiveClick(e, () => { setRelicTierFilter(t as any); playSfx('click'); })} className={`flex-shrink-0 px-8 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${relicTierFilter === t ? 'bg-purple-600 border-purple-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{t} Tier</button>))}</div>
-                  <div ref={relicSourceFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content border-t border-white/5 pt-2" onMouseDown={(e) => handleDragStart(e, relicSourceFilterScrollRef)}><div className="flex-shrink-0 px-3 flex items-center"><MapPin size={10} className="text-gray-600" /></div>{relicSources.map(src => (<button key={src} onClick={(e) => handleInteractiveClick(e, () => { setRelicSourceFilter(src); playSfx('click'); })} className={`flex-shrink-0 px-5 py-2 rounded-xl text-[8px] font-black uppercase transition-all border whitespace-nowrap ${relicSourceFilter === src ? 'bg-blue-600 border-blue-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-600 hover:text-gray-400'}`}>{src}</button>))}</div>
-                </div>
-             )}
-             {activeTab === 'jewels' && (
-                <div ref={jewelFilterScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x flex-nowrap draggable-content" onMouseDown={(e) => handleDragStart(e, jewelFilterScrollRef)}>{['All', 'Weapon', 'Armor', 'Ring', 'Bracelet', 'Locket', 'Book'].map(slot => (<button key={slot} onClick={(e) => handleInteractiveClick(e, () => { setJewelFilterSlot(slot); playSfx('click'); })} className={`flex-shrink-0 px-6 py-3 rounded-xl text-[9px] font-black uppercase transition-all border whitespace-nowrap ${jewelFilterSlot === slot ? 'bg-orange-600 border-orange-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300'}`}>{slot} Sockets</button>))}</div>
              )}
           </div>
         )}
@@ -1393,113 +1387,20 @@ const App: React.FC = () => {
                </div>
 
                <div className="space-y-6">
-                  {/* Boss 1 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">1. Owl Supreme:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Walls</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Hide behind walls to block the whirlwind. Only attack during its cooldowns.</p>
+                  {/* Boss entries... */}
+                  {[
+                    { id: 1, name: 'Owl Supreme', weakness: 'Walls', tip: 'Hide behind walls to block the whirlwind. Only attack during its cooldowns.' },
+                    { id: 2, name: 'Tentacle Menace', weakness: 'Constant Movement', tip: 'Never stand still. Watch for the ground ripple 1 second before it spawns under you.' },
+                    { id: 3, name: 'Crimson Witch', weakness: 'Water/Ice', tip: 'Her fire pools linger forever. Lure her to one side of the room to keep the center clean.' }
+                  ].map(boss => (
+                    <div key={boss.id} className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+                      <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">{boss.id}. {boss.name}:</h4>
+                      <div className="mt-4 space-y-3">
+                        <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> {boss.weakness}</p>
+                        <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> {boss.tip}</p>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Boss 2 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">2. Tentacle Menace:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Constant Movement</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Never stand still. Watch for the ground ripple 1 second before it spawns under you.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 3 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">3. Crimson Witch:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Water/Ice</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Her fire pools linger forever. Lure her to one side of the room to keep the center clean.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 4 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">4. Scythe Mage:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Melee Range</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> His scythes flare out wide. Stand extremely close (inside the ring) to avoid damage.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 5 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">5. Double Archers:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Sync Kills</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Lower both HP bars evenly. Killing one enrages the survivor to 2x speed.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 6 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">6. Giant Scarecrow:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Diagonals</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> The only safe spots are the immediate diagonals. Do not stand directly in front or to the side.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 7 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">7. Ice Worm:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Timing</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Stop attacking when it burrows. Pre-fire the location where the dirt mound appears.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 8 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">8. Queen Bee:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Ricochet</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Ignore the small bees; let Ricochet/Chain Lightning bounce off them to hit the Queen.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 9 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">9. Skeleton King:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Aggression</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> He summons mobs when you retreat. Push forward and burst him down quickly.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 10 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">10. Spinning Golem:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Freeze</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Do not run away in a straight line; circle strafe tightly around him.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 11 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">11. Desert Goliath:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Distance</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> His rock throw splits on impact. Stay max range to widen the gaps between rocks.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 12 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">12. Medusa:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Line of Sight</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> When eyes grow, hide behind a wall or look away to avoid the Stone status.</p>
-                    </div>
-                  </div>
+                  ))}
                </div>
             </div>
           )}
@@ -1586,29 +1487,6 @@ const App: React.FC = () => {
                         <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.3em] mb-2">Total Gold Required</p>
                         <div className="text-4xl font-black text-white italic tabular-nums">{dnaResult.gold.toLocaleString()}</div>
                       </div>
-
-                      <div className="p-6 bg-black/40 border border-white/5 rounded-[2.5rem]">
-                        <h4 className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3 flex items-center gap-2"><ClipboardCheck size={12}/> Evolutionary Breakdown ({dnaCurrentStars}★ to {dnaTargetStars}★)</h4>
-                        <div className="space-y-1.5">
-                          {dnaTargetStars > dnaCurrentStars ? (
-                             Array.from({ length: 7 }, (_, i) => i + 1).map(i => {
-                               if (i >= dnaCurrentStars && i < dnaTargetStars) {
-                                 const EVO_DATA = [[10, 100, 20000], [20, 300, 87500], [40, 500, 157500], [80, 1000, 285000], [150, 3000, 876000], [250, 6000, 1680000], [400, 10000, 2913000]];
-                                 const step = EVO_DATA[i-1];
-                                 return (
-                                   <div key={i} className="flex items-center justify-between text-[10px] py-1.5 border-b border-white/5 last:border-0 opacity-80">
-                                      <span className="font-bold text-gray-500 uppercase italic">{i}★ ➔ {i+1}★</span>
-                                      <span className="font-black text-white/90">{step[0]} Shards • {step[1]} Cookies • {step[2].toLocaleString()} Gold</span>
-                                   </div>
-                                 );
-                               }
-                               return null;
-                             })
-                           ) : (
-                             <p className="text-[10px] text-red-400 font-bold uppercase italic text-center">Protocol Error: Target level must exceed baseline.</p>
-                           )}
-                        </div>
-                      </div>
                     </div>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white/5 border border-dashed border-white/10 rounded-[3.5rem] opacity-30">
@@ -1624,91 +1502,59 @@ const App: React.FC = () => {
           {activeTab === 'blacksmith' && (
             <div className="space-y-10 animate-in fade-in pb-24">
               <div className="p-12 bg-gradient-to-br from-blue-900/10 via-gray-950 to-orange-950/5 border border-white/10 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
-                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
-                 <div className="relative mx-auto mb-8 w-24 h-24 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full animate-pulse"></div>
-                    <Atom className="absolute inset-0 text-orange-500/10 animate-spin-slow" size={96} />
-                    <Hammer className="relative text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.6)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700" size={64} />
-                    <Sparkle className="absolute top-0 right-0 text-orange-400 animate-ping" size={20} />
-                 </div>
+                 <Hammer className="mx-auto mb-8 text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.6)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700" size={64} />
                  <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">Blacksmith Forge</h3>
                  <p className="text-[11px] text-gray-400 font-black uppercase tracking-[0.5em] italic">Tactical Gear Scaling Projection</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  {/* Calibration Slot to fill space highlighted in Screenshot 2 */}
-                  <div className="p-6 bg-gray-950/40 border border-white/5 rounded-[2.5rem] shadow-xl backdrop-blur-xl group hover:border-orange-500/20 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-black/60 rounded-2xl border border-dashed border-white/10 flex items-center justify-center text-gray-700 group-hover:text-orange-500/40 transition-colors">
-                        <Package size={24} />
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Component Calibration</p>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase italic mt-1">Status: Awaiting Slot In</h4>
-                      </div>
+                <div className="p-8 bg-gray-950/40 border border-white/5 rounded-[3rem] space-y-10 shadow-2xl backdrop-blur-xl">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Current Level</label>
+                      <input 
+                        type="number" 
+                        value={forgeCurrentLevel} 
+                        onChange={(e) => setForgeCurrentLevel(Math.max(1, parseInt(e.target.value) || 0))}
+                        className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Objective Level</label>
+                      <input 
+                        type="number" 
+                        value={forgeTargetLevel} 
+                        onChange={(e) => setForgeTargetLevel(Math.max(1, parseInt(e.target.value) || 0))}
+                        className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
+                      />
                     </div>
                   </div>
-
-                  <div className="p-8 bg-gray-950/40 border border-white/5 rounded-[3rem] space-y-10 shadow-2xl backdrop-blur-xl">
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Current Level</label>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          max="149" 
-                          value={forgeCurrentLevel} 
-                          onChange={(e) => setForgeCurrentLevel(Math.max(1, parseInt(e.target.value) || 0))}
-                          className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-2">Objective Level</label>
-                        <input 
-                          type="number" 
-                          min="2" 
-                          max="150" 
-                          value={forgeTargetLevel} 
-                          onChange={(e) => setForgeTargetLevel(Math.max(1, parseInt(e.target.value) || 0))}
-                          className="w-full bg-black/60 border border-white/10 rounded-[2rem] p-6 text-3xl font-black text-white italic outline-none focus:border-orange-500/50 transition-all tabular-nums text-center" 
-                        />
-                      </div>
-                    </div>
-                    
-                    <button 
-                      onClick={calculateBlacksmithForge}
-                      className="w-full py-7 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-[15px] font-black uppercase tracking-[0.4em] rounded-[2.2rem] hover:from-orange-500 hover:to-orange-600 transition-all flex flex-col items-center justify-center shadow-[0_0_50px_rgba(249,115,22,0.3)] active:scale-95 group relative overflow-hidden border border-orange-400/30"
-                    >
-                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.1] pointer-events-none"></div>
-                      <div className="flex items-center gap-4 mb-0.5">
-                        <Hammer className="group-hover:rotate-12 transition-transform drop-shadow-md" size={24}/> 
-                        <span>INITIATE FORGE PROTOCOL</span>
-                      </div>
-                      <span className="text-[8px] opacity-60 tracking-[0.3em] font-bold">SYNCCED // SYSTEM READY</span>
-                    </button>
-                  </div>
+                  
+                  <button 
+                    onClick={calculateBlacksmithForge}
+                    className="w-full py-7 bg-orange-600 text-white text-[15px] font-black uppercase tracking-[0.4em] rounded-[2.2rem] hover:bg-orange-500 transition-all flex items-center justify-center gap-4 shadow-[0_0_50px_rgba(249,115,22,0.3)] active:scale-95 group"
+                  >
+                    <Hammer className="group-hover:rotate-12 transition-transform" size={24}/> INITIATE FORGE PROTOCOL
+                  </button>
                 </div>
 
                 <div className="flex flex-col gap-6">
                   {forgeResult ? (
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-                      <div className="p-10 bg-gray-950 border-2 border-orange-500/30 rounded-[3.5rem] shadow-[0_0_50px_rgba(249,115,22,0.1)] relative overflow-hidden group">
+                      <div className="p-10 bg-gray-950 border border-orange-500/30 rounded-[3rem] shadow-xl relative overflow-hidden group">
                         <Coins className="absolute -bottom-8 -right-8 text-orange-500/5 group-hover:rotate-12 transition-transform duration-1000" size={180} />
                         <p className="text-[11px] font-black text-orange-500 uppercase tracking-[0.4em] mb-4">Total Gold Required</p>
-                        <div className="text-6xl font-black text-white italic tracking-tighter mb-2 tabular-nums drop-shadow-2xl">
+                        <div className="text-6xl font-black text-white italic tracking-tighter mb-2 tabular-nums">
                           {forgeResult.gold.toLocaleString()}
                         </div>
-                        <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Archero Gold Reserves Estimation</p>
                       </div>
 
-                      <div className="p-10 bg-gray-950 border-2 border-blue-500/30 rounded-[3.5rem] shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-hidden group">
+                      <div className="p-10 bg-gray-950 border border-blue-500/30 rounded-[3rem] shadow-xl relative overflow-hidden group">
                         <ScrollText className="absolute -bottom-8 -right-8 text-blue-500/5 group-hover:-rotate-12 transition-transform duration-1000" size={180} />
                         <p className="text-[11px] font-black text-blue-400 uppercase tracking-[0.4em] mb-4">Total Scrolls Required</p>
-                        <div className="text-6xl font-black text-white italic tracking-tighter mb-2 tabular-nums drop-shadow-2xl">
+                        <div className="text-6xl font-black text-white italic tracking-tighter mb-2 tabular-nums">
                           {forgeResult.scrolls.toLocaleString()}
                         </div>
-                        <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Tactical Scroll Consumption</p>
                       </div>
                     </div>
                   ) : (
@@ -1742,42 +1588,32 @@ const App: React.FC = () => {
 
               {/* Build Editor (Paper Doll) */}
               <div className="relative z-10 mx-auto max-w-sm bg-gray-900/40 p-6 rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.02] pointer-events-none flex items-center justify-center">
-                   <UserCircle2 size={350} className="text-white" />
-                </div>
-                
                 <div className="relative z-10 space-y-4">
-                  {/* Gear Layout */}
                   <div className="grid grid-cols-3 gap-3">
                     <LoadoutSlot name="Weapon" category="Weapon" icon={Sword} />
                     <LoadoutSlot name="Hero" category="Hero" icon={UserCircle2} variant="hero" />
                     <LoadoutSlot name="Armor" category="Armor" icon={Shield} />
                   </div>
-                  
                   <div className="grid grid-cols-3 gap-3">
                     <LoadoutSlot name="Ring 1" category="Ring" icon={Circle} />
                     <LoadoutSlot name="Bracelet" category="Bracelet" icon={Zap} />
                     <LoadoutSlot name="Ring 2" category="Ring" icon={Circle} />
                   </div>
-
                   <div className="grid grid-cols-3 gap-3">
                     <LoadoutSlot name="Spirit 1" category="Spirit" icon={Ghost} />
                     <LoadoutSlot name="Locket" category="Locket" icon={Target} />
                     <LoadoutSlot name="Spirit 2" category="Spirit" icon={Ghost} />
                   </div>
-
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     <LoadoutSlot name="Book" category="Book" icon={Book} />
                     <div className="flex items-center justify-center opacity-10"><Code size={16} /></div>
                     <LoadoutSlot name="Dragon 1" category="Dragon" icon={Flame} />
                   </div>
-
                   <div className="grid grid-cols-3 gap-3">
                     <LoadoutSlot name="Dragon 2" category="Dragon" icon={Flame} />
                     <div className="flex items-center justify-center opacity-10"><Terminal size={16} /></div>
                     <LoadoutSlot name="Dragon 3" category="Dragon" icon={Flame} />
                   </div>
-
                   <div className="pt-4 space-y-3">
                     <button 
                       onClick={analyzeCurrentBuild}
@@ -1840,227 +1676,6 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'events' && (
-            <div className="space-y-10 animate-in fade-in pb-24">
-               <div className="p-10 bg-gradient-to-br from-orange-600/10 via-gray-950 to-orange-950/5 border border-orange-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
-                 <CalendarDays className="mx-auto mb-6 text-orange-500/20 group-hover:text-orange-500/40 transition-colors" size={64} />
-                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Ops Center Schedule</h3>
-                 <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.4em] italic">Real-Time Event Coordination</p>
-                 <div className="mt-8 inline-flex items-center gap-3 px-6 py-2.5 bg-white/5 border border-white/10 rounded-2xl">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    <p className="text-[11px] font-black text-white uppercase tracking-widest italic">{currentDay}, 2025</p>
-                 </div>
-               </div>
-
-               <div className="space-y-6">
-                  <h4 className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] italic flex items-center gap-3 px-4">
-                    <Target size={18}/> LIVE MISSIONS TODAY
-                  </h4>
-                  <div className="grid grid-cols-1 gap-5">
-                    {DAILY_EVENTS.map(event => {
-                      const isActive = event.days.includes(currentDay);
-                      const colorStyles = getEventColor(event.color);
-                      return (
-                        <div key={event.id} className={`p-8 bg-gradient-to-r rounded-[3rem] border transition-all duration-500 ${isActive ? `${colorStyles} shadow-2xl scale-[1.02]` : 'from-gray-900/40 border-white/5 text-gray-700 opacity-60'}`}>
-                           <div className="flex items-start justify-between">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-3">
-                                  <h5 className="text-xl font-black uppercase italic tracking-tighter leading-none">{event.name}</h5>
-                                  {isActive && <span className="px-2 py-0.5 bg-white text-black text-[8px] font-black uppercase rounded animate-pulse">ACTIVE</span>}
-                                </div>
-                                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">{event.days.join(' • ')}</p>
-                              </div>
-                              <div className={`p-4 rounded-2xl border ${isActive ? 'bg-black/20 border-white/10' : 'bg-black/10 border-white/5'}`}>
-                                <Clock size={16} />
-                              </div>
-                           </div>
-                           
-                           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                              <div className="space-y-3">
-                                <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                  <Award size={12}/> High-Yield Spoils
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                  {event.rewards.map(r => (
-                                    <span key={r} className={`px-3 py-1 text-[9px] font-bold uppercase rounded-lg border ${isActive ? 'bg-white/10 border-white/20 text-white' : 'bg-black/20 border-white/5'}`}>{r}</span>
-                                  ))}
-                                </div>
-                                <p className="text-[11px] italic font-medium leading-relaxed opacity-80 mt-4">{event.desc}</p>
-                              </div>
-
-                              <div className={`p-6 rounded-[2rem] border ${isActive ? 'bg-black/30 border-white/10' : 'bg-black/10 border-white/5 opacity-50'}`}>
-                                <p className="text-[9px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
-                                  <ShieldAlert size={12}/> Mentor's Briefing
-                                </p>
-                                <p className="text-[11px] font-bold italic leading-relaxed text-gray-200">"{event.proTip}"</p>
-                              </div>
-                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-               </div>
-
-               <div className="p-8 bg-black/20 border border-white/5 rounded-[3rem] text-center opacity-40">
-                  <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">Archero Daily Reset occurs at 16:00 UTC. Adjust strategies accordingly.</p>
-               </div>
-            </div>
-          )}
-
-          {activeTab === 'meta' && (
-            <div className="space-y-12">
-               {displayOrder.map(cat => {
-                  if (categoryFilter !== 'All' && categoryFilter !== cat) return null;
-                  const items = filteredData.filter(i => i.category === cat);
-                  if (items.length === 0) return null;
-                  const sortedItems = [...items].sort((a, b) => { if (cat === 'Hero') { const aFav = favoriteHeroes.has(a.id); const bFav = favoriteHeroes.has(b.id); if (aFav && !bFav) return -1; if (!aFav && bFav) return 1; } const aEquipped = equippedItems.has(a.id); const bEquipped = equippedItems.has(b.id); if (aEquipped && !bEquipped) return -1; if (!aEquipped && bEquipped) return 1; return 0; });
-                  return (
-                    <div key={cat} className="space-y-6">
-                      <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] border-l-4 border-orange-600 pl-4 italic flex items-center gap-3"><span className="text-xl">{categoryEmojis[cat]}</span> {cat === 'Hero' ? 'HEROES' : (cat === 'Pet Farm Eggs' ? 'PET FARM EGGS' : cat + 'S')}</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {sortedItems.map(item => {
-                          const isEquipped = equippedItems.has(item.id); const isBeingCompared = compareHeroIds.includes(item.id); const isFavorite = favoriteHeroes.has(item.id);
-                          return (
-                            <div key={item.id} className="relative group">
-                              {((item as any).mythicPerk || (item as any).deepLogic) && (
-                                <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 bottom-[105%] w-72 p-5 bg-gray-950/98 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-4xl z-[500] pointer-events-none animate-in fade-in slide-in-from-bottom-2"><div className="space-y-4">{(item as any).mythicPerk && (<div><p className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><Sparkles size={10} /> Mythic Resonance</p><p className="text-[11px] text-white font-bold italic leading-relaxed bg-orange-600/5 p-2.5 rounded-xl border border-orange-500/10">"{(item as any).mythicPerk}"</p></div>)}{(item as any).deepLogic && (<div><p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><Atom size={10} /> Neural Synthesis</p><p className="text-[10px] text-gray-300 font-medium italic leading-relaxed bg-blue-600/5 p-2.5 rounded-xl border border-blue-500/10">{(item as any).deepLogic}</p></div>)}</div><div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-gray-950 rotate-45 border-r border-b border-white/10"></div></div>
-                              )}
-                              {isEquipped && (
-                                <div className="absolute -top-1.5 -right-1.5 z-40 animate-in fade-in zoom-in pointer-events-none">
-                                  <div className="bg-orange-600 text-white p-2 rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.6)] border border-orange-400/50">
-                                    <CheckCircle2 size={16} className="drop-shadow-sm" />
-                                  </div>
-                                </div>
-                              )}
-                              <div onClick={() => { setSelectedItem(item); playSfx('click'); }} className="cursor-pointer">
-                                <Card tier={item.tier} className={`transition-all duration-500 ${isEquipped ? 'border-orange-500/70 shadow-[0_0_30px_rgba(249,115,22,0.2)] ring-2 ring-orange-500/30 ring-offset-2 ring-offset-black bg-orange-950/5 scale-[1.02]' : 'hover:scale-[1.02]'} ${isFavorite && item.category === 'Hero' ? 'bg-yellow-400/5 border-yellow-500/20' : ''}`}>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <Badge tier={item.tier} />
-                                      {isEquipped && (
-                                        <span className="flex items-center gap-1 px-2.5 py-1 bg-orange-600 text-[8px] font-black text-white uppercase rounded-lg animate-pulse shadow-sm">
-                                          <Zap size={10} fill="currentColor" className="mr-0.5" /> EQUIPPED
-                                        </span>
-                                      )}
-                                      {isFavorite && item.category === 'Hero' && (<Star size={12} className="text-yellow-500 fill-current" />)}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      {item.category === 'Hero' && (
-                                        <button onClick={(e) => { e.stopPropagation(); handleHeroCompareToggle(item.id); }} className={`p-2 rounded-xl border transition-all ${isBeingCompared ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/20' : 'bg-white/5 border-white/5 text-gray-600 hover:text-blue-500'}`} title="Compare Hero">
-                                          <Scale size={14} />
-                                        </button>
-                                      )}
-                                      <button onClick={(e) => { e.stopPropagation(); toggleEquip(item.id); }} className={`p-2 rounded-xl border transition-all ${isEquipped ? 'bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-500/20 pulse-orange' : 'bg-white/5 border-white/5 text-gray-600 hover:text-gray-300'}`} title={isEquipped ? "Remove from Build" : "Add to Build"}>
-                                        {isEquipped ? <Check size={14} /> : <Box size={14} />}
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-3">
-                                    <h3 className={`text-lg font-black uppercase italic tracking-tighter group-hover:text-orange-500 transition-colors truncate ${isEquipped ? 'text-orange-400' : 'text-white'}`}>
-                                      {item.name}
-                                    </h3>
-                                    {item.category === 'Hero' && (
-                                      <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }} className={`p-1.5 rounded-lg transition-all ${isFavorite ? 'text-yellow-400' : 'text-gray-700 hover:text-gray-500'}`} title="Favorite Hero">
-                                        <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
-                                      </button>
-                                    )}
-                                  </div>
-                                  <p className="text-[10px] text-gray-500 mt-2 line-clamp-2">{item.desc}</p>
-                                </Card>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-               })}
-            </div>
-          )}
-
-          {activeTab === 'vs' && (
-            <div className="space-y-10 animate-in fade-in pb-12">
-               <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[3rem] text-center"><h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Comparison Matrix</h4><p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">Side-by-Side Architectural Analysis</p></div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-6"><CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemA} onChange={(v) => setVsItemA(v)} placeholder="Load Source A..." />{GEAR_DATA.find(g => g.id === vsItemA) && (<div className="animate-in slide-in-from-left-4 duration-500"><Card tier={GEAR_DATA.find(g => g.id === vsItemA)?.tier} className="min-h-[400px]"><Badge tier={GEAR_DATA.find(g => g.id === vsItemA)!.tier} /><h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemA)?.name}</h5><div className="mt-8 space-y-6">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk}</p></div>)}{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic}</p></div>)}</div></Card></div>)}</div>
-                  <div className="space-y-6"><CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemB} onChange={(v) => setVsItemB(v)} placeholder="Load Source B..." />{GEAR_DATA.find(g => g.id === vsItemB) && (<div className="animate-in slide-in-from-right-4 duration-500"><Card tier={GEAR_DATA.find(g => g.id === vsItemB)?.tier} className="min-h-[400px]"><Badge tier={GEAR_DATA.find(g => g.id === vsItemB)!.tier} /><h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemB)?.name}</h5><div className="mt-8 space-y-6">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk}</p></div>)}{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic}</p></div>)}</div></Card></div>)}</div>
-               </div>
-            </div>
-          )}
-
-          {activeTab === 'tracker' && (
-            <div className="space-y-6 animate-in fade-in pb-24">
-              <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-2.5rem">
-                <h4 className="text-[10px] font-black text-orange-500 uppercase mb-6 flex items-center gap-2 tracking-[0.3em]"><Activity size={14}/> Account Sync Protocol</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(globalStatsSummary).map(([stat, val]) => (
-                    <div key={stat} className="p-5 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-md">
-                      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 truncate">{stat}</p>
-                      <p className="text-2xl font-black text-white italic">+{val}%</p>
-                    </div>
-                  ))}
-                  {Object.keys(globalStatsSummary).length === 0 && (
-                    <div className="col-span-full py-4 text-center opacity-30 text-[9px] font-black uppercase tracking-widest italic">
-                      No global stats active. Level 120 or Evolution required.
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                {HERO_DATA.map(h => {
-                  const userData = unlockedHeroes[h.id] || { lv120: false, stars: 0, sunLevel: 0 };
-                  return (
-                    <div key={h.id} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex flex-col lg:flex-row lg:items-center gap-6 group hover:border-orange-500/20 transition-all">
-                      {/* Left: Hero Basic Info */}
-                      <div className="flex items-center gap-4 lg:w-48 shrink-0">
-                        <Badge tier={h.tier} />
-                        <div className="min-w-0">
-                          <span className="text-sm font-black text-white italic uppercase tracking-tighter block truncate">{h.name}</span>
-                          <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest block truncate">L120: {h.globalBonus120}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Right: Evolution Grid for Alignment */}
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                        {/* Star Evolution Path */}
-                        <div className="flex flex-col gap-2">
-                          <span className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em] px-1">Star Evolution</span>
-                          <div className="flex items-center justify-between px-3 py-2.5 bg-black/40 rounded-2xl border border-white/5 w-full">
-                            {[1,2,3,4,5,6,7,8].map(starNum => (
-                              <button key={starNum} onClick={() => { setUnlockedHeroes(p => ({ ...p, [h.id]: { ...p[h.id], stars: (p[h.id]?.stars === starNum) ? starNum - 1 : starNum } })); playSfx('click'); }} className={`transition-all hover:scale-125 ${userData.stars >= starNum ? 'text-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]' : 'text-gray-800 hover:text-gray-600'}`}>
-                                <Star size={12} fill={userData.stars >= starNum ? 'currentColor' : 'none'} />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Sun Evolution Path */}
-                        <div className="flex flex-col gap-2">
-                          <span className="text-[8px] font-black text-orange-500/60 uppercase tracking-[0.2em] px-1">Sun Evolution</span>
-                          <div className="flex items-center justify-between px-3 py-2.5 bg-orange-950/10 rounded-2xl border border-orange-500/10 w-full">
-                            {[1,2,3,4,5].map(level => (
-                              <button key={level} onClick={() => { setUnlockedHeroes(p => ({ ...p, [h.id]: { ...p[h.id], sunLevel: (p[h.id]?.sunLevel === level) ? level - 1 : level } })); playSfx('click'); }} className={`transition-all hover:scale-125 ${userData.sunLevel >= level ? 'text-orange-500 drop-shadow-[0_0_5px_rgba(249,115,22,0.5)]' : 'text-gray-800 hover:text-gray-600'}`}>
-                                <Sun size={12} fill={userData.sunLevel >= level ? 'currentColor' : 'none'} />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Level Cap Binary Toggle */}
-                        <div className="flex flex-col gap-2">
-                           <span className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em] px-1">Threshold L120</span>
-                           <button onClick={() => { setUnlockedHeroes(p => ({...p, [h.id]: { ...p[h.id], lv120: !p[h.id]?.lv120 }})); playSfx('click'); }} className={`w-full py-2.5 rounded-2xl text-[9px] font-black uppercase transition-all border ${userData.lv120 ? 'bg-orange-600 border-orange-500 text-white shadow-lg' : 'bg-white/5 border-white/10 text-gray-600 hover:text-gray-400'}`}>
-                            {userData.lv120 ? 'SYNCCED' : 'NOT SYNCCED'}
-                           </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {activeTab === 'ai' && (
             <div className="flex flex-col h-[calc(100vh-200px)] animate-in fade-in transition-all duration-500 overflow-hidden">
               <div className="flex items-center justify-between px-6 py-5 bg-gray-950/90 border border-white/10 rounded-t-[3rem] shadow-2xl z-20 shrink-0">
@@ -2086,20 +1701,10 @@ const App: React.FC = () => {
               <div className="flex-1 overflow-y-auto no-scrollbar space-y-8 p-6 md:p-10 bg-gray-950/40 border-x border-white/5 shadow-inner">
                 {chatHistory.length === 0 && (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-8 opacity-40 animate-in fade-in zoom-in duration-700">
-                    <div className="relative">
-                      <div className="absolute -inset-10 bg-orange-500/5 blur-3xl rounded-full"></div>
-                      <div className="w-32 h-32 bg-gray-900 border-2 border-dashed border-white/10 rounded-full flex items-center justify-center mx-auto shadow-2xl">
-                        <HelpCircle size={48} className="text-gray-500" />
-                      </div>
-                    </div>
+                    <HelpCircle size={48} className="text-gray-500" />
                     <div className="space-y-3">
                       <p className="text-sm text-white font-black uppercase tracking-[0.2em] italic">Awaiting Direct Query</p>
                       <p className="text-xs text-gray-500 font-bold italic max-w-sm mx-auto leading-relaxed uppercase tracking-wider">"Deploy tactical inquiry regarding boss mechanics, hero evolution priority, or gear synthesis paths."</p>
-                    </div>
-                    <div className="flex gap-3">
-                       {["Best build for Melinda?", "How to get 100% DR?", "Meta weapon for N70?"].map(hint => (
-                         <button key={hint} onClick={() => setAiInput(hint)} className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-gray-400 hover:text-orange-500 transition-all uppercase">{hint}</button>
-                       ))}
                     </div>
                   </div>
                 )}
@@ -2107,7 +1712,6 @@ const App: React.FC = () => {
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
                     <div className={`relative max-w-[90%] p-7 rounded-[2.8rem] shadow-3xl ${msg.role === 'user' ? 'bg-orange-600 text-white rounded-tr-none border border-orange-500 shadow-orange-950/20' : 'bg-gray-900 border border-white/10 text-gray-100 rounded-tl-none ring-1 ring-white/5'}`}>
                       <FormattedMessage text={msg.text} role={msg.role} />
-                      <div className={`absolute top-0 ${msg.role === 'user' ? '-right-1 border-l-orange-600' : '-left-1 border-r-gray-900'} w-0 h-0 border-[6px] border-transparent border-t-[10px] border-t-transparent`}></div>
                     </div>
                   </div>
                 ))}
@@ -2144,181 +1748,47 @@ const App: React.FC = () => {
                     <Send size={24} className="group-hover:rotate-12 transition-transform" />
                   </button>
                 </div>
-                <div className="mt-3 flex items-center justify-between px-6 opacity-30">
-                   <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest italic">Neural Kernel v6.3.0 // Ready</p>
-                   <p className="text-[8px] font-bold text-gray-600 uppercase">Input encrypted</p>
-                </div>
               </div>
             </div>
           )}
 
-          {activeTab === 'talents' && (
-            <div className="space-y-10 animate-in fade-in pb-24">
-              <div className="p-12 bg-gradient-to-br from-orange-600/10 via-gray-950 to-orange-950/5 border border-orange-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
-                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
-                 <Trophy className="mx-auto mb-6 text-orange-500/20 group-hover:text-orange-500/40 transition-colors" size={64} />
-                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Talent Growth Matrix</h3>
-                 <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] italic">Strategic Leveling Cost Projection</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem] space-y-8">
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Current Talent Level</label>
-                      <input type="number" min="1" max="205" value={currentTalent} onChange={(e) => setCurrentTalent(Math.max(1, parseInt(e.target.value) || 0))} className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-2xl font-black text-white outline-none focus:border-orange-500/50 transition-all tabular-nums" />
+          {/* Other tabs like xp, meta, dragons... */}
+          {activeTab === 'meta' && (
+            <div className="space-y-12">
+               {displayOrder.map(cat => {
+                  if (categoryFilter !== 'All' && categoryFilter !== cat) return null;
+                  const items = filteredData.filter(i => i.category === cat);
+                  if (items.length === 0) return null;
+                  const sortedItems = [...items].sort((a, b) => {
+                    const aEquipped = equippedItems.has(a.id); const bEquipped = equippedItems.has(b.id);
+                    if (aEquipped && !bEquipped) return -1; if (!aEquipped && bEquipped) return 1; return 0;
+                  });
+                  return (
+                    <div key={cat} className="space-y-6">
+                      <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] border-l-4 border-orange-600 pl-4 italic flex items-center gap-3"><span className="text-xl">{categoryEmojis[cat]}</span> {cat === 'Hero' ? 'HEROES' : (cat === 'Pet Farm Eggs' ? 'PET FARM EGGS' : cat + 'S')}</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {sortedItems.map(item => {
+                          const isEquipped = equippedItems.has(item.id);
+                          return (
+                            <div key={item.id} onClick={() => { setSelectedItem(item); playSfx('click'); }} className="cursor-pointer group">
+                              <Card tier={item.tier} className={`transition-all duration-500 ${isEquipped ? 'border-orange-500/70 shadow-[0_0_30px_rgba(249,115,22,0.2)] ring-2 ring-orange-500/30' : 'hover:scale-[1.02]'}`}>
+                                <div className="flex items-center justify-between">
+                                  <Badge tier={item.tier} />
+                                  <button onClick={(e) => { e.stopPropagation(); toggleEquip(item.id); }} className={`p-2 rounded-xl border transition-all ${isEquipped ? 'bg-orange-600 border-orange-400 text-white' : 'bg-white/5 border-white/5 text-gray-600'}`}>
+                                    {isEquipped ? <Check size={14} /> : <Box size={14} />}
+                                  </button>
+                                </div>
+                                <h3 className={`text-lg font-black uppercase italic tracking-tighter mt-3 ${isEquipped ? 'text-orange-400' : 'text-white'}`}>{item.name}</h3>
+                                <p className="text-[10px] text-gray-500 mt-2 line-clamp-2">{item.desc}</p>
+                              </Card>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Target Talent Level</label>
-                      <input type="number" min="2" max="206" value={targetTalent} onChange={(e) => setTargetTalent(Math.max(1, parseInt(e.target.value) || 0))} className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-2xl font-black text-white outline-none focus:border-orange-500/50 transition-all tabular-nums" />
-                    </div>
-                  </div>
-                  <div className="p-6 bg-blue-600/5 border border-blue-500/10 rounded-2xl flex items-start gap-4">
-                    <InfoIcon className="text-blue-500 mt-1 shrink-0" size={16} />
-                    <p className="text-[11px] text-gray-400 italic leading-relaxed">Costs increase geometrically. Projections include base scaling for the current Archero v6.3 metadata.</p>
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] shadow-inner relative group overflow-hidden">
-                    <Coins className="absolute -bottom-6 -right-6 text-orange-500/5 group-hover:rotate-12 transition-transform duration-1000" size={160} />
-                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-4">Cumulative Gold Req.</p>
-                    <div className="text-5xl font-black text-white italic tracking-tighter mb-2 tabular-nums">{talentsCost.gold.toLocaleString()}</div>
-                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest">Calculated for {Math.abs(targetTalent - currentTalent)} Upgrades</p>
-                  </div>
-                  <div className="p-10 bg-gray-950 border border-white/10 rounded-[3.5rem] shadow-inner relative group overflow-hidden">
-                    <ScrollText className="absolute -bottom-6 -right-6 text-blue-500/5 group-hover:rotate-12 transition-transform duration-1000" size={160} />
-                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4">Total Talent Scrolls</p>
-                    <div className="text-5xl font-black text-white italic tracking-tighter mb-2 tabular-nums">{talentsCost.scrolls.toLocaleString()}</div>
-                    <p className="text-[8px] font-bold text-gray-700 uppercase tracking-widest">Archive Precision: High</p>
-                  </div>
-                </div>
-              </div>
+                  );
+               })}
             </div>
-          )}
-
-          {activeTab === 'formula' && (
-            <div className="space-y-6 animate-in fade-in pb-12">
-              <div className="p-6 bg-amber-600/10 border border-amber-500/20 rounded-3xl flex items-start gap-4">
-                <AlertCircle className="text-amber-500 shrink-0" size={20} />
-                <p className="text-[11px] font-medium text-amber-100/80 leading-relaxed italic"><span className="font-black text-amber-500 uppercase tracking-wider block mb-1">Manual Calibration:</span> Input hero attributes from character screen. Using compact curved rectangles for efficiency.</p>
-              </div>
-              <div className="p-10 bg-gray-950/90 border border-white/5 rounded-[3rem] text-center shadow-inner relative ring-1 ring-white/5">
-                <p className="text-[11px] font-black text-gray-600 uppercase mb-3 tracking-[0.2em]">Effective Multiplier</p>
-                <div className="text-5xl sm:text-6xl md:text-7xl font-black text-white italic tracking-tighter tabular-nums">{formulaResult.toLocaleString()}</div>
-                <p className="text-[10px] text-orange-500 font-black uppercase mt-4 tracking-[0.3em]">Base Damage Capacity</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[{ k: 'baseAtk', l: 'Raw ATK' }, { k: 'atkPercent', l: 'ATK %' }, { k: 'weaponDmgPercent', l: 'Weapon Dmg %' }, { k: 'critDmg', l: 'Crit Dmg %' }].map(s => (
-                  <div key={s.k} className="px-6 py-3 bg-gray-900/60 border border-white/5 rounded-2xl focus-within:border-orange-500/40 transition-all flex flex-col justify-center h-16 shadow-lg">
-                    <label className="text-[8px] font-black text-gray-600 uppercase block mb-0.5 tracking-[0.2em]">{s.l}</label>
-                    <input type="number" value={(fInputs as any)[s.k]} onChange={e => setFInputs(p => ({ ...p, [s.k]: Number(e.target.value) }))} className="bg-transparent text-white text-lg font-black outline-none w-full tabular-nums selection:bg-orange-500/30" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'dragons' && (
-            <div className="space-y-10 animate-in fade-in pb-12"><div className={`p-10 rounded-[3.5rem] border transition-all ${dragonSynergy ? 'bg-orange-600/10 border-orange-500/40' : 'bg-gray-900/40 border-white/5'} shadow-2xl`}><div className="flex items-center justify-between mb-8"><div><h4 className="text-xl font-black text-white uppercase italic tracking-tight flex items-center gap-3"><Flame size={24} className={dragonSynergy ? 'text-orange-500' : 'text-gray-600'}/> Magestone Core</h4><p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-1">{dragonSynergy ? "Resonance Optimized" : "Incomplete Synchronization"}</p></div>{dragonSynergy && <Sparkles className="text-orange-500 animate-pulse" size={24} />}</div><div className="grid grid-cols-1 gap-6">{['slot1', 'slot2', 'slot3'].map((slot, i) => { const selected = DRAGON_DATA.find(d => d.id === (dragons as any)[slot]); return (<div key={slot} className="p-6 bg-black/40 rounded-[2.5rem] border border-white/5 flex flex-col gap-4"><CustomSelect options={DRAGON_DATA.map(d => ({ id: d.id, name: d.name, subtitle: (d as BaseItem).dragonType }))} value={(dragons as any)[slot]} onChange={(val) => handleEquipDragon(slot as any, val)} placeholder={`Assign Dragon Socket ${i+1}`} />{selected && (<div className="px-2 space-y-2 animate-in fade-in slide-in-from-left-2">{selected.deepLogic && <p className="text-[11px] font-bold text-orange-400 italic">Skill: {selected.deepLogic}</p>}<p className="text-[9px] text-gray-500 leading-relaxed font-medium">{selected.desc}</p></div>)}</div>); })}</div></div><div className="p-8 bg-black/20 rounded-[3rem] border border-white/5"><p className="text-[10px] font-black text-gray-600 uppercase mb-4 flex items-center gap-2"><Lightbulb size={12}/> Pro Tip</p><p className="text-[11px] text-gray-400 italic leading-relaxed">Assign unique dragons to each socket. Resonance is triggered by having one of each Type (Attack, Defense, Balance).</p></div></div>
-          )}
-
-          {activeTab === 'refine' && (
-            <div className="space-y-10 animate-in fade-in pb-12"><div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group"><div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div><Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} /><p className="text-[11px] font-black text-orange-500 uppercase mb-2 tracking-[0.4em]">Estimated Essence Yield</p><div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div><p className="text-[9px] font-black text-gray-600 uppercase mt-2 tracking-[0.2em]">Glyph Essence Units</p></div><div className="mt-12 grid grid-cols-2 gap-4"><CustomSelect options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))} value={smeltItem} onChange={(v) => setVsItemA(v as any)} placeholder="Select Rarity..." /><div className="relative group"><input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" /><span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase tracking-widest">Qty</span></div></div><div className="space-y-4"><h5 className="px-4 text-[10px] font-black text-orange-500 uppercase tracking-widest italic">Smelt Optimization Tips</h5><div className="grid grid-cols-1 gap-3">{REFINE_TIPS.map((tip, i) => (<div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl flex items-start gap-4"><ShieldCheck className="text-orange-500 mt-1 shrink-0" size={16} /><p className="text-[11px] text-gray-300 font-medium italic leading-relaxed">{tip}</p></div>))}</div></div></div>
-          )}
-
-          {activeTab === 'analyze' && (
-            <div className="flex flex-col min-h-full animate-in fade-in pb-24 space-y-10"><div className={`transition-all duration-700 relative ${simResult ? 'p-8 bg-blue-900/10 border border-blue-500/20 rounded-[3rem]' : 'p-16 bg-gray-950 border-2 border-blue-500/20 rounded-[4rem] shadow-4xl'}`}>{!simResult && <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-blue-500/5 opacity-20 pointer-events-none animate-pulse"></div>}<div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none"><ScanIcon size={simResult ? 100 : 200} className="animate-pulse" /></div><div className={`relative z-10 flex flex-col items-center text-center ${simResult ? 'gap-4' : 'gap-10'}`}><div className={`transition-all duration-700 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center border border-blue-500/20 shadow-inner ${simResult ? 'w-16 h-16' : 'w-32 h-32'}`}><BrainCircuit size={simResult ? 24 : 64} className="text-blue-500 animate-pulse" /></div><div><h4 className={`${simResult ? 'text-lg' : 'text-3xl'} font-black text-white uppercase italic tracking-tighter transition-all duration-700`}>Strategic Synthesis</h4>{!simResult && <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mt-3 italic">Neural Network V6.3 Uplink</p>}</div><div className={`w-full max-w-sm transition-all ${simResult ? 'flex gap-4' : 'space-y-6'}`}><CustomSelect options={HERO_DATA.map(h => ({ id: h.id, name: h.name, subtitle: h.tier }))} value={buildHero} onChange={(val) => setBuildHero(val)} placeholder="Select Hero Target..." className="flex-1" /><button onClick={runSimulation} disabled={isSimulating} className={`transition-all duration-500 bg-blue-600 text-white font-black uppercase rounded-3xl hover:bg-blue-500 flex items-center justify-center gap-4 disabled:opacity-30 shadow-xl active:scale-95 ${simResult ? 'px-6 py-2 text-[10px]' : 'w-full py-6 text-[14px]'}`}>{isSimulating ? <Loader2 size={18} className="animate-spin"/> : <Zap size={18} className="fill-current"/>}<span>{isSimulating ? 'Processing...' : simResult ? 'RE-SYNTH' : 'INITIATE ANALYSIS'}</span></button></div></div></div>{simResult ? (<div className="space-y-6 animate-in slide-in-from-bottom-10 fade-in duration-700 pb-20"><div className="flex items-center justify-between px-6 relative"><div className="flex items-center gap-3"><Pulse size={16} className="text-blue-500 animate-pulse" /><span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Neural Output: Finalizing Build Path</span></div><div className="relative"><button onClick={() => { setIsSimMenuOpen(!isSimMenuOpen); playSfx('click'); }} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-blue-500"><MoreHorizontal size={20} /></button>{isSimMenuOpen && (<div className="absolute right-0 top-full mt-2 w-48 bg-gray-950 border border-white/10 rounded-2xl py-2 shadow-4xl z-[200] animate-in fade-in slide-in-from-top-2"><button onClick={() => { navigator.clipboard.writeText(simResult); playSfx('click'); setIsSimMenuOpen(false); showToast('Build Report copied.', 'success'); }} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><Copy size={14} /> <span>Copy to Clipboard</span></button><button onClick={() => { const element = document.createElement("a"); const file = new Blob([simResult], {type: 'text/plain'}); element.href = URL.createObjectURL(file); element.download = `Archero_Synthesis_${buildHero}_${Date.now()}.txt`; document.body.appendChild(element); element.click(); playSfx('click'); setIsSimMenuOpen(false); showToast('Tactical Report exported.', 'success'); }} className="w-full px-5 py-3 flex items-center gap-3 text-[11px] font-black uppercase text-gray-400 hover:text-white hover:bg-white/5 transition-all"><FileText size={14} /> <span>Export as .txt</span></button></div>)}</div></div><div className="p-12 bg-gray-900/60 border-l-4 border-l-blue-500 border-y border-r border-white/5 rounded-r-[4rem] rounded-l-[1.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden ring-1 ring-white/5"><div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div><div className="text-[16px] text-gray-200 leading-[2.2] italic whitespace-pre-wrap font-medium relative z-10 selection:bg-blue-500/30"><FormattedMessage text={simResult} role="model" /></div></div></div>) : !isSimulating && (<div className="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-20 animate-in fade-in duration-1000 delay-500"><Radar size={80} className="text-gray-500 mb-8 animate-ping" style={{animationDuration: '4s'}} /><div className="space-y-2"><p className="text-sm font-black uppercase tracking-[0.5em] text-gray-400">Deep Search Inactive</p><p className="text-[10px] font-bold text-gray-600 italic">Target selection required for tactical projection.</p></div></div>)}{isSimulating && (<div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in"><div className="relative"><Loader2 size={120} className="text-blue-500/20 animate-spin" /><BrainCircuit size={48} className="text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" /></div><div className="mt-12 text-center space-y-4"><p className="text-xl font-black italic text-white uppercase tracking-tighter">Synthesizing Tactical Matrix</p></div></div>)}</div>
-          )}
-
-          {activeTab === 'immunity' && (
-            <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p><div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[{ label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) }, { label: 'Atreus Level 80 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }, { label: 'Onir 7-Star Passive (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) }, { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, locket: v})) }].map((row, i) => (<div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between"><span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>{row.hasOwnProperty('val') ? (<input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />) : (<button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>{row.check && <CheckCircle2 size={14}/>}</button>)}</div>))}</div></div>
-          )}
-
-          {activeTab === 'dps' && (
-             <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projected Effective DPS</p><div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter">{calculatedDPS.toLocaleString()}</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Integrated Combat Potency</p></div><div className="grid grid-cols-2 gap-4">{[{ k: 'baseAtk', l: 'Raw ATK' }, { k: 'critChance', l: 'Crit Chance %' }, { k: 'critDmg', l: 'Crit Dmg %' }, { k: 'atkSpeed', l: 'Atk Speed %' }].map(s => (<div key={s.k} className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem]"><label className="text-10px] font-black text-gray-600 uppercase block mb-2">{s.l}</label><input type="number" value={(calcStats as any)[s.k]} onChange={e => setCalcStats(p => ({...p, [s.k]: Number(e.target.value)}))} className="bg-transparent text-white text-3xl font-black outline-none w-full" /></div>))}</div></div>
-          )}
-
-          {activeTab === 'farming' && (
-            <div className="space-y-6 pb-40 animate-in fade-in">
-              {/* Ancient Maze Portal Guide */}
-              <div className="p-6 bg-gray-950/60 border border-white/5 rounded-[2.5rem] space-y-4 shadow-xl">
-                <div className="flex items-center justify-between px-2">
-                  <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] italic flex items-center gap-2">
-                    <Map size={14} className="text-orange-500" /> Ancient Maze Portal Intel
-                  </h4>
-                  <span className="text-[8px] font-black text-purple-500 uppercase tracking-widest animate-pulse italic">Priority: Tactical Shards</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="p-4 bg-green-600/10 border border-green-500/20 rounded-2xl flex flex-col items-center text-center gap-2 group transition-all hover:bg-green-600/20 hover:scale-105 active:scale-95">
-                    <Package size={20} className="text-green-500" />
-                    <div>
-                      <p className="text-[7px] font-black text-green-700 uppercase leading-none mb-1">Green</p>
-                      <p className="text-[9px] font-black text-white italic uppercase truncate tracking-tight">Equipment</p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex flex-col items-center text-center gap-2 group transition-all hover:bg-blue-600/20 hover:scale-105 active:scale-95">
-                    <Gem size={20} className="text-blue-500" />
-                    <div>
-                      <p className="text-[7px] font-black text-blue-700 uppercase leading-none mb-1">Blue</p>
-                      <p className="text-[9px] font-black text-white italic uppercase truncate tracking-tight">Sapphires</p>
-                    </div>
-                  </div>
-                  <div className="relative p-4 bg-purple-600/20 border-2 border-purple-500/50 rounded-2xl flex flex-col items-center text-center gap-2 group transition-all hover:bg-purple-600/30 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(168,85,24,0.2)]">
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-[6px] font-black text-white px-2 py-0.5 rounded-full whitespace-nowrap tracking-widest border border-purple-400 shadow-md">BEST CHOICE</div>
-                    <Sparkles size={20} className="text-purple-400 animate-pulse" />
-                    <div>
-                      <p className="text-[7px] font-black text-purple-700 uppercase leading-none mb-1">Purple</p>
-                      <p className="text-[9px] font-black text-white italic uppercase truncate tracking-tight">Soulstones</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4 px-2">
-                <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] italic flex items-center gap-2"><Zap size={14} className="animate-pulse" /> ACTIVE OPERATIONS (TODAY)</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {DAILY_EVENTS.filter(e => e.days.includes(currentDay)).map(event => (
-                    <div key={event.id} className={`p-6 bg-gradient-to-br ${getEventColor(event.color)} rounded-[2.5rem] border shadow-2xl flex flex-col justify-between h-full relative overflow-hidden group`}>
-                      <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity"><MapPin size={80} /></div>
-                      <div className="flex justify-between items-start mb-5 relative z-10"><div><h5 className="text-base font-black text-white uppercase italic tracking-tighter">{event.name}</h5><p className="text-[8px] font-bold text-white/60 uppercase tracking-widest mt-0.5">Tactical Objective Active</p></div><div className="p-3 bg-black/20 rounded-2xl border border-white/10 backdrop-blur-md"><Timer size={16} className="text-white" /></div></div>
-                      <div className="space-y-3 relative z-10"><p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Expected Spoils</p><div className="flex flex-wrap gap-2">{event.rewards.map(r => (<span key={r} className="px-3 py-1 bg-black/40 border border-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-tighter">{r}</span>))}</div></div>
-                      <div className="mt-5 pt-4 border-t border-white/10 relative z-10"><button onClick={() => { setActiveTab('events'); playSfx('tab'); }} className="text-[8px] font-black text-white uppercase tracking-widest flex items-center gap-2 hover:opacity-70">VIEW INTEL BRIEFING <ChevronRight size={10} /></button></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-6 py-4 bg-gray-900/60 rounded-[2rem] border border-white/5 sticky top-[130px] z-50 backdrop-blur-xl shadow-lg mt-8"><SortHeader label="Resource" field="resource" currentSort={farmingSort} /><SortHeader label="Chapter" field="chapter" currentSort={farmingSort} /><SortHeader label="Efficiency" field="efficiency" currentSort={farmingSort} /><SortHeader label="Avg Time" field="avgTime" currentSort={farmingSort} /></div>
-              {filteredFarming.length === 0 ? (<div className="text-center py-20 opacity-30"><Compass size={48} className="mx-auto mb-4 animate-spin-slow" /><p className="text-xs font-black uppercase tracking-widest">No routes found</p></div>) : (filteredFarming.map((route) => (
-                    <div key={route.id} className={`bg-gray-900/40 backdrop-blur-md border border-white/10 rounded-[2.5rem] overflow-hidden transition-all duration-500 ${expandedFarmingId === route.id ? 'ring-2 ring-orange-500/30 shadow-4xl scale-[1.01]' : 'hover:border-white/20'}`}>
-                      <button onClick={() => { setExpandedFarmingId(expandedFarmingId === route.id ? null : route.id); playSfx('click'); }} className="w-full p-6 flex items-center justify-between group relative overflow-hidden"><div className="flex items-center gap-6 text-left relative z-10"><div className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center font-black border transition-colors ${route.efficiency === 'SSS' ? 'text-red-500 border-red-500/20 bg-red-500/5' : route.efficiency === 'SS' ? 'text-orange-500 border-orange-500/20 bg-orange-500/5' : 'text-blue-500 border-blue-500/20 bg-blue-500/5'}`}><span className="text-[10px] uppercase opacity-60">Eff</span><span className="text-xl leading-none">{route.efficiency}</span></div><div><div className="flex items-center gap-2"><span className={`text-[8px] font-black px-2 py-0.5 rounded border uppercase ${route.difficulty === 'Hero' ? 'border-red-500 text-red-500' : 'border-blue-500 text-blue-500'}`}>{route.difficulty}</span><p className="text-lg font-black text-white uppercase italic tracking-tighter">{route.chapter}</p></div><div className="flex items-center gap-4 mt-1"><p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{route.resource}</p><span className="w-1 h-1 bg-gray-700 rounded-full"></span><p className="text-[9px] font-medium text-gray-500 italic">Est. {route.avgTime}</p></div></div></div><div className="flex items-center gap-3 relative z-10"><div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-black/40 rounded-xl border border-white/5"><User size={12} className="text-gray-500" /><span className="text-[9px] font-black text-gray-300 uppercase">{route.bestHero}</span></div><ChevronDown size={20} className={`text-gray-700 transition-transform duration-500 ${expandedFarmingId === route.id ? 'rotate-180 text-orange-500' : ''}`} /></div></button>
-                      {expandedFarmingId === route.id && (<div className="p-8 space-y-8 bg-black/40 border-t border-white/5 animate-in slide-in-from-top-4 duration-300"><div className="grid grid-cols-2 sm:grid-cols-4 gap-4"><div className="p-4 bg-white/5 border border-white/5 rounded-2xl"><p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Efficiency</p><p className="text-xs font-black text-white italic">{route.efficiency} Rank</p></div><div className="p-4 bg-white/5 border border-white/5 rounded-2xl"><p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Loot Projection</p><p className="text-xs font-black text-white italic">{route.lootRate}</p></div><div className="p-4 bg-white/5 border border-white/5 rounded-2xl"><p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Avg Duration</p><p className="text-xs font-black text-white italic">{route.avgTime}</p></div><div className="p-4 bg-white/5 border border-white/5 rounded-2xl"><p className="text-[8px] font-black text-gray-500 uppercase mb-1 tracking-widest">Tactical Asset</p><p className="text-xs font-black text-white italic">{route.bestHero}</p></div></div><div className="space-y-6"><div className="space-y-2"><h5 className="flex items-center gap-2 text-[10px] font-black text-orange-500 uppercase tracking-widest"><MapPin size={12}/> Tactical Briefing</h5><p className="text-xs text-gray-300 leading-relaxed italic font-medium bg-black/20 p-4 rounded-2xl border border-white/5">{route.strategy}</p></div><div className="space-y-2"><h5 className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest"><Lightbulb size={12}/> Mentor's Pro-Tip</h5><div className="p-4 bg-blue-600/10 border border-blue-500/20 rounded-2xl text-[11px] text-blue-100/80 italic font-bold">{route.proTip}</div></div></div></div>)}
-                    </div>
-                  )))}
-            </div>
-          )}
-
-          {activeTab === 'relics' && (
-            <div className="space-y-8 animate-in fade-in pb-12"><div className="p-10 bg-gradient-to-br from-purple-900/10 via-gray-950 to-purple-950/5 border border-purple-500/20 rounded-[4rem] text-center shadow-4xl"><h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4 flex items-center justify-center gap-4"><Archive size={32} className="text-purple-500 animate-pulse"/> Relic Archive Protocols</h3><p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] italic">Full Tactical Database Sync: v6.3.0</p></div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {filteredRelics.length === 0 ? (<div className="col-span-full py-20 text-center opacity-30"><Search size={48} className="mx-auto mb-4" /><p className="text-xs font-black uppercase tracking-widest">No matching relics found</p></div>) : (filteredRelics.map((r, index) => (
-                      <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${getRelicStyles(r.tier).card}`}><div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${getRelicStyles(r.tier).iconContainer}`}><RelicIcon type={r.iconType} className="w-8 h-8" /></div><p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p><div className="flex items-center gap-2 mt-1"><span className={`text-[8px] font-bold uppercase tracking-widest ${r.tier === 'Holy' ? 'text-red-400' : r.tier === 'Radiant' ? 'text-yellow-400' : 'text-blue-400'}`}>{r.tier} Archive</span></div></div>
-                    )))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'jewels' && (
-            <div className="space-y-8 animate-in fade-in pb-12">
-              <div className="p-8 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] flex flex-col gap-6 shadow-2xl"><div className="flex items-center justify-between"><div className="flex items-center gap-4"><div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400"><Binary size={24}/></div><div><h3 className="text-xl font-black text-white uppercase italic tracking-tight">Jewel Laboratory</h3></div></div><div className="px-4 py-2 bg-black/40 border border-white/5 rounded-xl text-center"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Slot Total LV</p><p className="text-sm font-black text-blue-400">{jewelSimLevel}</p></div></div><input type="range" min="4" max="48" value={jewelSimLevel} onChange={(e) => setJewelSimLevel(parseInt(e.target.value))} className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-blue-500" /><div className="flex justify-between text-[8px] font-black text-gray-600 uppercase tracking-widest px-1"><span>LV 4</span><span>LV 28</span><span>LV 48</span></div></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredJewels.map(j => (
-                  <div key={j.id} onClick={() => { setSelectedItem({...j, category: 'Jewel'}); playSfx('click'); }} className="cursor-pointer group relative"><div className={`p-8 bg-gradient-to-br ${getJewelColorClasses(j.color)} rounded-[3rem] border border-white/10 shadow-2xl transition-all duration-500 hover:scale-[1.03] active:scale-95 flex flex-col gap-6 h-full`}><div className="flex justify-between items-start"><div className="flex items-center gap-4"><div className="w-14 h-14 bg-black/40 rounded-[1.4rem] border border-white/10 flex items-center justify-center transition-transform duration-500"><Gem size={28} /></div><div><h4 className="text-xl font-black text-white uppercase italic tracking-tighter leading-none">{j.name}</h4><p className="text-[10px] font-bold opacity-60 uppercase mt-1">Individual Gem</p></div></div></div><div className="p-4 bg-black/20 rounded-2xl border border-white/5"><p className="text-[9px] font-black uppercase text-gray-400 mb-1">LV {Math.min(12, Math.floor(jewelSimLevel / 4))} Projection</p><p className="text-sm font-black text-white italic">{j.statType} +{Math.round(j.baseStat + (j.statPerLevel * Math.max(0, Math.floor(jewelSimLevel / 4) - 1)))}</p></div></div></div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'lab' && (
-            <div className="space-y-10 animate-in fade-in pb-20"><div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[3rem] text-center"><h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Stutter-Step Reflex Trainer</h4><p className="text-[10px] text-orange-500 font-black uppercase tracking-widest mb-2 block">Calibrate Weapon Weight</p><div className="grid grid-cols-4 gap-2">{Object.entries(WEAPON_SPEEDS).map(([key]) => (<button key={key} onClick={() => setSelectedWeapon(key)} className={`p-2 rounded-lg text-xs font-bold border transition-all ${selectedWeapon === key ? 'bg-amber-600 border-amber-500 text-white shadow-lg scale-105' : 'bg-gray-800 border-gray-700 text-gray-500 hover:bg-gray-700'}`}>{key}</button>))}</div></div><div className="relative w-48 h-48 mx-auto mb-8 flex items-center justify-center"><div className={`absolute w-20 h-20 rounded-full border-4 z-10 flex items-center justify-center bg-gray-900 transition-all duration-100 ${efficiency >= 140 ? 'border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] scale-110' : efficiency === 0 && stutterStreak === 0 ? 'border-red-500 opacity-50' : 'border-gray-600'}`}><span className="text-3xl">⚔️</span></div><svg className="w-full h-full transform -rotate-90" viewBox="0 0 192 192"><circle cx="96" cy="96" r="82" fill="transparent" stroke="#1f2937" strokeWidth="12" /><circle cx="96" cy="96" r="82" fill="transparent" stroke="#15803d" strokeWidth="12" strokeDasharray="103 515" strokeDashoffset="-309" strokeLinecap="round" className="opacity-40" /><circle cx="96" cy="96" r="82" fill="transparent" stroke={stutterProgress >= 60 && stutterProgress <= 80 ? '#fbbf24' : '#6b7280'} strokeWidth="12" strokeDasharray="515" strokeDashoffset={515 - (515 * stutterProgress) / 100} strokeLinecap="round" className="transition-all duration-75 ease-linear" /></svg>{stutterStreak > 0 && (<div className="absolute -bottom-4 bg-amber-600 text-white px-3 py-1 rounded-full text-xs font-black animate-bounce shadow-lg">{stutterStreak}x COMBO</div>)}</div><div className="flex flex-col items-center gap-8"><button onMouseDown={() => { if (!stutterActive) return; let score = 0; let feedback = "MISS!"; if (stutterProgress >= 60 && stutterProgress <= 80) { const bonus = 20 - (stutterProgress - 60); score = 140 + bonus; feedback = score >= 155 ? "FRAME PERFECT!" : "PERFECT!"; setStutterStreak(s => s + 1); } else if (stutterProgress > 80 && stutterProgress < 100) { score = 100; feedback = "LATE"; setStutterStreak(0); } else { score = 0; feedback = "MISS!"; setStutterStreak(0); } setEfficiency(Math.round(score)); setStutterFeedback(feedback); setStutterProgress(0); playSfx('click'); }} className="w-44 h-44 rounded-full bg-orange-600 border-[10px] border-orange-500 shadow-[0_0_50px_rgba(249,115,22,0.3)] flex items-center justify-center text-white font-black text-2xl uppercase italic active:scale-90 transition-all select-none">ATTACK</button><button onClick={() => { setStutterActive(!stutterActive); setStutterFeedback(null); setStutterProgress(0); setEfficiency(0); playSfx('tab'); }} className={`px-10 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] border transition-all ${stutterActive ? 'bg-red-600/20 border-red-500/50 text-red-500' : 'bg-green-600/20 border-green-500/50 text-green-500'}`}>{stutterActive ? 'HALT SIMULATION' : 'INITIALIZE NEURAL LINK'}</button></div></div>
           )}
         </div>
       </main>
@@ -2327,58 +1797,24 @@ const App: React.FC = () => {
         <div ref={navScrollRef} className="w-full max-w-3xl overflow-x-auto no-scrollbar flex items-center gap-2 px-4 pb-2 touch-pan-x draggable-content" onMouseDown={(e) => handleDragStart(e, navScrollRef)}>{NAV_ITEMS.map(t => (<button key={t.id} onClick={(e) => handleInteractiveClick(e, () => handleTabChange(t.id as any))} className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-6 py-4 rounded-2xl transition-all duration-300 transform active:scale-90 relative ${activeTab === t.id ? 'text-orange-500 bg-white/5 ring-1 ring-white/10' : 'text-gray-500'}`}><t.icon size={20} className={activeTab === t.id ? 'animate-pulse' : ''} /><span className="text-[8px] font-black uppercase tracking-tight">{t.label}</span></button>))}</div>
       </nav>
 
-      {compareHeroIds.length > 0 && activeTab === 'meta' && (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[400] w-full max-w-[440px] px-6 animate-in zoom-in duration-300 pointer-events-none">
-          <div className="relative p-1 overflow-hidden rounded-[2.5rem] pointer-events-auto">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-white to-blue-500 animate-[shimmer_3s_infinite] opacity-40"></div>
-            <div className="relative bg-gray-950/95 backdrop-blur-3xl rounded-[2.3rem] p-4 flex items-center justify-between shadow-[0_0_80px_rgba(59,130,246,0.3)] ring-1 ring-white/20">
-              <div className="flex items-center gap-4 px-2"><div className="relative group"><div className="absolute -inset-2 bg-blue-500/20 rounded-full blur animate-pulse"></div><div className="relative w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/30"><Scale size={28} /></div></div><div className="text-left"><p className="text-[11px] font-black text-white uppercase tracking-[0.2em] leading-none flex items-center gap-2">Protocol <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span></p><p className="text-[10px] font-bold text-gray-400 uppercase mt-1.5 tracking-widest">{compareHeroIds.length} / 3 Heroes Locked</p><p className="text-[8px] font-black text-blue-500 uppercase mt-1 tracking-tighter opacity-70">Status: ARCHIVE LINK ACTIVE</p></div></div>
-              <div className="flex items-center gap-3"><button onClick={() => { setCompareHeroIds([]); playSfx('click'); }} className="p-3 text-gray-500 hover:text-red-500 transition-colors group"><X size={24} className="group-hover:rotate-90 transition-transform duration-300" /></button><button onClick={() => { setIsCompareModalOpen(true); playSfx('click'); }} disabled={compareHeroIds.length < 2} className="bg-orange-600 hover:bg-orange-500 disabled:opacity-30 text-white px-10 py-4 rounded-2xl text-[14px] font-black uppercase tracking-[0.1em] italic transition-all shadow-[0_0_25px_rgba(249,115,22,0.4)] active:scale-95 active:shadow-inner border-b-4 border-orange-800">LAUNCH</button></div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isCompareModalOpen && (
-        <div className="fixed inset-0 z-[2500] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => setIsCompareModalOpen(false)} /><div className="relative w-full max-w-4xl bg-[#030712] border border-white/10 rounded-[3.5rem] p-8 md:p-12 max-h-[92vh] overflow-y-auto no-scrollbar animate-in zoom-in-95 shadow-4xl overflow-x-hidden ring-1 ring-white/5"><div className="flex items-center justify-between mb-10"><div className="flex items-center gap-4"><div className="p-4 bg-blue-600/20 border border-blue-500/30 rounded-2xl text-blue-500"><Combat size={28} /></div><div><h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Tactical Head-to-Head</h2><p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Archive Delta Analysis Protocol</p></div></div><button onClick={() => setIsCompareModalOpen(false)} className="p-4 bg-white/5 rounded-full border border-white/10 text-gray-400 hover:text-white transition-all"><X size={24}/></button></div>
-            {comparedHeroes.length === 2 && comparisonVerdict && (<div className="mb-12 p-8 bg-blue-600/5 border border-blue-500/20 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none"><ScanIcon size={120} /></div><div className="flex-1 space-y-4 text-center md:text-left relative z-10"><h4 className="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em]">Neural Link Verdict</h4><p className="text-xl font-black text-white italic leading-tight">"{comparisonVerdict.verdict}"</p><p className="text-[13px] text-gray-400 font-medium italic">Choosing between these legends depends on your chapter push style.</p></div><div className="w-px h-24 bg-white/10 hidden md:block" /><div className="flex items-center gap-6"><div className="text-center"><p className="text-[9px] font-black text-gray-500 uppercase mb-2">Alpha Unit</p><div className="w-12 h-12 bg-gray-900 rounded-xl border border-white/10 flex items-center justify-center text-xl">1</div></div><div className="text-2xl font-black text-blue-500 italic">VS</div><div className="text-center"><p className="text-[9px] font-black text-gray-500 uppercase mb-2">Beta Unit</p><div className="w-12 h-12 bg-gray-900 rounded-xl border border-white/10 flex items-center justify-center text-xl">2</div></div></div></div>)}
-            <div className="grid grid-cols-[140px_1fr_1fr] md:grid-cols-[180px_1fr_1fr] gap-4 md:gap-8 items-stretch"><div className="space-y-6 pt-32">{['Meta Tier', 'Global L120', 'Cost', 'Combat Style', 'Evo 4★ Perk'].map(label => (<div key={label} className="h-28 flex items-center px-4 bg-white/5 rounded-2xl border border-white/5"><span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-tight">{label}</span></div>))}</div>
-              {comparedHeroes.map((hero, idx) => (
-                  <div key={hero.id} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className={`p-6 rounded-3xl text-center flex flex-col items-center gap-4 relative border transition-all ${idx === 0 ? 'bg-orange-600/5 border-orange-500/20' : 'bg-blue-600/5 border-blue-500/20'}`}><div className="w-20 h-20 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-4xl shadow-inner">🦸</div><h3 className="text-xl md:text-2xl font-black text-white uppercase italic truncate w-full tracking-tighter">{hero.name}</h3><div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gray-900 rounded-full border border-white/10 text-[8px] font-black text-gray-400 uppercase tracking-widest">UNIT 0{idx + 1}</div></div>
-                    <div className={`h-28 p-6 bg-black/40 border rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${comparisonVerdict?.tierWinner === idx ? 'border-yellow-500/40 ring-1 ring-yellow-500/20 shadow-lg' : 'border-white/5'}`}><Badge tier={hero.tier} />{comparisonVerdict?.tierWinner === idx && <div className="flex items-center gap-1 text-yellow-500 text-[9px] font-black uppercase tracking-tighter"><Crown size={10} /> Dominant</div>}</div>
-                    <div className={`h-28 p-6 bg-black/40 border rounded-2xl flex flex-col items-center justify-center text-center transition-all ${comparisonVerdict?.bonusWinner === idx ? 'border-green-500/40 ring-1 ring-green-500/20' : 'border-white/5'}`}><p className="text-sm md:text-base font-black text-orange-500 italic uppercase">{hero.globalBonus120}</p>{comparisonVerdict?.bonusWinner === idx && <div className="mt-1 flex items-center gap-1 text-green-500 text-[9px] font-black uppercase tracking-tighter"><TrendingUp size={10} /> Offensive Edge</div>}</div>
-                    <div className="h-28 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center"><p className="text-[11px] font-bold text-purple-400 uppercase italic leading-tight">{hero.shardCost || "Event Exclusive"}</p></div>
-                    <div className="h-28 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar"><p className="text-[10px] md:text-[11px] font-medium text-blue-400 italic leading-snug">{hero.uniqueEffect || "Standard Build"}</p></div>
-                    <div className="h-28 p-6 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center text-center overflow-y-auto no-scrollbar"><p className="text-[10px] md:text-[11px] font-medium text-yellow-500/80 italic leading-snug">{hero.evo4Star || "Passive Only"}</p></div>
-                  </div>
-                ))}
-            </div>
-            <div className="mt-14 pt-8 border-t border-white/5 flex items-center justify-between opacity-30"><p className="text-[9px] font-black uppercase tracking-widest text-gray-500 italic">Alpha & Beta units isolated for architectural delta analysis.</p><p className="text-[8px] font-bold text-gray-700 uppercase">Archive Link Status: Stable</p></div>
-          </div>
-        </div>
-      )}
-
+      {/* Item Detail Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl animate-in fade-in" onClick={() => setSelectedItem(null)} /><div className="relative w-full max-w-3xl bg-[#030712] border border-white/10 rounded-[3.5rem] p-8 sm:p-14 max-h-[92vh] overflow-y-auto no-scrollbar animate-in zoom-in-95 shadow-4xl ring-1 ring-white/5"><button onClick={() => setSelectedItem(null)} className="absolute top-10 right-10 p-5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-transform active:scale-90 z-20"><X size={32}/></button>
-            <div className="space-y-12 pb-10"><div className="space-y-6"><div className="flex wrap items-center gap-3"><Badge tier={selectedItem.tier} /><span className="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-600/5 px-3 py-1 rounded-lg border border-orange-500/10">{selectedItem.category} Protocols</span></div><h2 className="text-5xl sm:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2><p className="text-[15px] text-gray-400 font-medium italic opacity-90 leading-relaxed max-w-lg">{selectedItem.desc}</p></div>
-              {selectedItem.category === 'Hero' ? (
-                <div className="space-y-10"><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="p-8 bg-gray-900 border border-white/10 rounded-[2.5rem] shadow-inner space-y-4"><h4 className="text-[10px] font-black text-gray-500 uppercase flex items-center gap-2 tracking-[0.2em]"><BookOpen size={14}/> Tactical Bio</h4><div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/5"><p className="text-[13px] text-gray-300 font-medium italic leading-[1.7]">{selectedItem.bio || "No historical data available for this unit."}</p></div></div><div className="p-8 bg-gray-900 border border-white/10 rounded-[2.5rem] shadow-inner space-y-6"><h4 className="text-[10px] font-black text-gray-500 uppercase flex items-center gap-2 tracking-[0.3em]"><Tag size={14}/> Acquisition Info</h4><div className="space-y-6"><div className="space-y-1"><p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Unlocking Threshold</p><p className="text-sm font-black text-purple-400 uppercase italic leading-tight">{selectedItem.shardCost || "Limited Event"}</p></div><div className="space-y-1"><p className="text-[8px] font-black text-gray-600 uppercase tracking-widest leading-none">Aesthetic Peak</p><p className="text-sm font-black text-yellow-500 uppercase italic leading-tight">{selectedItem.bestSkin || "Standard Issue"}</p></div><div className="space-y-1"><p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Neural Link L120 Payload</p><p className="text-sm font-black text-orange-500 uppercase italic leading-tight">{selectedItem.globalBonus120}</p></div></div></div></div><div className="grid grid-cols-1 gap-6"><div className="p-10 bg-blue-600/5 border border-blue-500/20 rounded-[3.5rem] shadow-inner relative overflow-hidden group"><div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity"><BrainCircuit size={140} /></div><h4 className="text-[11px] font-black text-blue-500 uppercase mb-8 flex items-center gap-3 tracking-[0.4em] relative z-10"><Scan size={24}/> NEURAL SYNTHESIS (META STRATEGY)</h4><div className="text-[15px] text-gray-200 font-medium leading-[2] italic whitespace-pre-wrap relative z-10 bg-black/40 p-8 rounded-[2.5rem] border border-white/5">{selectedItem.deepLogic}</div></div></div><div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    {selectedItem.starMilestones && selectedItem.starMilestones.length > 0 && (<div className="space-y-6"><h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4"><StarIcon size={20} className="text-yellow-500"/> EVOLUTION PATHWAY</h4><div className="grid grid-cols-1 gap-4">{selectedItem.starMilestones.map((milestone: StarMilestone, mIdx: number) => (<div key={mIdx} className={`p-6 bg-gray-900 border rounded-3xl flex items-center gap-6 relative transition-all hover:bg-white/5 ${milestone.stars >= 7 ? 'border-yellow-500/40 shadow-[0_0_20px_rgba(234,179,8,0.15)]' : 'border-white/5'}`}><div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-black/60 rounded-2xl border border-white/10 shadow-inner"><span className="text-[10px] font-black text-gray-500 uppercase leading-none">Star</span><span className="text-2xl font-black text-white italic leading-none mt-1">{milestone.stars}</span></div><div className="flex-1 space-y-1">{milestone.isGlobal && (<span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-600/20 text-blue-400 text-[8px] font-black uppercase rounded border border-blue-500/30 mb-1"><Globe size={10} /> Global Bonus</span>)}<p className={`text-[13px] font-bold italic leading-relaxed ${milestone.stars >= 7 ? 'text-yellow-400' : 'text-gray-200'}`}>"{milestone.effect}"</p></div></div>))}</div></div>)}
-                    {selectedItem.sunMilestones && selectedItem.sunMilestones.length > 0 && (<div className="space-y-6"><h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4"><Sun size={20} className="text-orange-500 animate-pulse"/> SUN EVOLUTION DETAILS</h4><div className="grid grid-cols-1 gap-4">{selectedItem.sunMilestones.map((milestone: SunMilestone, mIdx: number) => (<div key={mIdx} className="p-6 bg-orange-950/5 border border-orange-500/10 rounded-3xl flex items-center gap-6 relative transition-all hover:bg-orange-600/10"><div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-orange-600/20 rounded-2xl border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]"><span className="text-[10px] font-black text-orange-700 uppercase leading-none">Sun</span><span className="text-2xl font-black text-orange-500 italic leading-none mt-1">{milestone.level}</span></div><div className="flex-1 space-y-1">{milestone.isGlobal && (<span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-orange-600/20 text-orange-400 text-[8px] font-black uppercase rounded border border-blue-500/30 mb-1"><Globe size={10} /> Solar Global</span>)}<p className="text-[13px] font-bold italic leading-relaxed text-gray-200">"{milestone.effect}"</p></div><div className="absolute top-2 right-4 text-[8px] font-black text-orange-500 uppercase tracking-widest opacity-40 italic">Radiant Protocols</div></div>))}</div></div>)}
-                  </div><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="p-8 bg-gray-900 border border-white/10 rounded-[2.5rem] shadow-inner"><h4 className="text-[10px] font-black text-gray-500 uppercase mb-6 flex items-center gap-2 tracking-[0.2em]"><UserPlus size={14}/> Assist Heroes</h4><div className="flex flex-wrap gap-2">{selectedItem.assistHeroes?.map((heroId: string) => { const h = HERO_DATA.find(x => x.id.toLowerCase() === heroId.toLowerCase() || x.name === heroId); return (<button key={heroId} onClick={() => h && setSelectedItem(h)} className="px-5 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black text-gray-300 uppercase italic hover:border-blue-500/50 hover:text-white transition-all shadow-sm">{h?.name || heroId}</button>); })}</div></div><div className="p-8 bg-gray-900 border border-white/10 rounded-[2.5rem] shadow-inner"><h4 className="text-[10px] font-black text-gray-500 uppercase mb-6 flex items-center gap-2 tracking-[0.2em]"><HeartHandshake size={14}/> Best Gear Pairs</h4><div className="flex flex-wrap gap-2">{selectedItem.bestPairs?.map((pairId: string) => { const item = findItemByName(pairId); return (<button key={pairId} onClick={() => item && setSelectedItem(item)} className="px-5 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black text-orange-500 uppercase italic hover:border-orange-500/50 hover:text-white transition-all shadow-sm">{item?.name || pairId}</button>); })}</div></div></div>
-                  {selectedItem.gearSets && selectedItem.gearSets.length > 0 && (<div className="space-y-6"><h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] italic flex items-center gap-3 px-4"><Award size={20}/> SIGNATURE META LOADOUT</h4>{selectedItem.gearSets.map((set: GearSet, sIdx: number) => (<div key={sIdx} className="p-10 bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 rounded-[4rem] shadow-4xl space-y-10"><div className="flex items-center justify-between"><h5 className="text-2xl font-black text-white italic uppercase tracking-tighter">{set.name}</h5><button onClick={() => handleExportBuild(selectedItem.name, set)} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 hover:text-blue-400 border border-white/5"><Download size={22}/></button></div><div className="grid grid-cols-2 sm:grid-cols-3 gap-5"><BuildSlot label="Weapon" name={set.weapon} icon={Sword} /><BuildSlot label="Armor" name={set.armor} icon={Shield} /><BuildSlot label="Bracelet" name={set.bracelet} icon={Zap} /><BuildSlot label="Locket" name={set.locket} icon={Target} /><BuildSlot label="Book" name={set.book} icon={Book} /><BuildSlot label="Rings" name={set.rings[0]} icon={Circle} /></div><div className="p-8 bg-orange-600/5 border border-orange-500/20 rounded-[2.5rem]"><p className="text-[10px] font-black text-orange-500 uppercase mb-4 tracking-widest flex items-center gap-2"><Sparkles size={14}/> Synergy Protocol</p><p className="text-[14px] text-gray-200 italic leading-[1.8] font-medium">{set.synergy}</p></div></div>))}</div>)}
+            <div className="space-y-12 pb-10">
+              <div className="space-y-6">
+                <div className="flex wrap items-center gap-3"><Badge tier={selectedItem.tier} /><span className="text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-600/5 px-3 py-1 rounded-lg border border-orange-500/10">{selectedItem.category} Protocols</span></div>
+                <h2 className="text-5xl sm:text-6xl font-black text-white uppercase italic tracking-tighter leading-none">{selectedItem.name}</h2>
+                <p className="text-[15px] text-gray-400 font-medium italic opacity-90 leading-relaxed max-w-lg">{selectedItem.desc}</p>
+              </div>
+              <div className="p-10 bg-gray-900 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div>
+                <h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4>
+                <div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10 bg-black/40 p-8 rounded-[2rem] border border-white/5">
+                  {selectedItem.deepLogic || "No detailed analytical data available for this component."}
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-10"><div className="space-y-4">{selectedItem.deepLogic && (<div className="p-10 bg-gray-900 border border-white/10 rounded-[3rem] shadow-inner relative overflow-hidden group"><div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><BrainCircuit size={100} /></div><h4 className="text-[11px] font-black text-orange-500 uppercase mb-5 flex items-center gap-3 tracking-[0.3em] relative z-10"><ScrollText size={22}/> Deep Logic Summary</h4><div className="text-[15px] text-gray-100 font-medium leading-[1.8] italic whitespace-pre-wrap relative z-10 bg-black/40 p-8 rounded-[2rem] border border-white/5"><FormattedMessage text={selectedItem.deepLogic} role="model" /></div></div>)}</div>
-                  {selectedItem.category === 'Totem' && (<div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[2.5rem]"><p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Totem Power</p><p className="text-2xl font-black text-white italic">{selectedItem.desc}</p></div>)}
-                  {selectedItem.category === 'Relic' && (<div className="space-y-8"><div className="p-8 bg-gray-900/40 rounded-[2.5rem] border border-white/5 space-y-3"><h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] flex items-center gap-2"><ScrollText size={16} /> Relic Description</h4><p className="text-[14px] text-gray-100 font-medium leading-relaxed italic bg-black/20 p-6 rounded-2xl border border-white/5">{selectedItem.lore}</p></div><div className="grid grid-cols-2 gap-4"><div className="p-6 bg-white/5 rounded-2xl border border-white/5"><p className="text-[10px] font-black text-gray-500 uppercase mb-1">Archive Source</p><p className="text-sm font-black text-white uppercase italic">{selectedItem.source || "General Archive"}</p></div><div className="p-6 bg-white/5 rounded-2xl border border-white/5"><p className="text-[10px] font-black text-gray-500 uppercase mb-1">Primary Perk</p><p className="text-sm font-black text-orange-500 uppercase italic">{selectedItem.effect}</p></div></div></div>)}
-                </div>
-              )}
+              </div>
             </div>
-            <div className="mt-14 pt-10 border-t border-white/5 flex items-center justify-between opacity-30"><div className="flex items-center gap-3"><Terminal size={14} className="text-orange-500" /><span className="text-[9px] font-black uppercase tracking-widest text-gray-500">System Signature: v6.3.0_ZVA</span></div><p className="text-[8px] font-bold text-gray-700">© 2025 ZA ARMORY CORE</p></div>
           </div>
         </div>
       )}
@@ -2394,87 +1830,10 @@ function XPGuide() {
          <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">XP VELOCITY PROTOCOL</h3>
          <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.4em] italic">Mathematical Leveling Guide</p>
       </div>
-
       <div className="space-y-8">
         <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
-            <Calendar size={20} className="text-orange-500" /> 1. THE UCD PRIORITY (Mandatory)
-          </h4>
-          <div className="mt-4 space-y-4">
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Action:</span> Play "Up-Close Dangers" every 48 hours.
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
-              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> XP rewards scale based on your Play Count. You must play it often to increase the multiplier.
-            </p>
-            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-              <p className="text-[11px] font-bold italic text-gray-200">
-                <span className="text-gray-500 uppercase font-black text-[9px] mr-2">Loadout:</span> Equip 2x Bull Rings + "Greed" skill (Gold is required for levels).
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
-            <Trophy size={20} className="text-orange-500" /> 2. ACTIVE GRIND: Boss Rush
-          </h4>
-          <div className="mt-4 space-y-4">
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Target:</span> Hero Chapter 14 or Hero 21.
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Method:</span> Kill bosses, exit, skip Devils. Aim for runs under 3 minutes.
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
-              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> This yields the highest XP-per-minute in the game.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
-            <Ghost size={20} className="text-orange-500" /> 3. PASSIVE GRIND: Japanese Idle Strategy
-          </h4>
-          <div className="mt-4 space-y-4">
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Target:</span> Hero Chapter 10 or 16 (Wave Chapters).
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Method:</span> Enter room, stand still in center. Use Brightspear (instant hits).
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
-              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> Zero effort farming while working/studying.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl border-orange-500/30">
-          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
-            <Settings size={20} className="text-orange-500" /> 4. THE SETTINGS HACK (Crucial)
-          </h4>
-          <div className="mt-4 space-y-4">
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Action:</span> Go to Settings {"->"} Turn ON "Block Skill Display".
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
-              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> This skips the slot-machine animation on every level up. Saves ~50 minutes of real-time per 100 runs.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-8 bg-orange-600/10 border border-orange-500/40 rounded-[2.5rem] shadow-2xl">
-          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
-            <Activity size={20} className="text-orange-500" /> 5. ENERGY RULE
-          </h4>
-          <div className="mt-4 space-y-4">
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-200">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Rule:</span> Never let Energy sit at 20/20. You are losing XP.
-            </p>
-            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
-              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Dump:</span> Use Quick Raids on your highest unlocked Hero Chapter to spend energy instantly.
-            </p>
-          </div>
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3"><Calendar size={20} className="text-orange-500" /> 1. THE UCD PRIORITY</h4>
+          <p className="mt-4 text-[12px] font-medium leading-relaxed italic text-gray-300">Play "Up-Close Dangers" every 48 hours. XP rewards scale based on your total play count.</p>
         </div>
       </div>
     </div>
