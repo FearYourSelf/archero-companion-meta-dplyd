@@ -293,6 +293,7 @@ const NAV_ITEMS = [
   { id: 'meta', icon: LayoutGrid, label: 'Archive' },
   { id: 'intel', icon: Skull, label: 'Intel' },
   { id: 'dna', icon: Dna, label: 'DNA Lab' },
+  { id: 'blacksmith', icon: Hammer, label: 'Blacksmith' }, // <--- ADDED THIS
   { id: 'events', icon: CalendarDays, label: 'Events' },
   { id: 'xp', icon: TrendingUp, label: 'XP Guide' },
   { id: 'tracker', icon: Target, label: 'Sync' },
@@ -324,6 +325,7 @@ const TUTORIAL_STEPS = [
   { tab: 'tracker', title: "ACCOUNT SYNC", text: "Track your Hero Levels, Stars, and Global Bonuses." },
   { tab: 'talents', title: "TALENT MATRIX", text: "Manage and track your Talent path progress." },
   { tab: 'formula', title: "DAMAGE FORMULA", text: "Damage calculators and math tools." },
+  { tab: 'blacksmith', title: "BLACKSMITH FORGE", text: "Calculate precise Gold and Scroll costs for equipment upgrades." },
   { tab: 'dragons', title: "DRAGON CORE", text: "Database for Dragon Statues and tier lists." },
   { tab: 'refine', title: "REFINE GUIDE", text: "Guide for Equipment Refinement and costs." },
   { tab: 'vs', title: "GEAR VS", text: "Compare two items side-by-side to see which is better." },
@@ -335,11 +337,12 @@ const TUTORIAL_STEPS = [
   { tab: 'jewels', title: "JEWEL LAB", text: "Calculator for merging jewels (Level 28+)." },
   { tab: 'relics', title: "RELIC ARCHIVE", text: "Track your Holy and Radiant relics." },
   { tab: 'ai', title: "MENTOR AI", text: "Chat with the AI for personalized advice." },
-  { tab: 'home', title: "SYSTEM READY", text: "You have mastered the tools. Good luck, Grandmaster." }
+  { tab: 'home', title: "SYSTEM READY", text: "You have mastered the tools. Good luck, Archer." }
 ];
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('home');
+  const [intelFilter, setIntelFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<GearCategory | 'All'>('All');
   const [relicTierFilter, setRelicTierFilter] = useState<'All' | 'Holy' | 'Radiant' | 'Faint'>('All');
@@ -421,6 +424,7 @@ const App: React.FC = () => {
   const [forgeCurrentLevel, setForgeCurrentLevel] = useState(1);
   const [forgeTargetLevel, setForgeTargetLevel] = useState(80);
   const [forgeResult, setForgeResult] = useState<{ gold: number; scrolls: number } | null>(null);
+  const [forgeSlotType, setForgeSlotType] = useState<'Weapon' | 'Armor' | 'Jewelry'>('Weapon');
 
   const [savedLoadouts, setSavedLoadouts] = useState<LoadoutBuild[]>(() => JSON.parse(localStorage.getItem('archero_v6_loadouts') || '[]'));
   const [selectorActiveSlot, setSelectorActiveSlot] = useState<{ name: string; category: GearCategory } | null>(null);
@@ -694,17 +698,18 @@ const App: React.FC = () => {
     const start = Math.min(forgeCurrentLevel, forgeTargetLevel);
     const end = Math.max(forgeCurrentLevel, forgeTargetLevel);
     
-    // Archero scaling logic: costs increase geometrically
+    // Cost Multipliers (Weapons are expensive, Rings are cheaper)
+    const multiplier = forgeSlotType === 'Weapon' ? 1.0 : forgeSlotType === 'Armor' ? 0.75 : 0.55;
+
     for (let i = start; i < end; i++) {
-      // Gold(L) = 150 * L^1.7 + 200
-      totalGold += Math.floor(150 * Math.pow(i, 1.7) + 200);
-      // Scrolls(L) = 1 + floor(L/10)
-      totalScrolls += Math.floor(1 + i / 10);
+      // Base Cost * Multiplier
+      totalGold += Math.floor((150 * Math.pow(i, 1.7) + 200) * multiplier);
+      totalScrolls += Math.floor((1 + i / 10) * (multiplier > 0.8 ? 1 : 0.7));
     }
     
     setForgeResult({ gold: totalGold, scrolls: totalScrolls });
     playSfx('click');
-    showToast("Forge calculation completed.", "success");
+    showToast(`Forge calculation complete for ${forgeSlotType}.`, "success");
   };
 
   const toggleFarmingSort = (field: typeof farmingSort.field) => { playSfx('click'); setFarmingSort(prev => ({ field, direction: prev.field === field ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'desc' })); };
@@ -973,14 +978,15 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Tutorial Guide Overlay - Fixed Footer Expanded Walkthrough */}
+{/* Tutorial Guide Overlay - FIXED: Centered & Darker */}
       {tutorialStep !== null && (
         <>
-          {/* Dimmed Screen Backdrop */}
-          <div className="fixed inset-0 z-[11999] bg-black/75 backdrop-blur-sm animate-in fade-in duration-500 pointer-events-none" />
+          {/* Dimmed Screen Backdrop - Darker (90%) */}
+          <div className="fixed inset-0 z-[11999] bg-black/30 backdrop-blur-md animate-in fade-in duration-500 pointer-events-none" />
           
-          <div className="fixed inset-x-0 bottom-[100px] z-[12000] flex items-center justify-center p-4 pointer-events-none animate-in fade-in slide-in-from-bottom-10 duration-500">
-             <div className="relative w-full max-w-2xl bg-gray-950/95 backdrop-blur-3xl border border-orange-500/30 rounded-[2rem] p-6 shadow-[0_0_60px_rgba(249,115,22,0.15)] pointer-events-auto ring-1 ring-white/10">
+          {/* Centered Container with lift (mb-32 pushes it up) */}
+          <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 pointer-events-none animate-in fade-in slide-in-from-bottom-10 duration-500">
+             <div className="relative w-full max-w-2xl bg-gray-950/95 backdrop-blur-3xl border border-orange-500/30 rounded-[2rem] p-6 shadow-[0_0_60px_rgba(249,115,22,0.15)] pointer-events-auto ring-1 ring-white/10 mb-32">
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <div className="flex-shrink-0 relative">
                     <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
@@ -1389,122 +1395,55 @@ const App: React.FC = () => {
 
         <div className={`px-5 py-6 ${activeTab === 'ai' ? 'h-full p-0' : 'space-y-8'}`}>
           {activeTab === 'xp' && <XPGuide />}
-          {activeTab === 'intel' && (
+{activeTab === 'intel' && (
             <div className="space-y-10 pb-24 animate-in fade-in transition-all">
+               {/* Header */}
                <div className="p-10 bg-gradient-to-br from-red-600/10 via-gray-950 to-red-950/5 border border-red-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
                  <Skull className="mx-auto mb-6 text-red-500/20 group-hover:text-red-500/40 transition-colors" size={64} />
                  <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Boss Dossiers</h3>
                  <p className="text-[10px] text-red-500 font-black uppercase tracking-[0.4em] italic">Tactical Threat Database</p>
                </div>
 
+               {/* Filter Buttons */}
+               <div className="flex gap-2 justify-center">
+                  {['All', 'Ground', 'Airborne', 'Melee'].map(f => (
+                    <button 
+                      key={f} 
+                      onClick={() => { setIntelFilter(f); playSfx('click'); }}
+                      className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${intelFilter === f ? 'bg-red-600 border-red-500 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'}`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+               </div>
+
+               {/* Filtered Boss List */}
                <div className="space-y-6">
-                  {/* Boss 1 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">1. Owl Supreme:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Walls</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Hide behind walls to block the whirlwind. Only attack during its cooldowns.</p>
+                  {[
+                    { id: 1, name: 'Owl Supreme', type: 'Airborne', weakness: 'Walls', tip: 'Hide behind walls to block the whirlwind. Only attack during its cooldowns.' },
+                    { id: 2, name: 'Tentacle Menace', type: 'Melee', weakness: 'Constant Movement', tip: 'Never stand still. Watch for the ground ripple 1 second before it spawns under you.' },
+                    { id: 3, name: 'Crimson Witch', type: 'Ground', weakness: 'Water/Ice', tip: 'Her fire pools linger forever. Lure her to one side of the room to keep the center clean.' },
+                    { id: 4, name: 'Scythe Mage', type: 'Ground', weakness: 'Melee Range', tip: 'His scythes flare out wide. Stand extremely close (inside the ring) to avoid damage.' },
+                    { id: 5, name: 'Double Archers', type: 'Ground', weakness: 'Sync Kills', tip: 'Lower both HP bars evenly. Killing one enrages the survivor to 2x speed.' },
+                    { id: 6, name: 'Giant Scarecrow', type: 'Ground', weakness: 'Diagonals', tip: 'The only safe spots are the immediate diagonals. Do not stand directly in front or to the side.' },
+                    { id: 7, name: 'Ice Worm', type: 'Ground', weakness: 'Timing', tip: 'Stop attacking when it burrows. Pre-fire the location where the dirt mound appears.' },
+                    { id: 8, name: 'Queen Bee', type: 'Airborne', weakness: 'Ricochet', tip: 'Ignore the small bees; let Ricochet/Chain Lightning bounce off them to hit the Queen.' },
+                    { id: 9, name: 'Skeleton King', type: 'Melee', weakness: 'Aggression', tip: 'He summons mobs when you retreat. Push forward and burst him down quickly.' },
+                    { id: 10, name: 'Spinning Golem', type: 'Melee', weakness: 'Freeze', tip: 'Do not run away in a straight line; circle strafe tightly around him.' },
+                    { id: 11, name: 'Desert Goliath', type: 'Ground', weakness: 'Distance', tip: 'His rock throw splits on impact. Stay max range to widen the gaps between rocks.' },
+                    { id: 12, name: 'Medusa', type: 'Ground', weakness: 'Line of Sight', tip: 'When eyes grow, hide behind a wall or look away to avoid the Stone status.' }
+                  ].filter(b => intelFilter === 'All' || b.type === intelFilter).map(boss => (
+                    <div key={boss.id} className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl animate-in slide-in-from-bottom-2">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">{boss.id}. {boss.name}</h4>
+                        <span className="text-[8px] font-bold bg-white/10 px-2 py-1 rounded text-gray-400 uppercase">{boss.type}</span>
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> {boss.weakness}</p>
+                        <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> {boss.tip}</p>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Boss 2 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">2. Tentacle Menace:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Constant Movement</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Never stand still. Watch for the ground ripple 1 second before it spawns under you.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 3 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">3. Crimson Witch:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Water/Ice</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Her fire pools linger forever. Lure her to one side of the room to keep the center clean.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 4 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">4. Scythe Mage:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Melee Range</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> His scythes flare out wide. Stand extremely close (inside the ring) to avoid damage.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 5 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">5. Double Archers:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Sync Kills</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Lower both HP bars evenly. Killing one enrages the survivor to 2x speed.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 6 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">6. Giant Scarecrow:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Diagonals</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> The only safe spots are the immediate diagonals. Do not stand directly in front or to the side.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 7 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">7. Ice Worm:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Timing</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Stop attacking when it burrows. Pre-fire the location where the dirt mound appears.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 8 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">8. Queen Bee:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Ricochet</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Ignore the small bees; let Ricochet/Chain Lightning bounce off them to hit the Queen.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 9 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">9. Skeleton King:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Aggression</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> He summons mobs when you retreat. Push forward and burst him down quickly.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 10 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">10. Spinning Golem:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Freeze</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> Do not run away in a straight line; circle strafe tightly around him.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 11 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">11. Desert Goliath:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Distance</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> His rock throw splits on impact. Stay max range to widen the gaps between rocks.</p>
-                    </div>
-                  </div>
-
-                  {/* Boss 12 */}
-                  <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
-                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">12. Medusa:</h4>
-                    <div className="mt-4 space-y-3">
-                      <p className="text-[12px] font-medium leading-relaxed italic"><span className="text-orange-500 font-black uppercase tracking-widest mr-2">Weakness:</span> Line of Sight</p>
-                      <p className="text-[12px] font-medium leading-relaxed italic text-gray-300"><span className="text-blue-400 font-black uppercase tracking-widest mr-2">Tip:</span> When eyes grow, hide behind a wall or look away to avoid the Stone status.</p>
-                    </div>
-                  </div>
+                  ))}
                </div>
             </div>
           )}
@@ -1643,17 +1582,32 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   {/* Calibration Slot to fill space highlighted in Screenshot 2 */}
-                  <div className="p-6 bg-gray-950/40 border border-white/5 rounded-[2.5rem] shadow-xl backdrop-blur-xl group hover:border-orange-500/20 transition-all">
+                  {/* Interactive Calibration Box */}
+                  <button 
+                    onClick={() => {
+                      const next = forgeSlotType === 'Weapon' ? 'Armor' : forgeSlotType === 'Armor' ? 'Jewelry' : 'Weapon';
+                      setForgeSlotType(next);
+                      setForgeResult(null); // Reset result to force recalculation
+                      playSfx('click');
+                    }}
+                    className="w-full p-6 bg-gray-950/40 border border-white/5 rounded-[2.5rem] shadow-xl backdrop-blur-xl group hover:border-orange-500/50 hover:bg-orange-600/5 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-14 h-14 rounded-2xl border border-dashed flex items-center justify-center transition-colors ${forgeSlotType === 'Weapon' ? 'bg-red-600/20 border-red-500/50 text-red-500' : forgeSlotType === 'Armor' ? 'bg-blue-600/20 border-blue-500/50 text-blue-500' : 'bg-purple-600/20 border-purple-500/50 text-purple-500'}`}>
+                        {forgeSlotType === 'Weapon' ? <Sword size={24} /> : forgeSlotType === 'Armor' ? <Shield size={24} /> : <Gem size={24} />}
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Component Calibration</p>
+                        <h4 className="text-xs font-bold text-white uppercase italic mt-1 flex items-center gap-2">
+                          Type: <span className={forgeSlotType === 'Weapon' ? 'text-red-500' : forgeSlotType === 'Armor' ? 'text-blue-500' : 'text-purple-500'}>{forgeSlotType.toUpperCase()}</span> <RefreshCw size={10} className="opacity-50" />
+                        </h4>
+                      </div>
+                    </div>
+                  </button>
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 bg-black/60 rounded-2xl border border-dashed border-white/10 flex items-center justify-center text-gray-700 group-hover:text-orange-500/40 transition-colors">
                         <Package size={24} />
                       </div>
-                      <div>
-                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Component Calibration</p>
-                        <h4 className="text-xs font-bold text-gray-400 uppercase italic mt-1">Status: Awaiting Slot In</h4>
-                      </div>
-                    </div>
-                  </div>
 
                   <div className="p-8 bg-gray-950/40 border border-white/5 rounded-[3rem] space-y-10 shadow-2xl backdrop-blur-xl">
                     <div className="space-y-6">
@@ -2401,4 +2355,89 @@ function XPGuide() {
       </div>
 
       <div className="space-y-8">
-        <div className="p-8 bg-gray-900/60 border border-white
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Calendar size={20} className="text-orange-500" /> 1. THE UCD PRIORITY (Mandatory)
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Action:</span> Play "Up-Close Dangers" every 48 hours.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> XP rewards scale based on your Play Count. You must play it often to increase the multiplier.
+            </p>
+            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+              <p className="text-[11px] font-bold italic text-gray-200">
+                <span className="text-gray-500 uppercase font-black text-[9px] mr-2">Loadout:</span> Equip 2x Bull Rings + "Greed" skill (Gold is required for levels).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Trophy size={20} className="text-orange-500" /> 2. ACTIVE GRIND: Boss Rush
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Target:</span> Hero Chapter 14 or Hero 21.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Method:</span> Kill bosses, exit, skip Devils. Aim for runs under 3 minutes.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> This yields the highest XP-per-minute in the game.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Ghost size={20} className="text-orange-500" /> 3. PASSIVE GRIND: Japanese Idle Strategy
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Target:</span> Hero Chapter 10 or 16 (Wave Chapters).
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Method:</span> Enter room, stand still in center. Use Brightspear (instant hits).
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> Zero effort farming while working/studying.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl border-orange-500/30">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Settings size={20} className="text-orange-500" /> 4. THE SETTINGS HACK (Crucial)
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Action:</span> Go to Settings {"->"} Turn ON "Block Skill Display".
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> This skips the slot-machine animation on every level up. Saves ~50 minutes of real-time per 100 runs.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 bg-orange-600/10 border border-orange-500/40 rounded-[2.5rem] shadow-2xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Activity size={20} className="text-orange-500" /> 5. ENERGY RULE
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-200">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Rule:</span> Never let Energy sit at 20/20. You are losing XP.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Dump:</span> Use Quick Raids on your highest unlocked Hero Chapter to spend energy instantly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
