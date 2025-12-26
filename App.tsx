@@ -1937,12 +1937,64 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'vs' && (
+            {activeTab === 'vs' && (
             <div className="space-y-10 animate-in fade-in pb-12">
-               <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[3rem] text-center"><h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Comparison Matrix</h4><p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">Side-by-Side Architectural Analysis</p></div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-6"><CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemA} onChange={(v) => setVsItemA(v)} placeholder="Load Source A..." />{GEAR_DATA.find(g => g.id === vsItemA) && (<div className="animate-in slide-in-from-left-4 duration-500"><Card tier={GEAR_DATA.find(g => g.id === vsItemA)?.tier} className="min-h-[400px]"><Badge tier={GEAR_DATA.find(g => g.id === vsItemA)!.tier} /><h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemA)?.name}</h5><div className="mt-8 space-y-6">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk}</p></div>)}{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic}</p></div>)}</div></Card></div>)}</div>
-                  <div className="space-y-6"><CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemB} onChange={(v) => setVsItemB(v)} placeholder="Load Source B..." />{GEAR_DATA.find(g => g.id === vsItemB) && (<div className="animate-in slide-in-from-right-4 duration-500"><Card tier={GEAR_DATA.find(g => g.id === vsItemB)?.tier} className="min-h-[400px]"><Badge tier={GEAR_DATA.find(g => g.id === vsItemB)!.tier} /><h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemB)?.name}</h5><div className="mt-8 space-y-6">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk}</p></div>)}{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic}</p></div>)}</div></Card></div>)}</div>
+               <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[3rem] text-center">
+                 <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Comparison Matrix</h4>
+                 <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">Side-by-Side Architectural Analysis</p>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4 relative">
+                  {/* VS Badge in the middle */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-gray-950 border-2 border-white/10 rounded-full p-3 shadow-xl">
+                    <span className="text-xl font-black text-white italic">VS</span>
+                  </div>
+
+                  {/* LEFT SIDE (A) */}
+                  <div className="space-y-6 relative">
+                    <CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemA} onChange={(v) => setVsItemA(v)} placeholder="Load Source A..." />
+                    {GEAR_DATA.find(g => g.id === vsItemA) && (
+                      <div className={`animate-in slide-in-from-left-4 duration-500 transition-all ${GEAR_DATA.find(g => g.id === vsItemA) && GEAR_DATA.find(g => g.id === vsItemB) && getTierWeight(GEAR_DATA.find(g => g.id === vsItemA)!.tier) > getTierWeight(GEAR_DATA.find(g => g.id === vsItemB)!.tier) ? 'ring-2 ring-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)] rounded-[2.5rem]' : ''}`}>
+                        {/* Winner Badge A */}
+                        {GEAR_DATA.find(g => g.id === vsItemA) && GEAR_DATA.find(g => g.id === vsItemB) && getTierWeight(GEAR_DATA.find(g => g.id === vsItemA)!.tier) > getTierWeight(GEAR_DATA.find(g => g.id === vsItemB)!.tier) && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-full shadow-lg z-10 whitespace-nowrap animate-bounce">
+                            TIER ADVANTAGE
+                          </div>
+                        )}
+                        <Card tier={GEAR_DATA.find(g => g.id === vsItemA)?.tier} className="min-h-[400px]">
+                          <Badge tier={GEAR_DATA.find(g => g.id === vsItemA)!.tier} />
+                          <h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemA)?.name}</h5>
+                          <div className="mt-8 space-y-6">
+                            {GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk}</p></div>)}
+                            {GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic}</p></div>)}
+                          </div>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RIGHT SIDE (B) */}
+                  <div className="space-y-6 relative">
+                    <CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemB} onChange={(v) => setVsItemB(v)} placeholder="Load Source B..." />
+                    {GEAR_DATA.find(g => g.id === vsItemB) && (
+                      <div className={`animate-in slide-in-from-right-4 duration-500 transition-all ${GEAR_DATA.find(g => g.id === vsItemA) && GEAR_DATA.find(g => g.id === vsItemB) && getTierWeight(GEAR_DATA.find(g => g.id === vsItemB)!.tier) > getTierWeight(GEAR_DATA.find(g => g.id === vsItemA)!.tier) ? 'ring-2 ring-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)] rounded-[2.5rem]' : ''}`}>
+                         {/* Winner Badge B */}
+                         {GEAR_DATA.find(g => g.id === vsItemA) && GEAR_DATA.find(g => g.id === vsItemB) && getTierWeight(GEAR_DATA.find(g => g.id === vsItemB)!.tier) > getTierWeight(GEAR_DATA.find(g => g.id === vsItemA)!.tier) && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-full shadow-lg z-10 whitespace-nowrap animate-bounce">
+                            TIER ADVANTAGE
+                          </div>
+                        )}
+                        <Card tier={GEAR_DATA.find(g => g.id === vsItemB)?.tier} className="min-h-[400px]">
+                          <Badge tier={GEAR_DATA.find(g => g.id === vsItemB)!.tier} />
+                          <h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemB)?.name}</h5>
+                          <div className="mt-8 space-y-6">
+                            {GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk}</p></div>)}
+                            {GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic}</p></div>)}
+                          </div>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
                </div>
             </div>
           )}
@@ -2156,15 +2208,35 @@ const App: React.FC = () => {
 
           {activeTab === 'formula' && (
             <div className="space-y-6 animate-in fade-in pb-12">
-              <div className="p-6 bg-amber-600/10 border border-amber-500/20 rounded-3xl flex items-start gap-4">
-                <AlertCircle className="text-amber-500 shrink-0" size={20} />
-                <p className="text-[11px] font-medium text-amber-100/80 leading-relaxed italic"><span className="font-black text-amber-500 uppercase tracking-wider block mb-1">Manual Calibration:</span> Input hero attributes from character screen. Using compact curved rectangles for efficiency.</p>
+              {/* Header with Auto-Import Button */}
+              <div className="p-6 bg-amber-600/10 border border-amber-500/20 rounded-3xl flex flex-col gap-4">
+                <div className="flex items-start gap-4">
+                  <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                  <p className="text-[11px] font-medium text-amber-100/80 leading-relaxed italic">
+                    <span className="font-black text-amber-500 uppercase tracking-wider block mb-1">Manual Calibration:</span> 
+                    Input hero attributes from character screen. Or sync directly from Burst Calc.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setFInputs(p => ({ ...p, baseAtk: calcStats.baseAtk, critDmg: calcStats.critDmg }));
+                    playSfx('click');
+                    showToast("Stats synced from Burst Calculator.", "success");
+                  }}
+                  className="w-full py-3 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 rounded-2xl text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95"
+                >
+                  <RefreshCw size={14} /> IMPORT FROM BURST CALC
+                </button>
               </div>
+
+              {/* Result Display */}
               <div className="p-10 bg-gray-950/90 border border-white/5 rounded-[3rem] text-center shadow-inner relative ring-1 ring-white/5">
                 <p className="text-[11px] font-black text-gray-600 uppercase mb-3 tracking-[0.2em]">Effective Multiplier</p>
                 <div className="text-5xl sm:text-6xl md:text-7xl font-black text-white italic tracking-tighter tabular-nums">{formulaResult.toLocaleString()}</div>
                 <p className="text-[10px] text-orange-500 font-black uppercase mt-4 tracking-[0.3em]">Base Damage Capacity</p>
               </div>
+
+              {/* Inputs Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[{ k: 'baseAtk', l: 'Raw ATK' }, { k: 'atkPercent', l: 'ATK %' }, { k: 'weaponDmgPercent', l: 'Weapon Dmg %' }, { k: 'critDmg', l: 'Crit Dmg %' }].map(s => (
                   <div key={s.k} className="px-6 py-3 bg-gray-900/60 border border-white/5 rounded-2xl focus-within:border-orange-500/40 transition-all flex flex-col justify-center h-16 shadow-lg">
