@@ -18,7 +18,7 @@ import {
   Telescope, Activity as Pulse, Shrink, MoreHorizontal, Copy, FileText, Mountain, Zap as BoltIcon,
   ShieldAlert, DollarSign, Users, Award as AwardIcon, Sparkle as StarIcon, Info as InfoIcon,
   ChevronUp, ArrowDownWideNarrow, Check, Atom, RotateCcw, Scale, Milestone, Code, Swords as Combat, Shirt, UserPlus,
-  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home, HelpCircle as GuideIcon
+  Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home, HelpCircle as GuideIcon, Settings
 } from 'lucide-react';
 import { 
   HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
@@ -294,6 +294,7 @@ const NAV_ITEMS = [
   { id: 'intel', icon: Skull, label: 'Intel' },
   { id: 'dna', icon: Dna, label: 'DNA Lab' },
   { id: 'events', icon: CalendarDays, label: 'Events' },
+  { id: 'xp', icon: TrendingUp, label: 'XP Guide' },
   { id: 'tracker', icon: Target, label: 'Sync' },
   { id: 'talents', icon: Milestone, label: 'Talents' },
   { id: 'formula', icon: Variable, label: 'Formula' },
@@ -319,6 +320,7 @@ const TUTORIAL_STEPS = [
   { tab: 'intel', title: "TACTICAL INTEL", text: "Boss dossiers and tactical guides for the hardest fights." },
   { tab: 'dna', title: "DNA LAB", text: "Calculate evolution costs (Shards, Cookies, Gold) here." },
   { tab: 'events', title: "OPS EVENTS", text: "Check the Daily Event schedule (Up-Close Dangers, etc)." },
+  { tab: 'xp', title: "XP PROTOCOLS", text: "Learn the secrets of maximum XP gain and efficient leveling." },
   { tab: 'tracker', title: "ACCOUNT SYNC", text: "Track your Hero Levels, Stars, and Global Bonuses." },
   { tab: 'talents', title: "TALENT MATRIX", text: "Manage and track your Talent path progress." },
   { tab: 'formula', title: "DAMAGE FORMULA", text: "Damage calculators and math tools." },
@@ -1381,6 +1383,7 @@ const App: React.FC = () => {
         )}
 
         <div className={`px-5 py-6 ${activeTab === 'ai' ? 'h-full p-0' : 'space-y-8'}`}>
+          {activeTab === 'xp' && <XPGuide />}
           {activeTab === 'intel' && (
             <div className="space-y-10 pb-24 animate-in fade-in transition-all">
                <div className="p-10 bg-gradient-to-br from-red-600/10 via-gray-950 to-red-950/5 border border-red-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
@@ -2382,5 +2385,100 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+function XPGuide() {
+  return (
+    <div className="space-y-10 animate-in fade-in transition-all duration-700 pb-24 px-1">
+      <div className="p-10 bg-gradient-to-br from-orange-600/10 via-gray-950 to-amber-950/5 border border-orange-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
+         <TrendingUp className="mx-auto mb-6 text-orange-500 animate-pulse" size={64} />
+         <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">XP VELOCITY PROTOCOL</h3>
+         <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.4em] italic">Mathematical Leveling Guide</p>
+      </div>
+
+      <div className="space-y-8">
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Calendar size={20} className="text-orange-500" /> 1. THE UCD PRIORITY (Mandatory)
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Action:</span> Play "Up-Close Dangers" every 48 hours.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> XP rewards scale based on your Play Count. You must play it often to increase the multiplier.
+            </p>
+            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+              <p className="text-[11px] font-bold italic text-gray-200">
+                <span className="text-gray-500 uppercase font-black text-[9px] mr-2">Loadout:</span> Equip 2x Bull Rings + "Greed" skill (Gold is required for levels).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Trophy size={20} className="text-orange-500" /> 2. ACTIVE GRIND: Boss Rush
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Target:</span> Hero Chapter 14 or Hero 21.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Method:</span> Kill bosses, exit, skip Devils. Aim for runs under 3 minutes.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> This yields the highest XP-per-minute in the game.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Ghost size={20} className="text-orange-500" /> 3. PASSIVE GRIND: Japanese Idle Strategy
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Target:</span> Hero Chapter 10 or 16 (Wave Chapters).
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Method:</span> Enter room, stand still in center. Use Brightspear (instant hits).
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> Zero effort farming while working/studying.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 bg-gray-900/60 border border-white/10 rounded-[2.5rem] shadow-xl border-orange-500/30">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Settings size={20} className="text-orange-500" /> 4. THE SETTINGS HACK (Crucial)
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Action:</span> Go to Settings {"->"} Turn ON "Block Skill Display".
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-400">
+              <span className="text-blue-400 font-black uppercase tracking-widest mr-2">Why:</span> This skips the slot-machine animation on every level up. Saves ~50 minutes of real-time per 100 runs.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-8 bg-orange-600/10 border border-orange-500/40 rounded-[2.5rem] shadow-2xl">
+          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
+            <Activity size={20} className="text-orange-500" /> 5. ENERGY RULE
+          </h4>
+          <div className="mt-4 space-y-4">
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-200">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Rule:</span> Never let Energy sit at 20/20. You are losing XP.
+            </p>
+            <p className="text-[12px] font-medium leading-relaxed italic text-gray-300">
+              <span className="text-orange-500 font-black uppercase tracking-widest mr-2">Dump:</span> Use Quick Raids on your highest unlocked Hero Chapter to spend energy instantly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default App;
