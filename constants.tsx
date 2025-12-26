@@ -3,42 +3,6 @@ import { Hero, BaseItem, Jewel, Relic, SlotBonus, ArcheroEvent } from './types';
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
 export const HERO_DATA: Hero[] = [
   { 
-    id: 'arthur', name: 'King Arthur', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Damage Resistance +6%', 
-    desc: 'The Once and Future King.', deepLogic: "Enter 'Night King Form' after moving for 1.25s (Summons Holy Shell reducing dmg by 30%). Attacks charge Excalibur to unleash a screen-clearing slash.", 
-    evo4Star: 'Excalibur Slash cooldown reduced by 0.5s each time you take damage.', bestPairs: ['Demon King Spearshield', 'Celestial Warplate'],
-    bio: 'Wielding the Sword in the Stone, he has returned to claim his throne and purge the darkness.',
-    bestSkin: 'Young Knight', shardCost: '60 Shards to unlock (Special Event)', assistHeroes: ['Zeus', 'Wukong', 'Melinda'],
-    trivia: 'His "Holy Shell" makes him the tankiest hero in the game, surpassing even Helix.',
-    uniqueEffect: 'Night King Form: Grants 30% Dmg Resist while moving.',
-    historicalTiers: [
-      { update: "v6.4 Launch", tier: "SSS" }
-    ],
-    starMilestones: [
-      { stars: 3, effect: "Excalibur charge speed +30%." },
-      { stars: 4, effect: "Night King Form lingers for 2s after stopping." },
-      { stars: 6, effect: "Sword in the Stone: Summons a static turret relic on room entry." },
-      { stars: 7, effect: "+8% Damage vs Bosses (Global)", isGlobal: true }
-    ],
-    sunMilestones: [
-      { level: 1, effect: "Holy Shell reflects 20% damage." },
-      { level: 2, effect: "+10% Max HP (Global)", isGlobal: true },
-      { level: 3, effect: "Excalibur Slash executes enemies under 15% HP." },
-      { level: 4, effect: "+5% Projectile Resistance (Global)", isGlobal: true }
-    ],
-    gearSets: [
-      {
-        name: "Camelot's Defense",
-        weapon: "Demon King Spearshield",
-        armor: "Golden Chestplate",
-        rings: ["Dragon Ring", "Celestial Band"],
-        bracelet: "Shield Bracelet",
-        locket: "Counterattack Locket (S)",
-        book: "Giants Contract",
-        synergy: "Maximizes the Holy Shell reduction to hit nearly 85% Damage Resistance cap."
-      }
-    ]
-  },
-  { 
     id: 'zeus', name: 'Zeus', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Max HP +8%', 
     desc: 'The Lightning Sovereign.', deepLogic: "Attacks bypass standard projectile collision. 6-Star: Unlocks 'Static Field' (red lightning) that denies area to enemies. 3-Star: Lightning chains gain Critical Hit capability.", 
     evo4Star: 'Sustained attacks ramp up Atk Speed permanently for the room.', bestPairs: ['Celestial Hammer', 'Celestial Warplate'],
