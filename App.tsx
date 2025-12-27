@@ -21,7 +21,7 @@ import {
   Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home, HelpCircle as GuideIcon, Settings
 } from 'lucide-react';
 import { 
-  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS
+  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS, RUNE_DATA, SYNERGY_DATA
 } from './constants';
 import { chatWithAI } from './services/geminiService';
 import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone, ArcheroEvent, LoadoutBuild } from './types';
@@ -293,7 +293,10 @@ const NAV_ITEMS = [
   { id: 'meta', icon: LayoutGrid, label: 'Archive' },
   { id: 'intel', icon: Skull, label: 'Intel' },
   { id: 'dna', icon: Dna, label: 'DNA Lab' },
-  { id: 'blacksmith', icon: Hammer, label: 'Blacksmith' }, // <--- ADDED THIS
+  { id: 'synergy', icon: HeartHandshake, label: 'Synergy' },
+  { id: 'runes', icon: ScrollText, label: 'Rune Oracle' }, // RESTORED BUTTON
+  { id: 'dps', icon: Calculator, label: 'Burst' },
+  { id: 'blacksmith', icon: Hammer, label: 'Blacksmith' },
   { id: 'events', icon: CalendarDays, label: 'Events' },
   { id: 'xp', icon: TrendingUp, label: 'XP Guide' },
   { id: 'tracker', icon: Target, label: 'Sync' },
@@ -306,7 +309,6 @@ const NAV_ITEMS = [
   { id: 'lab', icon: Zap, label: 'Lab' },
   { id: 'immunity', icon: Shield, label: 'Guard' },
   { id: 'farming', icon: Map, label: 'Farming' },
-  { id: 'dps', icon: Calculator, label: 'Burst' },
   { id: 'jewels', icon: Disc, label: 'Jewel' },
   { id: 'relics', icon: Box, label: 'Relic Archive' },
   { id: 'ai', icon: MessageSquare, label: 'Mentor' }
@@ -1379,6 +1381,167 @@ const App: React.FC = () => {
                  <GuideIcon size={12} /> Reset Training Protocol
                </button>
             </div>
+          </div>
+        )}
+
+{/* --- BURST DPS LAB (RESTORED) --- */}
+        {activeTab === 'dps' && (
+          <div className="space-y-6 animate-in fade-in pb-24">
+             <div className="p-8 bg-gradient-to-br from-blue-900 via-gray-950 to-cyan-900 border border-blue-500/20 rounded-[3rem] text-center shadow-4xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Calculator className="mx-auto mb-4 text-blue-500 animate-pulse" size={48} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Burst Lab</h3>
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mt-2">Theoretical Damage Simulator</p>
+             </div>
+
+             <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Attack', val: calcStats.baseAtk, set: (v: number) => setCalcStats(prev => ({...prev, baseAtk: v})), icon: Sword, color: 'text-red-500', max: 500000 },
+                  { label: 'Crit %', val: calcStats.critChance, set: (v: number) => setCalcStats(prev => ({...prev, critChance: v})), icon: Target, color: 'text-yellow-500', max: 100 },
+                  { label: 'Crit Dmg', val: calcStats.critDmg, set: (v: number) => setCalcStats(prev => ({...prev, critDmg: v})), icon: Zap, color: 'text-purple-500', max: 500 },
+                  { label: 'Speed %', val: calcStats.atkSpeed, set: (v: number) => setCalcStats(prev => ({...prev, atkSpeed: v})), icon: Activity, color: 'text-blue-500', max: 200 }
+                ].map((stat) => (
+                  <div key={stat.label} className="p-6 bg-gray-900/40 border border-white/5 rounded-[2rem] flex flex-col items-center gap-3 relative overflow-hidden">
+                     <div className={`p-3 bg-white/5 rounded-2xl ${stat.color} mb-1`}> <stat.icon size={20} /> </div>
+                     <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">{stat.label}</p>
+                     <input type="number" value={stat.val} onChange={(e) => stat.set(Number(e.target.value))} className="w-full bg-transparent text-center text-2xl font-black text-white italic focus:outline-none z-10 tabular-nums" />
+                  </div>
+                ))}
+             </div>
+             
+             {/* RESULT DISPLAY */}
+             <div className="p-8 bg-gray-950 border border-white/10 rounded-[2.5rem] text-center">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Estimated Burst DPS</p>
+                <div className="flex items-baseline justify-center gap-1">
+                   <span className="text-4xl font-black text-white italic tracking-tighter tabular-nums">
+                     {Math.floor(calcStats.baseAtk * (1 + (calcStats.atkSpeed/100)) * (1 + ((calcStats.critChance/100) * (calcStats.critDmg/100)))).toLocaleString()}
+                   </span>
+                   <span className="text-xs font-bold text-gray-600">DMG/SEC</span>
+                </div>
+             </div>
+          </div>
+        )}
+
+        {/* --- SYNERGY TEMPLE TAB (CUSTOM DOWN-DROPDOWN) --- */}
+        {activeTab === 'synergy' && (
+          <div className="space-y-6 animate-in fade-in pb-24">
+             <div className="p-8 bg-gradient-to-br from-pink-900 via-gray-950 to-purple-900 border border-pink-500/20 rounded-[3rem] text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <HeartHandshake className="mx-auto mb-4 text-pink-500 animate-pulse" size={48} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Synergy Temple</h3>
+             </div>
+
+             {/* CUSTOM DROPDOWN - FORCED DOWNWARD */}
+             <div className="px-4 relative z-50">
+               {/* Toggle Button */}
+               <button
+                 onClick={() => { setIsQuickNavOpen(!isQuickNavOpen); playSfx('click'); }} // Re-using quicknav state for convenience, or create a new state if preferred
+                 className="w-full bg-gray-900 border border-white/10 text-white text-center text-lg font-black uppercase italic tracking-widest py-6 px-12 rounded-[2.5rem] flex items-center justify-between hover:bg-gray-800 transition-all shadow-xl"
+               >
+                 <span className="flex-1">{HERO_DATA.find(h => h.id === searchQuery)?.name || 'SELECT COMMANDER'}</span>
+                 <ChevronDown size={24} className={`text-pink-500 transition-transform ${isQuickNavOpen ? 'rotate-180' : ''}`} />
+               </button>
+
+               {/* The List (Absolute Positioned BELOW) */}
+               {isQuickNavOpen && (
+                 <div className="absolute top-full left-4 right-4 mt-2 bg-gray-950/95 backdrop-blur-xl border border-white/10 rounded-[2rem] max-h-[60vh] overflow-y-auto no-scrollbar shadow-4xl animate-in slide-in-from-top-2 z-50">
+                   {HERO_DATA.map((hero) => (
+                     <button
+                       key={hero.id}
+                       onClick={() => { 
+                         setSearchQuery(hero.id); 
+                         setIsQuickNavOpen(false); // Close menu
+                         playSfx('click'); 
+                       }}
+                       className={`w-full py-4 text-center border-b border-white/5 last:border-0 font-black uppercase italic tracking-widest hover:bg-pink-600/20 hover:text-pink-400 transition-all ${searchQuery === hero.id ? 'text-pink-500 bg-pink-600/10' : 'text-gray-400'}`}
+                     >
+                       {hero.name}
+                     </button>
+                   ))}
+                 </div>
+               )}
+               <p className="text-center text-[9px] font-bold text-gray-600 uppercase tracking-widest mt-3">Tap to Deploy</p>
+             </div>
+
+             {/* DATA DISPLAY */}
+             <div className="space-y-4 relative z-10">
+               {(() => {
+                 const selectedId = searchQuery || 'arthur';
+                 const synergyData = (typeof SYNERGY_DATA !== 'undefined' ? SYNERGY_DATA : {}) as any;
+                 const data = synergyData[selectedId];
+                 const heroName = HERO_DATA.find(h => h.id === selectedId)?.name || selectedId.toUpperCase();
+
+                 if (!data) return (
+                   <div className="p-10 bg-gray-900/40 rounded-[2.5rem] border border-white/5 text-center">
+                     <h4 className="text-lg font-black text-white uppercase italic">Data Incoming</h4>
+                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Protocols for {heroName} unavailable.</p>
+                   </div>
+                 );
+
+                 return (
+                   <div className="animate-in slide-in-from-bottom-4 space-y-4">
+                      {data.partners.map((partner: any, idx: number) => (
+                        <div key={idx} className="p-6 bg-gray-950/60 border border-white/5 rounded-[2.5rem] flex items-center gap-5">
+                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl italic border shadow-lg shrink-0
+                             ${partner.tier === 'S' ? 'bg-gradient-to-br from-yellow-600 to-yellow-800 border-yellow-400 text-white' : 'bg-gradient-to-br from-blue-600 to-blue-800 border-blue-400 text-white'}`}>
+                             {partner.tier}
+                           </div>
+                           <div>
+                             <h4 className="text-lg font-black text-white uppercase italic">{partner.name}</h4>
+                             <p className="text-[10px] text-pink-200 font-medium">{partner.buff}</p>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                 );
+               })()}
+             </div>
+          </div>
+        )}
+
+        {/* --- RUNE ORACLE TAB --- */}
+        {activeTab === 'runes' && (
+          <div className="space-y-8 animate-in fade-in pb-24">
+             <div className="p-10 bg-gradient-to-br from-cyan-900 via-gray-950 to-blue-900 border border-cyan-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Sparkles className="mx-auto mb-4 text-cyan-400 animate-pulse" size={64} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Rune Oracle</h3>
+                <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] mt-2">Reforging Priority Guide</p>
+             </div>
+
+             <div className="grid grid-cols-1 gap-6">
+               {(typeof RUNE_DATA !== 'undefined' ? RUNE_DATA : []).map((rune) => (
+                 <div key={rune.id} className="group relative p-8 bg-gray-900/60 border border-white/5 rounded-[3rem] hover:border-white/20 transition-all">
+                    <div className="flex items-center gap-5 mb-6">
+                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg
+                         ${rune.color === 'red' ? 'bg-red-900/20 border-red-500/30 text-red-500' : 
+                           rune.color === 'blue' ? 'bg-blue-900/20 border-blue-500/30 text-blue-500' :
+                           rune.color === 'green' ? 'bg-green-900/20 border-green-500/30 text-green-500' :
+                           rune.color === 'purple' ? 'bg-purple-900/20 border-purple-500/30 text-purple-500' :
+                           'bg-orange-900/20 border-orange-500/30 text-orange-500'}`}>
+                          <Sparkle size={24} />
+                       </div>
+                       <div>
+                          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">{rune.name}</h4>
+                          <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Focus: {rune.focus}</p>
+                       </div>
+                    </div>
+                    <div className="space-y-3">
+                       {rune.godRolls.map((roll, idx) => (
+                         <div key={idx} className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                            <div className="flex items-center gap-3">
+                               {roll.tier === 'SSS' && <Crown size={12} className="text-yellow-500" />}
+                               <span className={`text-[10px] font-black uppercase tracking-wide ${roll.tier === 'SSS' ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                 {roll.stat}
+                               </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-500 italic">{roll.val}</span>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+               ))}
+             </div>
           </div>
         )}
 
@@ -2554,9 +2717,56 @@ const App: React.FC = () => {
             <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p><div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[{ label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) }, { label: 'Atreus Level 80 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }, { label: 'Onir 7-Star Passive (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) }, { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, locket: v})) }].map((row, i) => (<div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between"><span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>{row.hasOwnProperty('val') ? (<input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />) : (<button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>{row.check && <CheckCircle2 size={14}/>}</button>)}</div>))}</div></div>
           )}
 
-          {activeTab === 'dps' && (
-             <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projected Effective DPS</p><div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter">{calculatedDPS.toLocaleString()}</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">Integrated Combat Potency</p></div><div className="grid grid-cols-2 gap-4">{[{ k: 'baseAtk', l: 'Raw ATK' }, { k: 'critChance', l: 'Crit Chance %' }, { k: 'critDmg', l: 'Crit Dmg %' }, { k: 'atkSpeed', l: 'Atk Speed %' }].map(s => (<div key={s.k} className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem]"><label className="text-10px] font-black text-gray-600 uppercase block mb-2">{s.l}</label><input type="number" value={(calcStats as any)[s.k]} onChange={e => setCalcStats(p => ({...p, [s.k]: Number(e.target.value)}))} className="bg-transparent text-white text-3xl font-black outline-none w-full" /></div>))}</div></div>
-          )}
+          {activeTab === 'runes' && (
+          <div className="space-y-8 animate-in fade-in pb-24">
+             {/* HEADER */}
+             <div className="p-10 bg-gradient-to-br from-cyan-900 via-gray-950 to-blue-900 border border-cyan-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Sparkles className="mx-auto mb-4 text-cyan-400 animate-pulse" size={64} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Rune Oracle</h3>
+                <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] mt-2">Reforging Priority Guide</p>
+             </div>
+
+             {/* RUNE GRID */}
+             <div className="grid grid-cols-1 gap-6">
+               {/* Check for RUNE_DATA, prevent crash if file not updated yet */}
+               {(typeof RUNE_DATA !== 'undefined' ? RUNE_DATA : []).map((rune) => (
+                 <div key={rune.id} className="group relative p-8 bg-gray-900/60 border border-white/5 rounded-[3rem] hover:border-white/20 transition-all">
+                    {/* Rune Title Row */}
+                    <div className="flex items-center gap-5 mb-6">
+                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg
+                         ${rune.color === 'red' ? 'bg-red-900/20 border-red-500/30 text-red-500' : 
+                           rune.color === 'blue' ? 'bg-blue-900/20 border-blue-500/30 text-blue-500' :
+                           rune.color === 'green' ? 'bg-green-900/20 border-green-500/30 text-green-500' :
+                           rune.color === 'purple' ? 'bg-purple-900/20 border-purple-500/30 text-purple-500' :
+                           'bg-orange-900/20 border-orange-500/30 text-orange-500'}`}>
+                          <Sparkle size={24} />
+                       </div>
+                       <div>
+                          <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">{rune.name}</h4>
+                          <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Focus: {rune.focus}</p>
+                       </div>
+                    </div>
+
+                    {/* God Rolls List */}
+                    <div className="space-y-3">
+                       {rune.godRolls.map((roll, idx) => (
+                         <div key={idx} className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                            <div className="flex items-center gap-3">
+                               {roll.tier === 'SSS' && <Crown size={12} className="text-yellow-500" />}
+                               <span className={`text-[10px] font-black uppercase tracking-wide ${roll.tier === 'SSS' ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                 {roll.stat}
+                               </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-500 italic">{roll.val}</span>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+               ))}
+             </div>
+          </div>
+        )}
 
           {activeTab === 'farming' && (
             <div className="space-y-6 pb-40 animate-in fade-in">

@@ -847,3 +847,92 @@ export const DAILY_EVENTS: ArcheroEvent[] = [
     color: 'amber'
   }
 ];
+
+// --- RUNE ORACLE DATA ---
+export const RUNE_DATA = [
+  {
+    id: 'power', name: 'Power Rune', color: 'red', focus: 'Offense',
+    godRolls: [
+      { stat: 'All Damage Increased %', val: '+3% to +5%', tier: 'SSS' },
+      { stat: 'Crit Damage %', val: '+20% to +40%', tier: 'SS' },
+      { stat: 'Attack %', val: '+3% to +5%', tier: 'S' }
+    ]
+  },
+  {
+    id: 'savior', name: 'Savior Rune', color: 'blue', focus: 'Defense',
+    godRolls: [
+      { stat: 'Damage Resistance %', val: '+4% to +6%', tier: 'SSS' },
+      { stat: 'Projectile Resistance %', val: '+5% to +8%', tier: 'SS' },
+      { stat: 'Collision Resistance %', val: '+5% to +8%', tier: 'S' }
+    ]
+  },
+  {
+    id: 'recovery', name: 'Recovery Rune', color: 'green', focus: 'Utility',
+    godRolls: [
+      { stat: 'Diagonal Arrows +1', val: 'Rare Skill', tier: 'SSS' },
+      { stat: 'Rage (Skill)', val: 'Rare Skill', tier: 'SSS' },
+      { stat: 'Healing Effect %', val: '+10% to +20%', tier: 'S' }
+    ]
+  },
+  {
+    id: 'courage', name: 'Courage Rune', color: 'orange', focus: 'Hero',
+    godRolls: [
+      { stat: 'Attack +% (Base)', val: '+4% to +7%', tier: 'SSS' },
+      { stat: 'Hero Base Stats %', val: '+3% to +5%', tier: 'SS' },
+      { stat: 'Battle XP Gain %', val: '+10% to +15%', tier: 'A' }
+    ]
+  },
+  {
+    id: 'luck', name: 'Luck Rune', color: 'purple', focus: 'Drops',
+    godRolls: [
+      { stat: 'Monster Egg Drop %', val: 'High Priority', tier: 'SSS' },
+      { stat: 'Equipment Drop Rate %', val: 'High Priority', tier: 'SSS' }
+    ]
+  }
+];
+
+// --- SYNERGY TEMPLE DATA ---
+export const SYNERGY_DATA: Record<string, { partners: Array<{ name: string; buff: string; tier: 'S' | 'A' | 'B' }> }> = {
+  arthur: {
+    partners: [
+      { name: 'Zeus', buff: 'Adds Lightning Chain to Excalibur strikes.', tier: 'S' },
+      { name: 'Melinda', buff: 'Barrage triggers on Critical Hits.', tier: 'S' },
+      { name: 'Helix', buff: 'Survival Instinct: Dmg +20% when HP < 30%.', tier: 'A' }
+    ]
+  },
+  wukong: {
+    partners: [
+      { name: 'Melinda', buff: 'Spinning Staff shoots Barrage arrows.', tier: 'S' },
+      { name: 'Stella', buff: 'Adds Starfall effect to clone attacks.', tier: 'S' },
+      { name: 'Taiga', buff: 'Increases Crit Dmg by 15% flat.', tier: 'A' }
+    ]
+  },
+  zeus: {
+    partners: [
+      { name: 'Taranis', buff: 'Lightning Dmg +25% (Thunder God Synergy).', tier: 'S' },
+      { name: 'Phoren', buff: 'Crits apply Burn (Elemental Overload).', tier: 'A' },
+      { name: 'Sylvan', buff: 'Adds random elemental proc to bolts.', tier: 'B' }
+    ]
+  },
+  melinda: {
+    partners: [
+      { name: 'Dragon Girl', buff: 'Explosion radius +30%.', tier: 'S' },
+      { name: 'Shade', buff: 'Adds Dark Touch to Barrage.', tier: 'A' },
+      { name: 'Rolla', buff: 'Freezes enemies hit by barrage.', tier: 'B' }
+    ]
+  },
+  helix: {
+    partners: [
+      { name: 'Meowgik', buff: 'Dodge +5%, Cat spirit spawns on hit.', tier: 'S' },
+      { name: 'Gugu', buff: 'Owl summon protects from 1 hit.', tier: 'A' },
+      { name: 'Ayana', buff: 'Charm effect duration +2s.', tier: 'B' }
+    ]
+  },
+  dragon_girl: {
+    partners: [
+      { name: 'Melinda', buff: 'Dragon projectiles split on impact.', tier: 'S' },
+      { name: 'Starrite (Pet)', buff: 'Dragon stats +15%.', tier: 'A' },
+      { name: 'Ophelia', buff: 'Soul sucking effectiveness +20%.', tier: 'B' }
+    ]
+  }
+};
