@@ -21,7 +21,7 @@ import {
   Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home, HelpCircle as GuideIcon, Settings
 } from 'lucide-react';
 import { 
-  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS, RUNE_DATA, SYNERGY_DATA
+  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS, RUNE_DATA, SYNERGY_DATA, FARMLORD_DATA, JEWEL_BUILD_DATA
 } from './constants';
 import { chatWithAI } from './services/geminiService';
 import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone, ArcheroEvent, LoadoutBuild } from './types';
@@ -1499,6 +1499,51 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* --- FARMLORD'S MAP (MISSION SELECT) --- */}
+        {activeTab === 'farming' && (
+          <div className="space-y-8 animate-in fade-in pb-24">
+             {/* HEADER */}
+             <div className="p-8 bg-gradient-to-br from-green-900 via-gray-950 to-emerald-900 border border-green-500/20 rounded-[3rem] text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Map className="mx-auto mb-4 text-green-500 animate-pulse" size={56} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Farmlord's Map</h3>
+                <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.3em] mt-2">Optimal Route Planner</p>
+             </div>
+
+             {/* MISSION CARDS */}
+             <div className="grid grid-cols-1 gap-4">
+               {/* MISSION CARDS - 2x2 GRID LAYOUT */}
+             <div className="grid grid-cols-2 gap-3">
+               {FARMLORD_DATA.map((mission) => (
+                 <div key={mission.id} className={`p-5 rounded-[2rem] border ${mission.border} ${mission.bg} relative overflow-hidden group hover:scale-[1.02] active:scale-95 transition-all flex flex-col items-center text-center`}>
+                    
+                    {/* ICON */}
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${mission.border} bg-black/30 shadow-xl mb-3 group-hover:rotate-12 transition-transform`}>
+                       {mission.icon === 'coins' && <Coins size={20} className={mission.color} />}
+                       {mission.icon === 'droplet' && <Droplets size={20} className={mission.color} />}
+                       {mission.icon === 'sword' && <Swords size={20} className={mission.color} />}
+                       {mission.icon === 'zap' && <Zap size={20} className={mission.color} />}
+                    </div>
+
+                    {/* TITLE & CHAPTER */}
+                    <div className="mb-auto space-y-1">
+                       <h4 className="text-sm font-black text-white uppercase italic tracking-tighter leading-tight">{mission.name}</h4>
+                       <div className="inline-block bg-black/40 px-3 py-1 rounded-lg border border-white/5">
+                          <span className="text-[10px] font-bold text-gray-200">{mission.chapter}</span>
+                       </div>
+                    </div>
+                    
+                    {/* TARGET RESOURCE */}
+                    <div className="mt-3 pt-3 border-t border-white/5 w-full">
+                       <span className={`text-[9px] font-black uppercase tracking-widest ${mission.color}`}>{mission.target}</span>
+                    </div>
+                 </div>
+               ))}
+             </div>
+             </div>
+          </div>
+        )}
+
         {/* --- RUNE ORACLE TAB --- */}
         {activeTab === 'runes' && (
           <div className="space-y-8 animate-in fade-in pb-24">
@@ -2606,9 +2651,94 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'dragons' && (
-            <div className="space-y-10 animate-in fade-in pb-12"><div className={`p-10 rounded-[3.5rem] border transition-all ${dragonSynergy ? 'bg-orange-600/10 border-orange-500/40' : 'bg-gray-900/40 border-white/5'} shadow-2xl`}><div className="flex items-center justify-between mb-8"><div><h4 className="text-xl font-black text-white uppercase italic tracking-tight flex items-center gap-3"><Flame size={24} className={dragonSynergy ? 'text-orange-500' : 'text-gray-600'}/> Magestone Core</h4><p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-1">{dragonSynergy ? "Resonance Optimized" : "Incomplete Synchronization"}</p></div>{dragonSynergy && <Sparkles className="text-orange-500 animate-pulse" size={24} />}</div><div className="grid grid-cols-1 gap-6">{['slot1', 'slot2', 'slot3'].map((slot, i) => { const selected = DRAGON_DATA.find(d => d.id === (dragons as any)[slot]); return (<div key={slot} className="p-6 bg-black/40 rounded-[2.5rem] border border-white/5 flex flex-col gap-4"><CustomSelect options={DRAGON_DATA.map(d => ({ id: d.id, name: d.name, subtitle: (d as BaseItem).dragonType }))} value={(dragons as any)[slot]} onChange={(val) => handleEquipDragon(slot as any, val)} placeholder={`Assign Dragon Socket ${i+1}`} />{selected && (<div className="px-2 space-y-2 animate-in fade-in slide-in-from-left-2">{selected.deepLogic && <p className="text-[11px] font-bold text-orange-400 italic">Skill: {selected.deepLogic}</p>}<p className="text-[9px] text-gray-500 leading-relaxed font-medium">{selected.desc}</p></div>)}</div>); })}</div></div><div className="p-8 bg-black/20 rounded-[3rem] border border-white/5"><p className="text-[10px] font-black text-gray-600 uppercase mb-4 flex items-center gap-2"><Lightbulb size={12}/> Pro Tip</p><p className="text-[11px] text-gray-400 italic leading-relaxed">Assign unique dragons to each socket. Resonance is triggered by having one of each Type (Attack, Defense, Balance).</p></div></div>
-          )}
+          {/* --- DRAGON ALTAR (TIER LIST) --- */}
+        {activeTab === 'dragons' && (
+          <div className="space-y-10 animate-in fade-in pb-24">
+             {/* HEADER */}
+             <div className="p-10 bg-gradient-to-br from-orange-900 via-gray-950 to-red-900 border border-orange-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Flame className="mx-auto mb-4 text-orange-500 animate-pulse" size={64} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Dragon Altar</h3>
+                <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mt-2">Statue Awakening Priority</p>
+             </div>
+
+             {/* META STRATEGY CARD */}
+             <div className="p-8 bg-gray-900/60 border border-white/5 rounded-[3rem] space-y-6">
+                <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+                  <Crown size={14} className="text-yellow-500" /> The Perfect Trinity
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   <div className="p-6 bg-red-900/20 border border-red-500/30 rounded-3xl flex flex-col items-center text-center">
+                      <span className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-1">Attack Slot</span>
+                      <strong className="text-xl font-black text-white italic">Magmar</strong>
+                      <p className="text-[9px] text-gray-400 mt-2 leading-tight">Mana regen & proj destruction.</p>
+                   </div>
+                   <div className="p-6 bg-yellow-900/20 border border-yellow-500/30 rounded-3xl flex flex-col items-center text-center">
+                      <span className="text-[9px] font-black text-yellow-400 uppercase tracking-widest mb-1">Defense Slot</span>
+                      <strong className="text-xl font-black text-white italic">Geogon</strong>
+                      <p className="text-[9px] text-gray-400 mt-2 leading-tight">Magic Shield (MP Shield) is mandatory.</p>
+                   </div>
+                   <div className="p-6 bg-purple-900/20 border border-purple-500/30 rounded-3xl flex flex-col items-center text-center">
+                      <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1">Balance Slot</span>
+                      <strong className="text-xl font-black text-white italic">Necrogon</strong>
+                      <p className="text-[9px] text-gray-400 mt-2 leading-tight">Passive Projectile Resistance.</p>
+                   </div>
+                </div>
+             </div>
+
+             {/* TIER LIST DISPLAY */}
+             <div className="space-y-12">
+               {['SS', 'S', 'A', 'B'].map((tier) => {
+                 const tierDragons = DRAGON_DATA.filter(d => d.tier === tier);
+                 if (tierDragons.length === 0) return null;
+
+                 // Styling based on Tier
+                 const style = 
+                   tier === 'SS' ? { title: 'Sovereigns', color: 'text-red-500', border: 'border-red-500/30', bg: 'bg-red-950/10' } :
+                   tier === 'S' ? { title: 'Guardians', color: 'text-orange-500', border: 'border-orange-500/30', bg: 'bg-orange-950/10' } :
+                   tier === 'A' ? { title: 'Specialists', color: 'text-purple-400', border: 'border-purple-500/30', bg: 'bg-purple-950/10' } :
+                   { title: 'Fodder', color: 'text-gray-500', border: 'border-white/10', bg: 'bg-gray-900/40' };
+
+                 return (
+                   <div key={tier} className="space-y-4">
+                      <div className="flex items-center gap-4 px-4">
+                         <span className={`text-2xl font-black italic ${style.color}`}>{tier}</span>
+                         <div className={`h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent`}></div>
+                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${style.color}`}>{style.title}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-4">
+                        {tierDragons.map(dragon => (
+                          <div key={dragon.id} className={`p-6 rounded-[2.5rem] border ${style.border} ${style.bg} relative overflow-hidden group hover:scale-[1.01] transition-all`}>
+                             <div className="flex justify-between items-start relative z-10">
+                                <div className="flex items-center gap-4">
+                                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${style.border} bg-black/20 shadow-inner`}>
+                                      <Flame size={20} className={style.color} />
+                                   </div>
+                                   <div>
+                                      <h4 className="text-lg font-black text-white uppercase italic tracking-tighter">{dragon.name}</h4>
+                                      <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">
+                                        Type: <span className="text-white">{dragon.dragonType}</span>
+                                      </p>
+                                   </div>
+                                </div>
+                                <div className="px-3 py-1 rounded-lg bg-black/30 border border-white/5">
+                                   <span className={`text-[10px] font-black ${style.color}`}>{tier} Tier</span>
+                                </div>
+                             </div>
+                             
+                             <div className="mt-4 pl-16 space-y-2 relative z-10">
+                                <p className="text-[11px] font-bold text-gray-200 italic">"{(dragon as any).deepLogic || dragon.desc}"</p>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                 );
+               })}
+             </div>
+          </div>
+        )}
 
           {activeTab === 'refine' && (
             <div className="space-y-10 animate-in fade-in pb-24">
@@ -2716,6 +2846,47 @@ const App: React.FC = () => {
           {activeTab === 'immunity' && (
             <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p><div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[{ label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) }, { label: 'Atreus Level 80 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }, { label: 'Onir 7-Star Passive (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) }, { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, locket: v})) }].map((row, i) => (<div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between"><span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>{row.hasOwnProperty('val') ? (<input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />) : (<button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>{row.check && <CheckCircle2 size={14}/>}</button>)}</div>))}</div></div>
           )}
+
+          {/* HEADER */}
+             <div className="p-8 bg-gradient-to-br from-cyan-900 via-gray-950 to-blue-900 border border-cyan-500/20 rounded-[3rem] text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Disc className="mx-auto mb-4 text-cyan-400 animate-spin-slow" size={56} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Jewel Architect</h3>
+                <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] mt-2">Socket Priority Blueprint</p>
+             </div>
+
+             {/* BLUEPRINT CARDS */}
+             <div className="space-y-4">
+                {JEWEL_BUILD_DATA.map((build, idx) => (
+                  <div key={idx} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] relative overflow-hidden">
+                     {/* PRIORITY BADGE */}
+                     <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <span className="text-6xl font-black text-white">{build.priority}</span>
+                     </div>
+                     
+                     <div className="relative z-10">
+                        <h4 className={`text-lg font-black uppercase italic tracking-tighter ${build.color} mb-4 flex items-center gap-2`}>
+                          <Construction size={18} /> {build.slot}
+                        </h4>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                           <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-center">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Level 16</span>
+                              <span className="text-sm font-bold text-white">{build.bonus16}</span>
+                           </div>
+                           <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-center">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Level 28</span>
+                              <span className="text-sm font-bold text-yellow-400 animate-pulse">{build.bonus28}</span>
+                           </div>
+                        </div>
+                        
+                        <p className="text-[10px] text-gray-400 font-medium italic text-center">
+                          "{build.desc}"
+                        </p>
+                     </div>
+                  </div>
+                ))}
+             </div>
 
           {activeTab === 'runes' && (
           <div className="space-y-8 animate-in fade-in pb-24">

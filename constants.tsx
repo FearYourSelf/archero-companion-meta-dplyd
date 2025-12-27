@@ -936,3 +936,46 @@ export const SYNERGY_DATA: Record<string, { partners: Array<{ name: string; buff
     ]
   }
 };
+
+// --- FARMLORD'S MAP DATA ---
+export const FARMLORD_DATA = [
+  { 
+    id: 'gold_rush', name: 'Gold Rush', chapter: 'H14 / H28', 
+    target: 'Gold Coins', icon: 'coins', difficulty: 'Low', color: 'text-yellow-400', border: 'border-yellow-500/50', bg: 'bg-yellow-950/30',
+    desc: 'Pure economic gain. H14 for AFK, H28 for Active play (~150k gold).' 
+  },
+  { 
+    id: 'blood_mine', name: 'The Blood Mine', chapter: 'H21', 
+    target: 'Bloodstones', icon: 'droplet', difficulty: 'Medium', color: 'text-red-500', border: 'border-red-500/50', bg: 'bg-red-950/30',
+    desc: 'Highest drop rate for Bloodstones to upgrade Altar. Also drops Magmar chips.' 
+  },
+  { 
+    id: 'armory', name: 'The Armory', chapter: 'H27', 
+    target: 'Equipment', icon: 'sword', difficulty: 'High', color: 'text-blue-400', border: 'border-blue-500/50', bg: 'bg-blue-950/30',
+    desc: 'Wave chapter. Best density for weapon and armor scrolls/drops.' 
+  },
+  { 
+    id: 'xp_shrine', name: 'XP Shrine', chapter: 'H35', 
+    target: 'Account XP', icon: 'zap', difficulty: 'Nightmare', color: 'text-purple-400', border: 'border-purple-500/50', bg: 'bg-purple-950/30',
+    desc: 'Massive XP gain for leveling up account brave level. Warning: Bosses are brutal.' 
+  }
+];
+
+// --- JEWEL ARCHITECT DATA ---
+export const JEWEL_BUILD_DATA = [
+  {
+    slot: 'Weapon & Ring', priority: 'SSS', color: 'text-red-500',
+    bonus16: 'Attack +5%', bonus28: 'All Damage +4%',
+    desc: 'The only slots that matter for DPS. Rush these to Level 28 immediately.'
+  },
+  {
+    slot: 'Book & Locket', priority: 'S', color: 'text-purple-400',
+    bonus16: 'Crit Damage +5%', bonus28: 'MP Recovery / HP +%',
+    desc: 'Secondary priority. Good for crit builds (Melinda/Dragon Girl).'
+  },
+  {
+    slot: 'Armor', priority: 'B', color: 'text-blue-400',
+    bonus16: 'Dmg Resist +3%', bonus28: 'Red Heart Recovery',
+    desc: 'Defensive utility. Upgrade only after Weapons are maxed.'
+  }
+];
