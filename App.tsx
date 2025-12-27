@@ -428,6 +428,7 @@ const App: React.FC = () => {
 
   const [savedLoadouts, setSavedLoadouts] = useState<LoadoutBuild[]>(() => JSON.parse(localStorage.getItem('archero_v6_loadouts') || '[]'));
   const [selectorActiveSlot, setSelectorActiveSlot] = useState<{ name: string; category: GearCategory } | null>(null);
+  const [loadoutRarityMode, setLoadoutRarityMode] = useState<'Standard' | 'Titan' | 'Chaos'>('Standard');
 
   // Build Modal States
   const [isSavingModalOpen, setIsSavingModalOpen] = useState(false);
@@ -937,36 +938,60 @@ const App: React.FC = () => {
     const item = [...HERO_DATA, ...GEAR_DATA, ...DRAGON_DATA].find(i => i.id === itemId);
     const isEditing = selectorActiveSlot?.name === name;
     
+    // Grandmaster Color Mapping
+    const getColors = () => {
+      if (loadoutRarityMode === 'Titan') return 'border-yellow-400/50 bg-yellow-400/5 text-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.2)]';
+      if (loadoutRarityMode === 'Chaos') return 'border-red-600/50 bg-red-600/5 text-red-500 shadow-[0_0_20px_rgba(220,38,38,0.2)]';
+      
+      // Standard Mode: Tactical Color Coding
+      switch(category) {
+        case 'Weapon': return 'border-red-500/40 bg-red-500/5 text-red-500 shadow-red-500/10';
+        case 'Armor': return 'border-blue-500/40 bg-blue-500/5 text-blue-500 shadow-blue-500/10';
+        case 'Ring': return 'border-purple-500/40 bg-purple-500/5 text-purple-500 shadow-purple-500/10';
+        case 'Bracelet': return 'border-amber-500/40 bg-amber-500/5 text-amber-500 shadow-amber-500/10';
+        case 'Locket': return 'border-emerald-500/40 bg-emerald-500/5 text-emerald-500 shadow-emerald-500/10';
+        case 'Book': return 'border-pink-500/40 bg-pink-500/5 text-pink-500 shadow-pink-500/10';
+        case 'Spirit': return 'border-cyan-500/40 bg-cyan-500/5 text-cyan-500 shadow-cyan-500/10';
+        case 'Dragon': return 'border-orange-500/40 bg-orange-500/5 text-orange-500 shadow-orange-500/10';
+        case 'Hero': return 'border-white/40 bg-white/5 text-white shadow-white/10';
+        default: return 'border-gray-700 bg-gray-900/40 text-gray-500';
+      }
+    };
+
+    const colorClass = item ? getColors() : 'bg-gray-950/40 border-white/5 text-gray-700 hover:border-white/20';
+    
     return (
       <div 
         onClick={() => { setSelectorActiveSlot({ name, category }); playSfx('click'); }}
-        className={`relative aspect-square rounded-[1.8rem] border-2 flex flex-col items-center justify-center p-2 transition-all cursor-pointer group active:scale-95 
-          ${isEditing ? 'border-orange-500 ring-4 ring-orange-500/30 scale-105 z-20 shadow-[0_0_30px_rgba(249,115,22,0.4)]' : 'border-white/5'}
-          ${item 
-            ? (variant === 'hero' ? 'bg-blue-600/10 border-blue-500/40 shadow-lg' : 'bg-orange-600/5 border-orange-500/40 shadow-md') 
-            : 'bg-gray-950/40 hover:border-white/20'
-          } 
-          ${variant === 'hero' && !isEditing ? 'scale-110 ring-2 ring-blue-500/20' : ''}`}
+        className={`relative aspect-square rounded-[1.6rem] border-2 flex flex-col items-center justify-center p-2 transition-all duration-300 cursor-pointer group active:scale-95 
+          ${isEditing ? 'border-white ring-4 ring-white/10 scale-105 z-20 shadow-2xl' : colorClass}
+          ${variant === 'hero' && !isEditing ? 'scale-110 z-10' : ''}`}
       >
-        {!item && <Icon size={variant === 'hero' ? 28 : 22} className={`transition-colors ${isEditing ? 'text-orange-500' : 'text-gray-700 opacity-50 group-hover:opacity-100'}`} />}
-        {!item && <span className={`text-[7px] font-black uppercase mt-1 text-center leading-none tracking-tighter transition-colors ${isEditing ? 'text-orange-400' : 'text-gray-600'}`}>{name}</span>}
+        {/* Empty State Icon */}
+        {!item && <Icon size={variant === 'hero' ? 28 : 20} className={`transition-all duration-500 ${isEditing ? 'text-white scale-110' : 'opacity-40 group-hover:opacity-100 group-hover:scale-110'}`} />}
+        {!item && <span className={`text-[7px] font-black uppercase mt-1.5 text-center leading-none tracking-widest opacity-60 transition-colors ${isEditing ? 'text-white' : ''}`}>{name.split(' ')[0]}</span>}
+        
+        {/* Filled State */}
         {item && (
-          <div className="text-center animate-in zoom-in-50 duration-300 w-full overflow-hidden">
-            <Badge tier={item.tier} />
-            <p className="text-[8px] font-black text-white uppercase italic mt-1 leading-tight px-0.5 line-clamp-2">{item.name}</p>
+          <div className="text-center animate-in zoom-in-50 duration-300 w-full overflow-hidden relative z-10">
+            <div className="mb-1 transform group-hover:scale-110 transition-transform duration-300">
+               <Badge tier={item.tier} />
+            </div>
+            <p className="text-[8px] font-black uppercase italic leading-tight px-0.5 line-clamp-2 mix-blend-plus-lighter opacity-90">{item.name}</p>
           </div>
         )}
+
+        {/* Glow Effect */}
+        {item && <div className={`absolute inset-0 rounded-[1.4rem] opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl ${colorClass.split(' ')[2].replace('text', 'bg')}`} />}
+
+        {/* Remove Button */}
         {item && (
           <button 
             onClick={(e) => { e.stopPropagation(); setCurrentLoadout(p => ({ ...p, [name]: '' })); playSfx('click'); }}
-            className="absolute -top-1 -right-1 p-1 bg-red-600 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            className="absolute -top-1 -right-1 p-1.5 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all hover:scale-125 z-20 shadow-lg"
           >
-            <X size={10} />
+            <X size={8} />
           </button>
-        )}
-        {/* Pulsing indicator for active slot in build view */}
-        {isEditing && (
-          <div className="absolute inset-0 rounded-[1.8rem] border-2 border-orange-500 animate-ping opacity-20 pointer-events-none" />
         )}
       </div>
     );
@@ -1223,100 +1248,136 @@ const App: React.FC = () => {
 
       <main ref={scrollContainerRef} className={`flex-1 overflow-y-auto no-scrollbar scroll-smooth relative ${activeTab === 'ai' ? 'overflow-hidden' : 'pb-40'}`}>
         {activeTab === 'home' && (
-          <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 px-6 py-8 space-y-10 pb-40">
-            <div className="p-10 bg-gradient-to-br from-orange-600/10 via-gray-950 to-blue-950/5 border border-white/10 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
+          <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 px-5 py-6 space-y-6 pb-40">
+            {/* HUD HEADER: LIVE STATUS */}
+            <div className="p-8 bg-gradient-to-br from-gray-900 to-gray-950 border border-white/10 rounded-[3rem] shadow-4xl relative overflow-hidden group">
                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
-               <Activity className="mx-auto mb-6 text-orange-500/30 animate-pulse" size={64} />
-               <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Dashboard</h3>
-               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] italic">Archero Command Center v6.3</p>
-               <div className="mt-8 flex items-center justify-center gap-4">
-                  <div className="px-5 py-2 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-2">
-                    <Calendar size={12} className="text-orange-500" />
-                    <span className="text-[9px] font-black text-white uppercase tracking-widest">{currentDay}</span>
-                  </div>
-                  <div className="px-5 py-2 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-2">
-                    <RefreshCw size={12} className="text-blue-500" />
-                    <span className="text-[9px] font-black text-white uppercase tracking-widest">SYNCED</span>
-                  </div>
+               
+               <div className="flex flex-col gap-8 relative z-10">
+                 {/* TITLE & DATE */}
+                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                   <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 rounded-2xl bg-orange-600/20 border border-orange-500/30 flex items-center justify-center text-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.2)]">
+                       <Activity size={24} className="animate-pulse"/>
+                     </div>
+                     <div>
+                       <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none">Command Center</h3>
+                       <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-1.5 flex items-center gap-2 justify-center md:justify-start">
+                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span>
+                         System Online // {currentDay}
+                       </p>
+                     </div>
+                   </div>
+                   
+                   {/* LIVE METRICS HUD */}
+                   <div className="flex items-stretch gap-3">
+                      {/* DPS METER with WARNING */}
+                      <button 
+                        onClick={() => handleTabChange('dps')}
+                        className="px-6 py-3 bg-black/40 border border-white/10 rounded-2xl text-center backdrop-blur-md flex flex-col justify-center min-w-[120px] hover:bg-white/5 transition-colors group relative"
+                      >
+                        <p className="text-[7px] font-black text-blue-400 uppercase tracking-widest mb-1">Burst Potential</p>
+                        <p className="text-xl font-black text-white italic tabular-nums leading-none mb-0.5">{calculatedDPS > 0 ? calculatedDPS.toLocaleString() : "---"}</p>
+                        <div className="flex items-center justify-center gap-1 text-orange-500/80">
+                           <AlertTriangle size={8} />
+                           <p className="text-[6px] font-bold uppercase tracking-tight">Check Input</p>
+                        </div>
+                      </button>
+                      
+                      {/* DYNAMIC EVENT STATUS (Auto-Switching) */}
+                      {(() => {
+                        const todayUCD = DAILY_EVENTS.find(e => e.id === 'ucd' && e.days.includes(currentDay));
+                        const todayFB = DAILY_EVENTS.find(e => e.id === 'fb' && e.days.includes(currentDay));
+                        // Priority: UCD (Gold) > FB (Gear) > Default to UCD (Offline)
+                        const activeEvent = todayUCD || todayFB || DAILY_EVENTS.find(e => e.id === 'ucd');
+                        const isOnline = !!(todayUCD || todayFB);
+                        
+                        return (
+                          <div className={`px-6 py-3 border rounded-2xl text-center backdrop-blur-md flex flex-col justify-center min-w-[100px] transition-colors 
+                            ${activeEvent?.id === 'fb' && isOnline ? 'bg-blue-950/30 border-blue-500/30' : 
+                              isOnline ? 'bg-orange-950/30 border-orange-500/30' : 'bg-gray-900/40 border-white/10'}`}>
+                            
+                            <p className={`text-[7px] font-black uppercase tracking-widest mb-1 truncate max-w-[100px] mx-auto
+                              ${activeEvent?.id === 'fb' && isOnline ? 'text-blue-400' : 
+                                isOnline ? 'text-orange-400' : 'text-gray-500'}`}>
+                              {activeEvent?.name}
+                            </p>
+                            <p className={`text-xl font-black italic leading-none 
+                              ${activeEvent?.id === 'fb' && isOnline ? 'text-blue-500 animate-pulse' : 
+                                isOnline ? 'text-orange-500 animate-pulse' : 'text-gray-600'}`}>
+                              {isOnline ? 'ACTIVE' : 'OFFLINE'}
+                            </p>
+                          </div>
+                        );
+                      })()}
+                   </div>
+                 </div>
+
+                 {/* GLOBAL STATS MINI-GRID */}
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/5">
+                    {Object.entries(globalStatsSummary).length > 0 ? (
+                      Object.entries(globalStatsSummary).slice(0, 4).map(([stat, val]) => (
+                        <div key={stat} className="p-3 bg-white/5 border border-white/5 rounded-xl flex flex-col items-center justify-center text-center">
+                          <p className="text-[7px] font-black text-gray-500 uppercase tracking-widest mb-0.5 truncate w-full">{stat}</p>
+                          <p className="text-sm font-black text-white italic">+{val}%</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-2 text-center opacity-40">
+                        <p className="text-[8px] font-black uppercase tracking-widest italic">Sync Tracker for Global Data</p>
+                      </div>
+                    )}
+                 </div>
                </div>
             </div>
 
-            {/* Global Stats Overview Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-2">
-                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] italic flex items-center gap-2">
-                  <Activity size={14} className="text-orange-500" /> Global Resonance
-                </h4>
-                <button onClick={() => handleTabChange('tracker')} className="text-[8px] font-black text-orange-500 uppercase tracking-widest hover:underline flex items-center gap-1">
-                  Manage Sync <ChevronRight size={10} />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {Object.entries(globalStatsSummary).length > 0 ? (
-                  Object.entries(globalStatsSummary).map(([stat, val]) => (
-                    <div key={stat} className="p-4 bg-gray-900/60 border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center transition-all hover:border-orange-500/20 group">
-                      <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1 truncate w-full group-hover:text-gray-400">{stat}</p>
-                      <p className="text-xl font-black text-white italic group-hover:text-orange-500 transition-colors">+{val}%</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full p-8 bg-white/5 border border-dashed border-white/10 rounded-[2.5rem] text-center opacity-40">
-                    <Pulse size={24} className="mx-auto mb-3 text-gray-600" />
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] italic">No Global Bonuses Detected</p>
-                    <p className="text-[7px] font-bold text-gray-700 uppercase mt-1">Sync L120 or Evolutions in the Tracker protocol.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            {/* NAVIGATION GRID */}
+            <div className="grid grid-cols-2 gap-3">
               {NAV_ITEMS.filter(item => item.id !== 'home').map((item, idx) => (
                 <button 
                   key={item.id}
                   onClick={() => handleTabChange(item.id as AppTab)}
-                  className="group relative p-8 bg-gray-950/40 border border-white/5 rounded-[2.8rem] flex flex-col items-center justify-center text-center gap-4 transition-all hover:bg-orange-600/5 hover:border-orange-500/30 hover:scale-[1.03] active:scale-95 shadow-xl animate-in fade-in zoom-in-95"
-                  style={{ animationDelay: `${idx * 40}ms` }}
+                  className="group relative p-6 bg-gray-950/40 border border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center gap-3 transition-all hover:bg-orange-600/5 hover:border-orange-500/30 hover:scale-[1.02] active:scale-95 shadow-xl overflow-hidden"
+                  style={{ animationDelay: `${idx * 30}ms` }}
                 >
-                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-10 transition-opacity">
-                    <item.icon size={64} className="text-orange-500" />
+                  <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-opacity duration-500">
+                    <item.icon size={48} className="text-orange-500" />
                   </div>
-                  <div className="w-16 h-16 bg-white/5 rounded-[1.8rem] border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-orange-500 group-hover:bg-orange-500/10 group-hover:border-orange-500/20 transition-all shadow-inner">
-                    <item.icon size={28} />
+                  <div className="w-12 h-12 bg-white/5 rounded-[1.2rem] border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-orange-500 group-hover:bg-orange-500/10 group-hover:border-orange-500/20 transition-all shadow-inner relative z-10">
+                    <item.icon size={22} />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-black text-white uppercase italic tracking-tighter group-hover:text-orange-400 transition-colors">{item.label}</h4>
-                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Launch Protocol</p>
+                  <div className="relative z-10">
+                    <h4 className="text-xs font-black text-white uppercase italic tracking-tighter group-hover:text-orange-400 transition-colors">{item.label}</h4>
                   </div>
                 </button>
               ))}
               
               <button 
                 onClick={() => handleTabChange('loadout')}
-                className="col-span-2 group relative p-10 bg-blue-600/10 border border-blue-500/20 rounded-[3.5rem] flex items-center justify-between transition-all hover:bg-blue-600/20 hover:border-blue-500/40 hover:scale-[1.02] active:scale-95 shadow-2xl animate-in fade-in zoom-in-95 delay-300"
+                className="col-span-2 group relative p-8 bg-blue-600/10 border border-blue-500/20 rounded-[3rem] flex items-center justify-between transition-all hover:bg-blue-600/20 hover:border-blue-500/40 hover:scale-[1.01] active:scale-95 shadow-2xl mt-2"
               >
-                <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-blue-600/20 rounded-[2.2rem] border border-blue-500/30 flex items-center justify-center text-blue-500 shadow-inner group-hover:scale-110 transition-transform">
-                    <Shirt size={40} />
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 bg-blue-600/20 rounded-[1.8rem] border border-blue-500/30 flex items-center justify-center text-blue-500 shadow-inner group-hover:scale-110 transition-transform">
+                    <Shirt size={32} />
                   </div>
                   <div className="text-left">
-                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">Loadout Editor</h4>
-                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mt-1">Deploy Combat Configuration</p>
+                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter">Loadout Editor</h4>
+                    <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.3em] mt-1">Deploy Combat Config</p>
                   </div>
                 </div>
-                <div className="p-5 bg-black/20 rounded-full border border-white/5 group-hover:translate-x-2 transition-transform">
-                  <ArrowRight size={24} className="text-blue-500" />
+                <div className="p-4 bg-black/20 rounded-full border border-white/5 group-hover:translate-x-2 transition-transform">
+                  <ArrowRight size={20} className="text-blue-500" />
                 </div>
               </button>
             </div>
             
-            <div className="flex flex-col items-center gap-4 py-8">
+            <div className="flex justify-center pb-8 pt-4">
                <button 
                 onClick={resetTutorial}
-                className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-gray-500 hover:text-orange-500 transition-all uppercase tracking-widest flex items-center gap-2 italic"
+                className="text-[8px] font-black text-gray-600 hover:text-orange-500 transition-colors uppercase tracking-widest flex items-center gap-2 opacity-50 hover:opacity-100 px-4 py-2 rounded-xl hover:bg-white/5"
                >
-                 <GuideIcon size={14} /> Reset User Tutorial
+                 <GuideIcon size={12} /> Reset Training Protocol
                </button>
-               <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest italic opacity-40">Archero Command Uplink Active. Commander, your presence is required in the lab.</p>
             </div>
           </div>
         )}
@@ -1734,31 +1795,56 @@ const App: React.FC = () => {
 
           {activeTab === 'loadout' && (
             <div className="space-y-8 animate-in fade-in pb-24">
-              <div className="flex items-stretch gap-4">
-                <button 
-                  onClick={() => handleTabChange('home')} 
-                  className="px-6 bg-white/5 rounded-[2.5rem] border border-white/10 hover:text-orange-500 transition-all shadow-xl group flex items-center justify-center"
-                >
-                  <ChevronLeft size={28} className="group-hover:-translate-x-1 transition-transform" />
-                </button>
+              {/* Header & Controls */}
+              <div className="flex flex-col gap-6">
+                <div className="flex items-stretch gap-4">
+                  <button 
+                    onClick={() => handleTabChange('home')} 
+                    className="px-6 bg-white/5 rounded-[2.5rem] border border-white/10 hover:text-orange-500 transition-all shadow-xl group flex items-center justify-center"
+                  >
+                    <ChevronLeft size={28} className="group-hover:-translate-x-1 transition-transform" />
+                  </button>
 
-                <div className="flex-1 p-8 bg-gradient-to-br from-blue-900/10 via-gray-950 to-blue-950/5 border border-blue-500/20 rounded-[3.5rem] text-center shadow-4xl relative overflow-hidden">
-                   <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-2 flex items-center justify-center gap-4">
-                     <Shirt size={28} className="text-blue-500 animate-pulse"/> Loadout Editor
-                   </h3>
-                   <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] italic">Tactical Configuration Interface</p>
+                  <div className="flex-1 p-8 bg-gradient-to-br from-blue-900/10 via-gray-950 to-blue-950/5 border border-blue-500/20 rounded-[3.5rem] text-center shadow-4xl relative overflow-hidden group">
+                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                     <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-2 flex items-center justify-center gap-4 relative z-10">
+                       <Shirt size={28} className="text-blue-500 animate-pulse"/> Loadout Editor
+                     </h3>
+                     <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] italic relative z-10">Tactical Configuration Interface</p>
+                  </div>
+                </div>
+
+                {/* Visual Mode Toggle */}
+                <div className="flex justify-center">
+                  <div className="inline-flex p-1.5 bg-black/40 border border-white/10 rounded-2xl backdrop-blur-md">
+                    {['Standard', 'Titan', 'Chaos'].map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => { setLoadoutRarityMode(mode as any); playSfx('click'); }}
+                        className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                          loadoutRarityMode === mode 
+                            ? mode === 'Titan' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' 
+                            : mode === 'Chaos' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                            : 'bg-white text-black shadow-lg'
+                            : 'text-gray-500 hover:text-white'
+                        }`}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Build Editor (Paper Doll) */}
-              <div className="relative z-10 mx-auto max-w-sm bg-gray-900/40 p-6 rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.02] pointer-events-none flex items-center justify-center">
+              <div className="relative z-10 mx-auto max-w-sm bg-gray-900/60 p-8 rounded-[3.5rem] border border-white/5 shadow-2xl overflow-hidden backdrop-blur-xl">
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
                    <UserCircle2 size={350} className="text-white" />
                 </div>
                 
-                <div className="relative z-10 space-y-4">
+                <div className="relative z-10 space-y-3">
                   {/* Gear Layout */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-3 items-end">
                     <LoadoutSlot name="Weapon" category="Weapon" icon={Sword} />
                     <LoadoutSlot name="Hero" category="Hero" icon={UserCircle2} variant="hero" />
                     <LoadoutSlot name="Armor" category="Armor" icon={Shield} />
@@ -1788,17 +1874,17 @@ const App: React.FC = () => {
                     <LoadoutSlot name="Dragon 3" category="Dragon" icon={Flame} />
                   </div>
 
-                  <div className="pt-4 space-y-3">
+                  <div className="pt-6 space-y-3">
                     <button 
                       onClick={analyzeCurrentBuild}
                       disabled={isAiLoading}
-                      className="w-full py-4 bg-orange-600 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-orange-500 transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(249,115,22,0.3)] active:scale-95 group"
+                      className="w-full py-4 bg-orange-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-orange-500 transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(249,115,22,0.3)] active:scale-95 group border-t border-orange-400/20"
                     >
                       {isAiLoading ? <Loader2 size={16} className="animate-spin" /> : <BrainCircuit size={16} className="group-hover:rotate-12 transition-transform" />} AI TACTICAL SYNTHESIS
                     </button>
                     <button 
                       onClick={handleSaveBuild}
-                      className="w-full py-4 bg-blue-600 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-lg active:scale-95"
+                      className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-lg active:scale-95 border-t border-blue-400/20"
                     >
                       <Save size={16} /> ARCHIVE CURRENT BUILD
                     </button>
@@ -1807,7 +1893,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Saved Build List */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4">
                 <h4 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] italic px-4 flex items-center gap-3">
                   <History size={16}/> DEPLOYABLE PROTOCOLS
                 </h4>
@@ -1818,26 +1904,26 @@ const App: React.FC = () => {
                     </div>
                   ) : (
                     savedLoadouts.map(build => (
-                      <div key={build.id} className="p-5 bg-gray-950 border border-white/10 rounded-[2rem] flex items-center justify-between group hover:border-blue-500/30 transition-all">
+                      <div key={build.id} className="p-5 bg-gray-950 border border-white/10 rounded-[2rem] flex items-center justify-between group hover:border-blue-500/30 transition-all shadow-lg">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+                          <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-inner">
                              <Package size={18} />
                           </div>
                           <div>
-                             <h5 className="text-base font-black text-white uppercase italic tracking-tighter">{build.name}</h5>
-                             <p className="text-[8px] font-bold text-gray-500 uppercase mt-0.5">{Object.values(build.slots).filter(Boolean).length} Assets Assigned</p>
+                             <h5 className="text-sm font-black text-white uppercase italic tracking-tighter">{build.name}</h5>
+                             <p className="text-[8px] font-bold text-gray-500 uppercase mt-0.5 tracking-wider">{Object.values(build.slots).filter(Boolean).length} Assets Assigned</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <button 
                             onClick={() => handleEquipBuild(build)}
-                            className="px-4 py-2 bg-blue-600 text-white text-[9px] font-black uppercase rounded-xl hover:bg-blue-500 transition-all flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-600 text-white text-[8px] font-black uppercase rounded-xl hover:bg-blue-500 transition-all flex items-center gap-2 shadow-md active:scale-95"
                           >
-                            <Bolt size={12} /> DEPLOY
+                            <Bolt size={10} /> DEPLOY
                           </button>
                           <button 
                             onClick={() => { setBuildToDelete(build); setIsDeletingModalOpen(true); playSfx('click'); }}
-                            className="p-2 bg-white/5 text-gray-600 rounded-xl hover:text-red-500 transition-all border border-white/5"
+                            className="p-2 bg-white/5 text-gray-600 rounded-xl hover:text-red-500 transition-all border border-white/5 hover:border-red-500/30 active:scale-95"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -1989,12 +2075,142 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'vs' && (
-            <div className="space-y-10 animate-in fade-in pb-12">
-               <div className="p-8 bg-orange-600/10 border border-orange-500/20 rounded-[3rem] text-center"><h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Comparison Matrix</h4><p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">Side-by-Side Architectural Analysis</p></div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-6"><CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemA} onChange={(v) => setVsItemA(v)} placeholder="Load Source A..." />{GEAR_DATA.find(g => g.id === vsItemA) && (<div className="animate-in slide-in-from-left-4 duration-500"><Card tier={GEAR_DATA.find(g => g.id === vsItemA)?.tier} className="min-h-[400px]"><Badge tier={GEAR_DATA.find(g => g.id === vsItemA)!.tier} /><h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemA)?.name}</h5><div className="mt-8 space-y-6">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemA)?.mythicPerk}</p></div>)}{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemA)?.deepLogic}</p></div>)}</div></Card></div>)}</div>
-                  <div className="space-y-6"><CustomSelect options={GEAR_DATA.map(g => ({ id: g.id, name: g.name, subtitle: g.category }))} value={vsItemB} onChange={(v) => setVsItemB(v)} placeholder="Load Source B..." />{GEAR_DATA.find(g => g.id === vsItemB) && (<div className="animate-in slide-in-from-right-4 duration-500"><Card tier={GEAR_DATA.find(g => g.id === vsItemB)?.tier} className="min-h-[400px]"><Badge tier={GEAR_DATA.find(g => g.id === vsItemB)!.tier} /><h5 className="text-lg font-black text-white uppercase italic mt-4">{GEAR_DATA.find(g => g.id === vsItemB)?.name}</h5><div className="mt-8 space-y-6">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk && (<div><p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Mythic Peak</p><p className="text-[11px] text-gray-200 font-bold italic">{GEAR_DATA.find(g => g.id === vsItemB)?.mythicPerk}</p></div>)}{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic && (<div className="p-4 bg-black/40 rounded-2xl border border-white/5"><p className="text-[8px] font-black text-gray-500 uppercase mb-2">Deep Logic</p><p className="text-[10px] text-gray-400 font-medium leading-relaxed italic">{GEAR_DATA.find(g => g.id === vsItemB)?.deepLogic}</p></div>)}</div></Card></div>)}</div>
+            <div className="space-y-8 animate-in fade-in pb-24">
+               {/* HEADER */}
+               <div className="p-10 bg-gradient-to-br from-indigo-900/20 via-gray-950 to-indigo-950/5 border border-indigo-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+                  <Swords className="mx-auto mb-6 text-indigo-500/40 group-hover:text-indigo-500/60 transition-colors" size={64} />
+                  <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Tactical Comparison</h3>
+                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] italic">Meta-Data Cross Reference</p>
                </div>
+
+               {/* CONTROLS */}
+               <div className="grid grid-cols-2 gap-4 md:gap-8">
+                  <div className="space-y-3">
+                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">Asset Alpha</p>
+                     <CustomSelect 
+                        options={[...GEAR_DATA, ...HERO_DATA].sort((a,b) => a.name.localeCompare(b.name)).map(i => ({ id: i.id, name: i.name, subtitle: i.category }))} 
+                        value={vsItemA} 
+                        onChange={setVsItemA} 
+                        placeholder="Select Item A..." 
+                     />
+                  </div>
+                  <div className="space-y-3">
+                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">Asset Beta</p>
+                     <CustomSelect 
+                        options={[...GEAR_DATA, ...HERO_DATA].sort((a,b) => a.name.localeCompare(b.name)).map(i => ({ id: i.id, name: i.name, subtitle: i.category }))} 
+                        value={vsItemB} 
+                        onChange={setVsItemB} 
+                        placeholder="Select Item B..." 
+                     />
+                  </div>
+               </div>
+
+               {/* COMPARISON ARENA */}
+               {(() => {
+                  const itemA = [...HERO_DATA, ...GEAR_DATA].find(i => i.id === vsItemA);
+                  const itemB = [...HERO_DATA, ...GEAR_DATA].find(i => i.id === vsItemB);
+
+                  if (itemA && itemB) {
+                     // LOGIC ENGINE: Calculate Winner
+                     const tiers = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D', 'F'];
+                     const scoreA = tiers.length - tiers.indexOf(itemA.tier);
+                     const scoreB = tiers.length - tiers.indexOf(itemB.tier);
+                     
+                     let winner: 'A' | 'B' | 'Tie' = 'Tie';
+                     let reason = "Tactical Equilibrium. Both assets offer similar power projection.";
+                     
+                     if (scoreA > scoreB) {
+                        winner = 'A';
+                        reason = `${itemA.name} holds a distinct Tier Advantage (${itemA.tier} vs ${itemB.tier}). Prioritize for deployment.`;
+                     } else if (scoreB > scoreA) {
+                        winner = 'B';
+                        reason = `${itemB.name} holds a distinct Tier Advantage (${itemB.tier} vs ${itemA.tier}). Prioritize for deployment.`;
+                     }
+
+                     return (
+                        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                           {/* VERDICT BANNER */}
+                           <div className="p-6 bg-blue-900/10 border-y border-blue-500/20 backdrop-blur-sm text-center">
+                              <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2">Neural Link Verdict</p>
+                              <p className="text-sm font-bold text-white italic">"{reason}"</p>
+                           </div>
+
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                              {/* VS BADGE (Desktop Center) */}
+                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-gray-950 border border-white/10 rounded-full p-4 shadow-2xl hidden md:flex items-center justify-center">
+                                 <span className="text-2xl font-black text-white italic">VS</span>
+                              </div>
+
+                              {/* ITEM A CARD */}
+                              <div className={`p-8 rounded-[3rem] border-2 relative overflow-hidden transition-all duration-500 flex flex-col items-center text-center gap-6
+                                 ${winner === 'A' ? 'bg-green-950/20 border-green-500/50 shadow-[0_0_50px_rgba(34,197,94,0.1)] scale-[1.02] z-10' : winner === 'B' ? 'bg-red-950/5 border-red-500/10 grayscale opacity-60 scale-95' : 'bg-gray-900/40 border-white/10'}`}>
+                                 
+                                 {winner === 'A' && (
+                                    <div className="absolute top-0 right-0 bg-green-600 text-white text-[8px] font-black uppercase px-6 py-2 rounded-bl-2xl tracking-widest shadow-lg flex items-center gap-2">
+                                       <Trophy size={10} /> Meta Choice
+                                    </div>
+                                 )}
+
+                                 <Badge tier={itemA.tier} />
+                                 <div>
+                                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">{itemA.name}</h4>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">{itemA.category}</p>
+                                 </div>
+                                 
+                                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                                 
+                                 <div className="space-y-4 w-full">
+                                    {(itemA as any).mythicPerk && (
+                                       <div className="p-4 bg-black/30 rounded-2xl border border-white/5">
+                                          <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1">Titan Perk</p>
+                                          <p className="text-[10px] text-gray-300 font-bold italic">{(itemA as any).mythicPerk}</p>
+                                       </div>
+                                    )}
+                                    <p className="text-[11px] text-gray-400 font-medium leading-relaxed italic">"{(itemA as any).deepLogic || itemA.desc}"</p>
+                                 </div>
+                              </div>
+
+                              {/* ITEM B CARD */}
+                              <div className={`p-8 rounded-[3rem] border-2 relative overflow-hidden transition-all duration-500 flex flex-col items-center text-center gap-6
+                                 ${winner === 'B' ? 'bg-green-950/20 border-green-500/50 shadow-[0_0_50px_rgba(34,197,94,0.1)] scale-[1.02] z-10' : winner === 'A' ? 'bg-red-950/5 border-red-500/10 grayscale opacity-60 scale-95' : 'bg-gray-900/40 border-white/10'}`}>
+                                 
+                                 {winner === 'B' && (
+                                    <div className="absolute top-0 right-0 bg-green-600 text-white text-[8px] font-black uppercase px-6 py-2 rounded-bl-2xl tracking-widest shadow-lg flex items-center gap-2">
+                                       <Trophy size={10} /> Meta Choice
+                                    </div>
+                                 )}
+
+                                 <Badge tier={itemB.tier} />
+                                 <div>
+                                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">{itemB.name}</h4>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">{itemB.category}</p>
+                                 </div>
+
+                                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                                 <div className="space-y-4 w-full">
+                                    {(itemB as any).mythicPerk && (
+                                       <div className="p-4 bg-black/30 rounded-2xl border border-white/5">
+                                          <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1">Titan Perk</p>
+                                          <p className="text-[10px] text-gray-300 font-bold italic">{(itemB as any).mythicPerk}</p>
+                                       </div>
+                                    )}
+                                    <p className="text-[11px] text-gray-400 font-medium leading-relaxed italic">"{(itemB as any).deepLogic || itemB.desc}"</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     );
+                  } else {
+                     return (
+                        <div className="p-16 text-center border-2 border-dashed border-white/5 rounded-[4rem] opacity-30 animate-pulse flex flex-col items-center justify-center">
+                           <ArrowRightLeft size={48} className="text-gray-500 mb-6" />
+                           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Select Two Assets for Analysis</p>
+                        </div>
+                     );
+                  }
+               })()}
             </div>
           )}
 
@@ -2232,7 +2448,102 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'refine' && (
-            <div className="space-y-10 animate-in fade-in pb-12"><div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group"><div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div><Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} /><p className="text-[11px] font-black text-orange-500 uppercase mb-2 tracking-[0.4em]">Estimated Essence Yield</p><div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div><p className="text-[9px] font-black text-gray-600 uppercase mt-2 tracking-[0.2em]">Glyph Essence Units</p></div><div className="mt-12 grid grid-cols-2 gap-4"><CustomSelect options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))} value={smeltItem} onChange={(v) => setVsItemA(v as any)} placeholder="Select Rarity..." /><div className="relative group"><input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" /><span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase tracking-widest">Qty</span></div></div><div className="space-y-4"><h5 className="px-4 text-[10px] font-black text-orange-500 uppercase tracking-widest italic">Smelt Optimization Tips</h5><div className="grid grid-cols-1 gap-3">{REFINE_TIPS.map((tip, i) => (<div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl flex items-start gap-4"><ShieldCheck className="text-orange-500 mt-1 shrink-0" size={16} /><p className="text-[11px] text-gray-300 font-medium italic leading-relaxed">{tip}</p></div>))}</div></div></div>
+            <div className="space-y-10 animate-in fade-in pb-24">
+              {/* HEADER: GLYPH SMELTER */}
+              <div className="p-12 bg-gradient-to-b from-gray-900 to-gray-950 border border-white/10 rounded-[4.5rem] text-center shadow-4xl relative overflow-hidden group">
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
+                 <Cpu className="mx-auto mb-6 text-orange-600/20 group-hover:text-orange-500/40 transition-colors" size={60} />
+                 <p className="text-[11px] font-black text-orange-500 uppercase mb-2 tracking-[0.4em]">Estimated Essence Yield</p>
+                 <div className="text-6xl sm:text-7xl md:text-8xl font-black text-white italic tracking-tighter drop-shadow-2xl">{smeltEssenceYield.toLocaleString()}</div>
+                 <p className="text-[9px] font-black text-gray-600 uppercase mt-2 tracking-[0.2em]">Glyph Essence Units</p>
+              </div>
+
+              {/* CALCULATOR CONTROLS */}
+              <div className="grid grid-cols-2 gap-4">
+                 <CustomSelect options={['Epic', 'PE', 'Legendary', 'AL', 'Mythic'].map(r => ({ id: r, name: r }))} value={smeltItem} onChange={(v) => setSmeltItem(v as any)} placeholder="Select Rarity..." />
+                 <div className="relative group">
+                    <input type="number" value={smeltQty} onChange={e => setSmeltQty(Number(e.target.value))} className="w-full bg-gray-900/80 border border-white/10 px-6 py-4 rounded-2xl text-xs font-black text-white outline-none focus:border-orange-500/50" min="1" />
+                    <span className="absolute right-4 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] font-black text-gray-600 uppercase tracking-widest">Qty</span>
+                 </div>
+              </div>
+
+              {/* CHAOS ASCENSION MATRIX (New Feature from PDF) */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 px-2">
+                   <div className="h-px flex-1 bg-white/10"></div>
+                   <h4 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] italic flex items-center gap-2">
+                     <TrendingUp size={14} /> Chaos Ascension Path
+                   </h4>
+                   <div className="h-px flex-1 bg-white/10"></div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                   {/* TITAN STEP */}
+                   <div className="p-6 bg-yellow-950/10 border border-yellow-500/20 rounded-[2.5rem] relative overflow-hidden group hover:bg-yellow-900/10 transition-colors">
+                      <div className="flex items-center gap-5 relative z-10">
+                         <div className="w-12 h-12 bg-yellow-600/20 rounded-2xl flex items-center justify-center text-yellow-500 border border-yellow-500/30">
+                            <Crown size={24} />
+                         </div>
+                         <div className="flex-1">
+                            <h5 className="text-lg font-black text-white uppercase italic tracking-tighter">Titan Tales (TT)</h5>
+                            <div className="flex items-center gap-2 mt-1">
+                               <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[8px] font-black text-red-400 uppercase">Req: Mythic</span>
+                               <span className="text-[8px] font-bold text-gray-500">+</span>
+                               <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[8px] font-black text-red-400 uppercase">Req: Mythic+2</span>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Cost</p>
+                            <p className="text-xl font-black text-yellow-500 italic">~8 Epics</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* CHAOS STEP */}
+                   <div className="p-6 bg-red-950/10 border border-red-500/20 rounded-[2.5rem] relative overflow-hidden group hover:bg-red-900/10 transition-colors">
+                      <div className="absolute -right-6 -bottom-6 text-red-500/5 group-hover:text-red-500/10 transition-colors">
+                         <Star size={100} />
+                      </div>
+                      <div className="flex items-center gap-5 relative z-10">
+                         <div className="w-12 h-12 bg-red-600/20 rounded-2xl flex items-center justify-center text-red-500 border border-red-500/30">
+                            <Zap size={24} className="animate-pulse" />
+                         </div>
+                         <div className="flex-1">
+                            <h5 className="text-lg font-black text-white uppercase italic tracking-tighter">Chaos Rarity</h5>
+                            <div className="flex items-center gap-2 mt-1">
+                               <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded text-[8px] font-black text-yellow-400 uppercase">Req: TT+3</span>
+                               <span className="text-[8px] font-bold text-gray-500">+</span>
+                               <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[8px] font-black text-red-400 uppercase">Req: Mythic</span>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Total</p>
+                            <p className="text-xl font-black text-red-500 italic">~14 Epics</p>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                
+                <div className="p-4 bg-black/20 rounded-2xl border border-white/5 text-center">
+                   <p className="text-[9px] text-gray-500 italic">
+                      <span className="text-orange-500 font-bold">*Data Source:</span> Abyssal Codex, Table 3. Costs represent cumulative specific item copies.
+                   </p>
+                </div>
+              </div>
+
+              {/* ORIGINAL TIPS SECTION */}
+              <div className="space-y-4">
+                <h5 className="px-4 text-[10px] font-black text-orange-500 uppercase tracking-widest italic">Smelt Optimization Tips</h5>
+                <div className="grid grid-cols-1 gap-3">
+                  {REFINE_TIPS.map((tip, i) => (
+                    <div key={i} className="p-6 bg-white/5 border border-white/5 rounded-3xl flex items-start gap-4">
+                      <ShieldCheck className="text-orange-500 mt-1 shrink-0" size={16} />
+                      <p className="text-[11px] text-gray-300 font-medium italic leading-relaxed">{tip}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
 
           {activeTab === 'analyze' && (
@@ -2307,12 +2618,62 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'relics' && (
-            <div className="space-y-8 animate-in fade-in pb-12"><div className="p-10 bg-gradient-to-br from-purple-900/10 via-gray-950 to-purple-950/5 border border-purple-500/20 rounded-[4rem] text-center shadow-4xl"><h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4 flex items-center justify-center gap-4"><Archive size={32} className="text-purple-500 animate-pulse"/> Relic Archive Protocols</h3><p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] italic">Full Tactical Database Sync: v6.3.0</p></div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {filteredRelics.length === 0 ? (<div className="col-span-full py-20 text-center opacity-30"><Search size={48} className="mx-auto mb-4" /><p className="text-xs font-black uppercase tracking-widest">No matching relics found</p></div>) : (filteredRelics.map((r, index) => (
-                      <div key={r.id} onClick={() => { setSelectedItem({...r, category: 'Relic'}); playSfx('click'); }} className={`relative p-8 rounded-[2.5rem] border transition-all cursor-pointer group active:scale-95 flex flex-col items-center text-center ${getRelicStyles(r.tier).card}`}><div className={`w-16 h-16 rounded-2xl mb-5 flex items-center justify-center border transition-transform group-hover:rotate-12 ${getRelicStyles(r.tier).iconContainer}`}><RelicIcon type={r.iconType} className="w-8 h-8" /></div><p className="text-[11px] font-black text-white uppercase italic tracking-tighter mb-1 leading-tight">{r.name}</p><div className="flex items-center gap-2 mt-1"><span className={`text-[8px] font-bold uppercase tracking-widest ${r.tier === 'Holy' ? 'text-red-400' : r.tier === 'Radiant' ? 'text-yellow-400' : 'text-blue-400'}`}>{r.tier} Archive</span></div></div>
-                    )))}
-              </div>
+            <div className="space-y-8 animate-in fade-in pb-12">
+               {/* HEADER */}
+               <div className="p-10 bg-gradient-to-br from-purple-900/10 via-gray-950 to-purple-950/5 border border-purple-500/20 rounded-[4rem] text-center shadow-4xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                  <Archive className="mx-auto mb-4 text-purple-500 animate-pulse" size={48} />
+                  <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Relic Vault</h3>
+                  <p className="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] italic">Abyssal Codex Verified</p>
+               </div>
+  
+               {/* RELIC GRID */}
+               <div className="space-y-12">
+                 {['Supreme', 'Holy', 'Radiant', 'Rare'].map((tier) => {
+                   const relics = RELIC_DATA.filter(r => r.tier === tier);
+                   if (relics.length === 0) return null;
+  
+                   // Tier Styling Logic
+                   const getTierStyle = (t: string) => {
+                     switch(t) {
+                       case 'Supreme': return { color: 'text-red-500', bg: 'bg-red-950/10', border: 'border-red-500/30', glow: 'shadow-red-900/20' };
+                       case 'Holy': return { color: 'text-yellow-400', bg: 'bg-yellow-950/10', border: 'border-yellow-500/30', glow: 'shadow-yellow-900/20' };
+                       case 'Radiant': return { color: 'text-purple-400', bg: 'bg-purple-950/10', border: 'border-purple-500/30', glow: 'shadow-purple-900/20' };
+                       case 'Rare': return { color: 'text-green-400', bg: 'bg-green-950/10', border: 'border-green-500/30', glow: 'shadow-green-900/20' };
+                       default: return { color: 'text-gray-400', bg: 'bg-gray-900', border: 'border-gray-700', glow: '' };
+                     }
+                   };
+                   const style = getTierStyle(tier);
+  
+                   return (
+                     <div key={tier} className="space-y-6">
+                       <h4 className={`text-xl font-black uppercase italic tracking-tighter px-4 flex items-center gap-3 ${style.color}`}>
+                         {tier === 'Supreme' && <Crown size={24} />}
+                         {tier === 'Holy' && <Sparkle size={24} />}
+                         {tier} Relics
+                         <span className="text-[10px] opacity-60 ml-auto tracking-widest font-normal text-white">{relics.length} ARTIFACTS</span>
+                       </h4>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         {relics.map((relic) => (
+                           <div key={relic.id} onClick={() => { setSelectedItem({...relic, category: 'Relic'}); playSfx('click'); }} className={`p-6 rounded-[2.5rem] border ${style.bg} ${style.border} ${style.glow} shadow-lg relative overflow-hidden group hover:scale-[1.02] active:scale-95 transition-all cursor-pointer`}>
+                             <div className="flex items-start gap-5 relative z-10">
+                                <div className={`w-14 h-14 rounded-2xl border ${style.border} flex items-center justify-center bg-black/40 shrink-0`}>
+                                   <RelicIcon type={relic.iconType} className={`w-6 h-6 ${style.color}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="text-sm font-black text-white uppercase italic tracking-tighter truncate">{relic.name}</h5>
+                                  <p className={`text-[9px] font-bold ${style.color} uppercase tracking-widest mt-1`}>{relic.effect}</p>
+                                  <p className="text-[10px] text-gray-400 mt-2 leading-relaxed italic line-clamp-2">"{relic.lore}"</p>
+                                </div>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   );
+                 })}
+               </div>
             </div>
           )}
 

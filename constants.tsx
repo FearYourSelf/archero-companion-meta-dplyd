@@ -3,6 +3,42 @@ import { Hero, BaseItem, Jewel, Relic, SlotBonus, ArcheroEvent } from './types';
 // --- 1. HERO ROSTER (Comprehensive V6.3) ---
 export const HERO_DATA: Hero[] = [
   { 
+    id: 'arthur', name: 'King Arthur', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Damage Resistance +6%', 
+    desc: 'The Once and Future King.', deepLogic: "Enter 'Night King Form' after moving for 1.25s (Summons Holy Shell reducing dmg by 30%). Attacks charge Excalibur to unleash a screen-clearing slash.", 
+    evo4Star: 'Excalibur Slash cooldown reduced by 0.5s each time you take damage.', bestPairs: ['Demon King Spearshield', 'Celestial Warplate'],
+    bio: 'Wielding the Sword in the Stone, he has returned to claim his throne and purge the darkness.',
+    bestSkin: 'Young Knight', shardCost: '60 Shards to unlock (Special Event)', assistHeroes: ['Zeus', 'Wukong', 'Melinda'],
+    trivia: 'His "Holy Shell" makes him the tankiest hero in the game, surpassing even Helix.',
+    uniqueEffect: 'Night King Form: Grants 30% Dmg Resist while moving.',
+    historicalTiers: [
+      { update: "v6.4 Launch", tier: "SSS" }
+    ],
+    starMilestones: [
+      { stars: 3, effect: "Excalibur charge speed +30%." },
+      { stars: 4, effect: "Night King Form lingers for 2s after stopping." },
+      { stars: 6, effect: "Sword in the Stone: Summons a static turret relic on room entry." },
+      { stars: 7, effect: "+8% Damage vs Bosses (Global)", isGlobal: true }
+    ],
+    sunMilestones: [
+      { level: 1, effect: "Holy Shell reflects 20% damage." },
+      { level: 2, effect: "+10% Max HP (Global)", isGlobal: true },
+      { level: 3, effect: "Excalibur Slash executes enemies under 15% HP." },
+      { level: 4, effect: "+5% Projectile Resistance (Global)", isGlobal: true }
+    ],
+    gearSets: [
+      {
+        name: "Camelot's Defense",
+        weapon: "Demon King Spearshield",
+        armor: "Golden Chestplate",
+        rings: ["Dragon Ring", "Celestial Band"],
+        bracelet: "Shield Bracelet",
+        locket: "Counterattack Locket (S)",
+        book: "Giants Contract",
+        synergy: "Maximizes the Holy Shell reduction to hit nearly 85% Damage Resistance cap."
+      }
+    ]
+  },
+  { 
     id: 'zeus', name: 'Zeus', tier: 'SSS', category: 'Hero', isGodTier: true, globalBonus120: 'Max HP +8%', 
     desc: 'The Lightning Sovereign.', deepLogic: "Attacks bypass standard projectile collision. 6-Star: Unlocks 'Static Field' (red lightning) that denies area to enemies. 3-Star: Lightning chains gain Critical Hit capability.", 
     evo4Star: 'Sustained attacks ramp up Atk Speed permanently for the room.', bestPairs: ['Celestial Hammer', 'Celestial Warplate'],
@@ -371,6 +407,12 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'mini_atreus', name: 'Mini Atreus', tier: 'D', category: 'Weapon', desc: 'Meme Weapon. Just for fun.', deepLogic: 'Shoots random projectiles (Arrow, Scythe, etc). Not recommended for serious pushes.' },
 
   // --- ARMOR ---
+  
+  { 
+    id: 'demon_robe', name: 'Demon King Robe', tier: 'SSS', category: 'Armor', desc: 'Dark Driver.', 
+    mythicPerk: 'Titan: Dark Dmg +20%.', 
+    deepLogic: 'THE CORE DRIVER. Releases dark pulses that afflict enemies with "Dark Status". Without this armor, the Demon King Ring and Locket bonuses are dormant (useless).' 
+  },
   { id: 'c_warplate', name: 'Celestial Warplate', tier: 'SSS', category: 'Armor', desc: 'Lightning Plate.', mythicPerk: 'Titan: Collision Resist +20%.', deepLogic: 'Converts dmg to Heavenly Energy. Best for wave chapters.' },
   { id: 'exp_plate', name: 'Expedition Plate', tier: 'SSS', category: 'Armor', desc: 'Heart Plate.', mythicPerk: 'Titan: Heart Drop +20%.', deepLogic: 'The core of Expedition sustain. Picking up hearts grants an Invincibility Shield and triggers Divine Grace healing.' },
   { id: 'p_cloak', name: 'Phantom Cloak', tier: 'SS', category: 'Armor', desc: 'Ice Cloak.', mythicPerk: 'Titan: Freeze +2.5s. Frozen enemies take +30% Dmg.', deepLogic: 'Meta for Boss chapters.' },
@@ -380,6 +422,10 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'golden_chest', name: 'Golden Chestplate', tier: 'C', category: 'Armor', desc: 'Flame Chest.', mythicPerk: 'Titan: 5% Dmg Reduction.', deepLogic: 'Flat 5% damage reduction from all sources. Stacks additively with Bull Rings for ultra-tanky setups.' },
 
   // --- RINGS ---
+  { 
+    id: 'demon_ring', name: 'Demon King Band', tier: 'SSS', category: 'Ring', desc: 'Dark Exploiter.', 
+    deepLogic: 'Parasitic Synergy: Deals massive extra damage to enemies afflicted by Dark Status. Requires the Demon King Armor to function effectively.' 
+  },
   { id: 'dragon_ring', name: 'Dragon Ring', tier: 'SS', category: 'Ring', desc: 'Proj Resist.', mythicPerk: 'Titan: Proj Resist +13.8%.', deepLogic: 'Essential for Immunity Build. Stacks additively.' },
   { id: 'celestial_ring', name: 'Celestial Band', tier: 'SS', category: 'Ring', desc: 'Lightning Ring.', mythicPerk: 'Titan: Collision Resist +15%.', deepLogic: 'Chain Lightning scales with S-Locket.' },
   { 
@@ -395,6 +441,10 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'bear_ring', name: 'Bear Ring', tier: 'C', category: 'Ring', desc: 'HP + Ground Dmg.', deepLogic: 'Increases Max HP by 5%. Best used in early-game for general survivability.' },
 
   // --- BRACELETS ---
+  { 
+    id: 'demon_guards', name: 'Demon King Legguards', tier: 'SSS', category: 'Bracelet', desc: 'Dark Thorns.', 
+    deepLogic: 'Provides collision resistance and reflects damage to enemies who touch you. Synergizes with the Spearshield\'s defensive stance.' 
+  },
   { id: 'celestial_bracer', name: 'Celestial Bracer', tier: 'SS', category: 'Bracelet', desc: 'Lightning.', mythicPerk: 'Titan: Lightning Dmg +20%.' },
   { id: 'shield_bracer', name: 'Shield Bracelet', tier: 'SS', category: 'Bracelet', desc: 'Shield.', mythicPerk: 'Titan: Atk +12%.' },
   { 
@@ -409,6 +459,10 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'split_bracer', name: 'Split Bracelet', tier: 'C', category: 'Bracelet', desc: 'Clones.', deepLogic: 'Spawns 2 temporary clones on room entry. Clones deal minimal damage but can take aggro.' },
 
   // --- LOCKETS ---
+  { 
+    id: 'demon_locket', name: 'Demon King Talisman', tier: 'SSS', category: 'Locket', desc: 'Energy Siphon.', 
+    deepLogic: 'Drains life from Dark-afflicted enemies to generate an active shield. Essential for the "High-Risk, High-Burst" playstyle of the DK set.' 
+  },
   { id: 'bulletproof', name: 'Bulletproof Locket', tier: 'SS', category: 'Locket', desc: 'Proj Tank.', mythicPerk: 'Titan: +15% Proj Resist (<25% HP).', deepLogic: 'Key to 100% Immunity.' },
   { id: 'celestial_talisman', name: 'Celestial Talisman', tier: 'SS', category: 'Locket', desc: 'MP Gen.', deepLogic: 'Best for Mana-hungry heroes.' },
   { id: 'exp_locket', name: 'Expedition Locket', tier: 'S', category: 'Locket', desc: 'Revive.', mythicPerk: 'Titan: Atk +25% after heal.' },
@@ -450,10 +504,21 @@ export const GEAR_DATA: BaseItem[] = [
   { id: 'living_bomb', name: 'Living Bomb', tier: 'D', category: 'Spirit', desc: 'Useless.', deepLogic: 'AoE explosions can hit multiple enemies but travel speed is extremely low. Useful in narrow corridors.' },
   { id: 'bone_warrior', name: 'Bone Warrior', tier: 'A', category: 'Spirit', desc: 'Melee Tank & Aggro', deepLogic: 'Inherits Hero aggro. Can draw fire from Elite mobs in Wave chapters. High HP scaling.' },
 
-  // --- PETS (New Ground Units) ---
-  { id: 'frothy', name: 'Frothy Capy', tier: 'SS', category: 'Pet', desc: 'Immunity Bubble.', deepLogic: 'Bubble = 100% Immunity.' },
-  { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Block %.', deepLogic: 'Provides a percentage chance to completely block incoming damage instances.' },
-  { id: 'blitzbeak', name: 'Furious Blitzbeak', tier: 'S', category: 'Pet', desc: 'Lightning.', deepLogic: 'Periodic chain lightning attacks that stun enemies for 0.5s.' },
+// --- PETS (New Ground Units) ---
+  { id: 'penguin_king', name: 'Polar Penguin King', tier: 'SS', category: 'Pet', desc: 'Arctic Ruler.', deepLogic: 'Newest SS Meta. "Piercing Cold" aura slows enemy projectiles by 25% and freezes enemies on contact. Essential for late-game projectile spam chapters.' },
+  { id: 'phoenix', name: 'Radiant Phoenix', tier: 'SS', category: 'Pet', desc: 'Rebirth Flame.', deepLogic: 'Deals massive screen-wide Fire damage. Unique Passive: "Ashes to Ashes" prevents death once per run, healing you for 20% HP (stacks with Angel Locket).' },
+  { id: 'frothy', name: 'Frothy Capy', tier: 'SS', category: 'Pet', desc: 'Immunity Bubble.', deepLogic: 'The defensive king. Grants a "Bubble" that provides 100% damage immunity for 3 seconds. High uptime when awakened.' },
+  { id: 'unicorn', name: 'Empyrean Unicorn', tier: 'SS', category: 'Pet', desc: 'Block & Shield.', deepLogic: 'Provides a % chance to completely block incoming damage. At 3-Stars, summons rotating shields that destroy projectiles.' },
+  
+  // S-TIER PETS
+  { id: 'ignitus', name: 'Ignitus Bird', tier: 'S', category: 'Pet', desc: 'Crit Specialist.', deepLogic: 'Best offensive S-Pet. Increases Hero Critical Damage. 3-Star Perk: Critical hits have a 30% chance to trigger a fiery explosion.' },
+  { id: 'verdafrost', name: 'Verdafrost Bear', tier: 'S', category: 'Pet', desc: 'Collision Tank.', deepLogic: 'Triggers freezing shockwaves when you take collision damage. Best used in "Up-Close Dangers" or melee-heavy chapters.' },
+  { id: 'blitzbeak', name: 'Furious Blitzbeak', tier: 'S', category: 'Pet', desc: 'Chain Lightning.', deepLogic: 'Attacks arc to 3 nearby enemies, stunning them for 0.5s. Excellent crowd control for wave chapters.' },
+  { id: 'butterfly', name: 'Spirit Butterfly', tier: 'S', category: 'Pet', desc: 'Evasion Support.', deepLogic: 'Increases Hero Dodge rate and Projectile Resistance. Passive: Periodically clears a debuff (Burn/Poison/Freeze) from the hero.' },
+  
+  // A-TIER / ASSIST
+  { id: 'swamp_toad', name: 'Swamp Toad', tier: 'A', category: 'Pet', desc: 'Poison Area.', deepLogic: 'Leaves poison puddles that slow enemies. Decent for kiting, but outclassed by Penguin King.' },
+  { id: 'crimson_fox', name: 'Crimson Fox', tier: 'A', category: 'Pet', desc: 'Raw Damage.', deepLogic: 'High single-target damage. Good for boss killing if you lack SS pets.' },
 
   // --- TOTEMS ---
   { id: 'totem_atk', name: 'Attack Totem', tier: 'SS', category: 'Totem', desc: 'Boosts Attack stats.' },
@@ -477,52 +542,54 @@ export const GEAR_DATA: BaseItem[] = [
 ];
 
 export const JEWEL_DATA: Jewel[] = [
-  { id: 'ruby', name: 'Ruby', color: 'Red', statType: 'Attack', baseStat: 15, statPerLevel: 35, slots: ['Weapon', 'Ring', 'Bracelet'], lore: 'Crystallized essence of raw destructive power.' },
-  { id: 'lapis', name: 'Lapis', color: 'Blue', statType: 'Max HP', baseStat: 80, statPerLevel: 145, slots: ['Armor', 'Locket'], lore: 'Deep azure gem carrying standard vitality.' },
-  { id: 'emerald', name: 'Emerald', color: 'Green', statType: 'Attack Speed', baseStat: 0.5, statPerLevel: 1.2, slots: ['Weapon', 'Ring'], lore: 'Verdant mineral focused on swift execution.' },
-  { id: 'topaz', name: 'Topaz', color: 'Yellow', statType: 'Crit Damage', baseStat: 1, statPerLevel: 2.5, slots: ['Bracelet', 'Ring'], lore: 'Solar-charged stone enhancing critical impact.' },
-  { id: 'amethyst', name: 'Amethyst', color: 'Purple', statType: 'Crit Chance', baseStat: 0.2, statPerLevel: 0.6, slots: ['Weapon', 'Bracelet'], lore: 'Mystical quartz improving tactical focus.' },
-  { id: 'kunzite', name: 'Kunzite', color: 'Teal', statType: 'Dmg to Elites/Bosses', baseStat: 12, statPerLevel: 28, slots: ['Armor', 'Book'], lore: 'Slayer\'s choice for high-priority targets.' }
+  // --- OFFENSIVE (Red/Pink) ---
+  { id: 'ruby', name: 'Ruby', color: 'Red', statType: 'Attack', baseStat: 20, statPerLevel: 45, slots: ['Weapon', 'Ring', 'Spirit'], lore: 'Crystallized essence of raw destructive power.' },
+  { id: 'kunzite', name: 'Kunzite', color: 'Red', statType: 'Dmg to Bosses', baseStat: 15, statPerLevel: 35, slots: ['Weapon', 'Ring', 'Book'], lore: 'Slayer\'s choice. Essential for Boss Chapters (H21+).' },
+
+  // --- DEFENSIVE (Blue/Cyan) ---
+  { id: 'lapis', name: 'Lapis', color: 'Blue', statType: 'Max HP', baseStat: 100, statPerLevel: 220, slots: ['Armor', 'Locket', 'Book'], lore: 'Deep azure gem carrying standard vitality.' },
+  { id: 'tourmaline', name: 'Tourmaline', color: 'Teal', statType: 'Atk + HP (Hybrid)', baseStat: 25, statPerLevel: 55, slots: ['Armor', 'Locket', 'Spirit'], lore: 'The Crown Jewel. rare bi-color gem granting both Attack and Health. S-Tier.' },
+
+  // --- TACTICAL (Yellow/Orange) ---
+  { id: 'topaz', name: 'Topaz', color: 'Yellow', statType: 'Crit Chance', baseStat: 0.5, statPerLevel: 1.2, slots: ['Weapon', 'Bracelet'], lore: 'Solar-charged stone enhancing precision and critical strikes.' },
+  { id: 'amber', name: 'Amber', color: 'Yellow', statType: 'Elemental Dmg', baseStat: 30, statPerLevel: 65, slots: ['Weapon', 'Spirit', 'Bracelet'], lore: 'Fossilized resin boosting Fire, Poison, and Lightning ticks.' },
+
+  // --- UTILITY (Green/Purple) ---
+  { id: 'emerald', name: 'Emerald', color: 'Green', statType: 'Crit Damage', baseStat: 2, statPerLevel: 5, slots: ['Armor', 'Book', 'Locket'], lore: 'Verdant mineral that amplifies the impact of critical hits.' },
+  { id: 'amethyst', name: 'Amethyst', color: 'Purple', statType: 'Defense', baseStat: 10, statPerLevel: 25, slots: ['Ring', 'Book', 'Armor'], lore: 'Mystical quartz providing flat damage mitigation.' },
+  { id: 'calla', name: 'Calla', color: 'Green', statType: 'Drop Rate', baseStat: 1, statPerLevel: 0.5, slots: ['Ring', 'Spirit'], lore: 'Lucky stone increasing equipment and scroll drops.' }
 ];
 
 export const RELIC_DATA: Relic[] = [
-  // --- HOLY RELICS (Pink/Red - SS Tier) ---
-  { id: 'spear_yggdrasil', name: 'Spear of Yggdrasil', tier: 'Holy', effect: 'Attack +% & Attack Speed +%', lore: 'The ultimate offensive relic. Boosts both raw damage and how fast you hit.', source: 'Relic Chest / Events', iconType: 'Arrow' },
-  { id: 'bloodstained_sword', name: 'Bloodstained Sword', tier: 'Holy', effect: 'Attack +% & Crit Rate +%', lore: 'Best for Critical Hit builds. Often mistranslated as "Cursed Sword."', source: 'Relic Chest / Events', iconType: 'Sword' },
-  { id: 'starcluster_rage', name: 'Starcluster Rage', tier: 'Holy', effect: 'Crit Damage +%', lore: 'Massive boost to critical hit damage. Essential for "Big Number" builds.', source: 'Relic Chest / Events', iconType: 'Gem' },
-  { id: 'demon_king_eye', name: "Demon King's Eye", tier: 'Holy', effect: 'Projectile Resistance +% & Dark Damage +%', lore: 'Mandatory for the endgame "Immunity Build" to reduce incoming damage.', source: 'Relic Chest / Events', iconType: 'Eye' },
-  { id: 'gilded_medal', name: 'Gilded Medal', tier: 'Holy', effect: 'Max HP +% & Damage Resistance +%', lore: 'The best defensive relic in the game. Pure tank stats.', source: 'Relic Chest / Events', iconType: 'Gem' },
-  { id: 'dragon_gem', name: 'Dragon Gem', tier: 'Holy', effect: 'All Elemental Damage +%', lore: 'Boosts Fire, Ice, Poison, and Lightning damage globally.', source: 'Relic Chest / Events', iconType: 'Gem' },
-  { id: 'radiant_heart', name: 'Radiant Heart', tier: 'Holy', effect: 'Healing Effect +% & HP Drop Rate +%', lore: 'A pulsing heart of pure light that revitalizes the weary.', source: 'Relic Chest / Events', iconType: 'Cup' },
-  { id: 'ring_dragon', name: 'Ring of the Dragon', tier: 'Holy', effect: 'Crit Chance +% & Dragon Dmg +%', lore: 'Forged in dragonfire, it grants the ferocity of the beasts.', source: 'Relic Chest / Events', iconType: 'Gem' },
-  { id: 'sword_brave', name: 'Sword of the Brave', tier: 'Holy', effect: 'Attack +% & Boss Dmg +%', lore: 'A legendary blade said to have slain a thousand tyrants.', source: 'Relic Chest / Events', iconType: 'Sword' },
+  // --- SUPREME TREASURES (Red / SSS Tier) ---
+  { id: 'goldwish_cudgel', name: 'Goldwish Cudgel', tier: 'Supreme', effect: 'Wukong Transform & Atk +%', lore: 'The Monkey King\'s weapon. Grants invincibility during transformation. True Endgame.', source: 'Supreme Chest', iconType: 'Sword' },
+  { id: 'zeus_belt', name: 'Zeus Belt', tier: 'Supreme', effect: 'S-Grade Shard Drop Rate +%', lore: 'The only relic that directly increases the drop rate of S-Tier Hero Shards.', source: 'Supreme Chest', iconType: 'Zap' },
+  { id: 'sword_stone', name: 'Sword in Stone', tier: 'Supreme', effect: 'Equip Stats +30%', lore: 'Arthur\'s legacy. Enhances King Arthur\'s Excalibur charge attacks.', source: 'Supreme Chest', iconType: 'Sword' },
+  { id: 'angel_judgment', name: 'Angel of Judgment', tier: 'Supreme', effect: 'Resurrection & Frontal Def', lore: 'The ultimate defensive artifact. Grants a second layer of resurrection.', source: 'Supreme Chest', iconType: 'Shield' },
 
-  // --- RADIANT RELICS (Yellow/Gold - S Tier) ---
-  { id: 'golden_apple', name: 'Golden Apple', tier: 'Radiant', effect: 'Max HP +% & Healing Effect +%', lore: 'Makes Red Hearts heal for more. Great for survival.', source: 'Chapters / Chests', iconType: 'Cup' },
-  { id: 'mirror_truth', name: 'Mirror of Truth', tier: 'Radiant', effect: 'Crit Chance +% & Accuracy', lore: 'Helps hit enemies that have high dodge rates.', source: 'Chapters / Chests', iconType: 'Mirror' },
-  { id: 'ancient_map', name: 'Ancient Map', tier: 'Radiant', effect: 'Movement Speed +% & Trap Resistance', lore: 'Reduces damage from spikes/saws and makes you move faster.', source: 'Expedition', iconType: 'Map' },
-  { id: 'hero_cape', name: "Hero's Cape", tier: 'Radiant', effect: 'Damage Resistance +%', lore: 'General damage reduction. Good all-rounder for defense.', source: 'Chapters / Chests', iconType: 'Shield' },
-  { id: 'pharaoh_scepter', name: "Pharaoh's Scepter", tier: 'Radiant', effect: 'Crit Chance +% & Skill Damage +%', lore: 'Boosts damage from abilities (like Meteors/Stars).', source: 'Chapters / Chests', iconType: 'Sword' },
-  { id: 'prometheus_fire', name: "Prometheus's Fire", tier: 'Radiant', effect: 'Attack + (Flat) & Fire Damage +%', lore: 'Specifically buffs Fire damage (good for Phoren/Lina).', source: 'Tower Defense', iconType: 'Gem' },
-  { id: 'golden_bunny', name: 'Golden Bunny', tier: 'Radiant', effect: 'Attack +5% (at 4★)', lore: 'Event Exclusive. Highly sought after for its massive raw Attack boost.', source: 'Special Events Only', iconType: 'Dog' },
-  { id: 'fabled_arrow', name: 'Fabled Arrow', tier: 'Radiant', effect: 'Attack +3-5% (Gem Spend)', lore: 'A legendary arrow that pierces through time. Resonance with Smiling Mask.', source: 'Gem Spending Events', iconType: 'Arrow' },
-  { id: 'smiling_mask', name: 'Smiling Mask', tier: 'Radiant', effect: 'Damage to Mobs +%', lore: 'A mysterious mask that seems to mock your enemies. Completes the set with Fabled Arrow.', source: 'Relic Chest / Events', iconType: 'Eye' },
-  { id: 'prophets_crystal', name: "Prophet's Crystal", tier: 'Radiant', effect: 'Spellbook Mana Speed +%', lore: 'Gazes into the future to hasten your magical recovery.', source: 'Chapters / Chests', iconType: 'Gem' },
+  // --- HOLY RELICS (Gold / SS Tier) ---
+  { id: 'healing_grail', name: 'Healing Holy Grail', tier: 'Holy', effect: 'Unlocks "Grace" Skill', lore: 'Unlocks the hidden "Grace" skill that boosts healing as HP gets lower.', source: 'Relic Chest', iconType: 'Cup' },
+  { id: 'blood_grail', name: 'Bloodthirsty Grail', tier: 'Holy', effect: 'HP Drop Rate +%', lore: 'Combines lifesteal mechanics with massive HP scaling.', source: 'Relic Chest', iconType: 'Cup' },
+  { id: 'first_lightning', name: 'First Lightning', tier: 'Holy', effect: 'Lightning Dmg +35%', lore: 'Best-in-slot for Zeus. Massive multiplier for all lightning procs.', source: 'Relic Chest', iconType: 'Zap' },
+  { id: 'yggdrasil_spear', name: 'Spear of Yggdrasil', tier: 'Holy', effect: 'Attack Speed +2%', lore: 'One of the few sources of raw, permanent Attack Speed.', source: 'Relic Chest', iconType: 'Sword' },
+  { id: 'primal_fire', name: 'Primal Fire', tier: 'Holy', effect: 'Fire Dmg +25%', lore: 'Essential for Phoren/Lina. Rewards revives with permanent Attack.', source: 'Relic Chest', iconType: 'Flame' },
+  { id: 'prophet_quill', name: 'Prophet\'s Quill', tier: 'Holy', effect: 'Resurrection Prob +%', lore: 'Stacks with Angel Locket to cheat death multiple times.', source: 'Relic Chest', iconType: 'Scroll' },
+  { id: 'demon_eye', name: 'Demon King\'s Eye', tier: 'Holy', effect: 'Atk % & Boss Dmg %', lore: 'Hybrid offense/defense. Not to be confused with the weapon.', source: 'Relic Chest', iconType: 'Eye' },
 
-  // --- FAINT RELICS (Blue/Purple - A/B Tier) ---
-  { id: 'broken_sword', name: 'Broken Sword', tier: 'Faint', effect: 'Flat Attack +', lore: 'A simple, raw number boost to your Attack stat.', source: 'Common Drops', iconType: 'Sword' },
-  { id: 'rusty_key', name: 'Rusty Key', tier: 'Faint', effect: 'Gold Gold Rate +%', lore: 'Essential for farming runs (Up-Close Dangers).', source: 'Common Drops', iconType: 'Gem' },
-  { id: 'dusty_tome', name: 'Dusty Tome', tier: 'Faint', effect: 'Scroll Drop Rate +%', lore: 'Helps you find more upgrade scrolls for your equipment.', source: 'Common Drops', iconType: 'Book' },
-  { id: 'lost_cross', name: 'Lost Cross', tier: 'Faint', effect: 'Flat HP +', lore: 'A simple, raw number boost to your HP.', source: 'Common Drops', iconType: 'Shield' },
-  { id: 'strange_stone', name: 'Strange Stone', tier: 'Faint', effect: 'Flat Damage Resistance', lore: 'Reduces damage by a flat amount (e.g., -50).', source: 'Common Drops', iconType: 'Gem' },
-  { id: 'magic_lamp', name: 'Magic Lamp', tier: 'Faint', effect: 'Ground Dmg Reduction +%', lore: 'Reduces damage taken from ground traps and melee units.', source: 'Common Drops', iconType: 'Cup' },
-  { id: 'magic_carpet', name: 'Magic Carpet', tier: 'Faint', effect: 'Gold in Cave +% & HP +%', lore: 'A flying carpet that brings fortune in hidden places.', source: 'Common Drops', iconType: 'Scroll' },
-  { id: 'poison_apple', name: 'Poison Apple', tier: 'Faint', effect: 'Movement Speed +%', lore: 'A deceptive fruit that quickens the step.', source: 'Common Drops', iconType: 'Cup' },
-  { id: 'laurel_wreath', name: 'Laurel Wreath', tier: 'Faint', effect: 'Dmg Reduce vs Elite +%', lore: 'A symbol of victory that protects against strong foes.', source: 'Common Drops', iconType: 'Shield' },
-  { id: 'four_leaf', name: 'Four-Leaf Clover', tier: 'Faint', effect: 'Dmg Reduce vs Minion +%', lore: 'Lucky charm that wards off the swarm.', source: 'Common Drops', iconType: 'Gem' },
-  { id: 'crystal_shoe', name: 'Crystal Shoe', tier: 'Faint', effect: 'Dmg Reduce vs Boss +%', lore: 'Fragile but protects against the hardest hits.', source: 'Common Drops', iconType: 'Arrow' },
-  { id: 'red_hood', name: 'Red Hood', tier: 'Faint', effect: 'Dmg Reduce vs Airborne +%', lore: 'Protects against threats from above.', source: 'Common Drops', iconType: 'Shield' },
-  { id: 'arcane_crystal', name: 'Arcane Crystal', tier: 'Faint', effect: 'Flat HP & MP Recovery', lore: 'A faint glowing stone that restores vitality.', source: 'Common Drops', iconType: 'Gem' }
+  // --- RADIANT RELICS (Purple / S Tier) ---
+  { id: 'smiling_mask', name: 'Smiling Mask', tier: 'Radiant', effect: 'Dragon Chest Timer -%', lore: 'Economic King. Reduces free Dragon Chest timer. Essential for F2P.', source: 'Chapters', iconType: 'Ghost' },
+  { id: 'clown_mask', name: 'Clown Mask', tier: 'Radiant', effect: 'Atk per Daily Event', lore: 'Scales Attack indefinitely based on daily participation.', source: 'Chapters', iconType: 'Ghost' },
+  { id: 'treasure_belt', name: 'Glimmering Belt', tier: 'Radiant', effect: 'Relic Chest Timer -%', lore: 'Reduces timer for free Relic Chests. Long-term value is immense.', source: 'Chapters', iconType: 'Box' },
+  { id: 'book_bravery', name: 'Book of Bravery', tier: 'Radiant', effect: 'Melee Dmg +%', lore: 'Critical for Demon Blade/Fist users to boost melee strikes.', source: 'Chapters', iconType: 'Book' },
+  { id: 'golden_apple', name: 'Golden Apple', tier: 'Radiant', effect: 'Max HP per Daily Event', lore: 'Massive HP scaler. Often confused for SS-tier due to power level.', source: 'Chapters', iconType: 'Cup' },
+  { id: 'stone_wisdom', name: 'Stone of Wisdom', tier: 'Radiant', effect: 'Jewel Chest Timer -%', lore: 'Accelerates Jewel progression significantly over time.', source: 'Chapters', iconType: 'Gem' },
+
+  // --- RARE RELICS (Green / A Tier) ---
+  { id: 'precision_slingshot', name: 'Precision Slingshot', tier: 'Rare', effect: 'Patrol Gear Drop +%', lore: 'THE farming relic. Increases passive gear income from patrol. Max this first.', source: 'Common', iconType: 'Arrow' },
+  { id: 'pirate_shank', name: 'Pirate\'s Shank', tier: 'Rare', effect: 'Patrol Coin Drop +%', lore: 'The Gold generator. Essential for affording late-game talent upgrades.', source: 'Common', iconType: 'Sword' },
+  { id: 'special_lance', name: 'Special Lance', tier: 'Rare', effect: 'Atk per Ad Viewed', lore: 'Turns ad-watching into raw power. Great for active F2P players.', source: 'Common', iconType: 'Sword' },
+  { id: 'scholar_scope', name: 'Scholar\'s Telescope', tier: 'Rare', effect: 'Patrol General +%', lore: 'Boosts overall account economy from Hero Patrol.', source: 'Common', iconType: 'Search' },
+  { id: 'princess_bear', name: 'Princess Teddy', tier: 'Rare', effect: 'Equip Drop Rate +%', lore: 'The "Three Brothers" rarity. Hard to find, but best farming stat in the game.', source: 'Common', iconType: 'Dog' }
 ];
 
 export const SET_BONUS_DESCRIPTIONS: Record<string, string> = {
@@ -640,6 +707,14 @@ ARCHERO V6.3 GRANDMASTER KNOWLEDGE:
 // --- DRAGONS (Complete Roster) ---
 export const DRAGON_DATA: BaseItem[] = [
   // SS TIER (The Holy Trinity)
+  { 
+    id: 'thunderfrost', name: 'Thunderfrost Wings', tier: 'SS', category: 'Dragon', dragonType: 'Balanced', desc: 'Ice/Lightning Control.', 
+    deepLogic: 'Rivals Magmar. Uses a hybrid Ice/Lightning breath that freezes enemies AND deals chain damage. Top-tier Crowd Control.' 
+  },
+  { 
+    id: 'viridax', name: 'Viridax', tier: 'SS', category: 'Dragon', dragonType: 'Defense', desc: 'Terraformer.', 
+    deepLogic: 'Generates walls and cover in open maps. Extremely tactical for "Glass Cannon" builds that need to hide to survive.' 
+  },
   { id: 'magmar', name: 'Magmar', tier: 'SS', category: 'Dragon', dragonType: 'Attack', desc: 'Mana King.', deepLogic: 'Active destroys projectiles. Passive converts lost HP to Mana. Essential for spell spam.' },
   { id: 'starrite', name: 'Starrite', tier: 'SS', category: 'Dragon', dragonType: 'Balance', desc: 'Meteor Storm.', deepLogic: 'Massive AoE damage. Passive chance to cast spells for free.' },
   { id: 'voideon', name: 'Voideon', tier: 'SS', category: 'Dragon', dragonType: 'Defense', desc: 'Portal Master.', deepLogic: 'Summons portals that boost stats. High Dodge passive.' },
@@ -711,7 +786,7 @@ export const DAILY_EVENTS: ArcheroEvent[] = [
   {
     id: 'ucd',
     name: 'Up-Close Dangers',
-    days: ['Monday', 'Wednesday', 'Friday', 'Sunday'],
+    days: ['Tuesday', 'Thursday', 'Saturday', 'Sunday'], // Fixed: Tue/Thu/Sat/Sun
     rewards: ['Massive Gold', 'High Exp'],
     desc: 'The best source for gold. Melee enemies rush you at high speed.',
     proTip: 'Equip 2x Bull Rings for gold bonus. Prioritize "Greed" and "Richochet" to keep mobs at bay.',
@@ -720,7 +795,7 @@ export const DAILY_EVENTS: ArcheroEvent[] = [
   {
     id: 'fb',
     name: 'Flying Bullets',
-    days: ['Tuesday', 'Thursday', 'Saturday', 'Sunday'],
+    days: ['Monday', 'Wednesday', 'Friday', 'Sunday'], // Fixed: Mon/Wed/Fri/Sun
     rewards: ['Gear Drops', 'Scrolls'],
     desc: 'Focuses on gear drops. Many ranged enemies spamming projectiles.',
     proTip: 'Dodge focus is key. Phantom Cloak and Bulletproof Locket help survive high-density bullet rooms.',
