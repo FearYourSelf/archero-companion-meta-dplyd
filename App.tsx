@@ -21,7 +21,7 @@ import {
   Globe, Sun, CalendarDays, Plus, ArrowRight, Cookie, Microscope, Skull, Menu, Home, HelpCircle as GuideIcon, Settings
 } from 'lucide-react';
 import { 
-  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS, RUNE_DATA, SYNERGY_DATA, FARMLORD_DATA, JEWEL_BUILD_DATA
+  HERO_DATA, GEAR_DATA, JEWEL_DATA, RELIC_DATA, SET_BONUS_DESCRIPTIONS, FARMING_ROUTES, DRAGON_DATA, FarmingRoute, REFINE_TIPS, JEWEL_SLOT_BONUSES, DAILY_EVENTS, RUNE_DATA, SYNERGY_DATA, FARMLORD_DATA, JEWEL_BUILD_DATA, RELIC_META_DATA
 } from './constants';
 import { chatWithAI } from './services/geminiService';
 import { Hero, Tier, GearCategory, ChatMessage, CalcStats, BaseItem, Jewel, Relic, GearSet, LogEntry, SlotBonus, StarMilestone, SunMilestone, ArcheroEvent, LoadoutBuild } from './types';
@@ -2847,46 +2847,7 @@ const App: React.FC = () => {
             <div className="space-y-8 animate-in fade-in pb-12"><div className="p-16 bg-gray-950/90 border border-white/5 rounded-[5rem] text-center shadow-inner relative ring-1 ring-white/5"><p className="text-[11px] font-black text-gray-600 uppercase mb-4 tracking-[0.3em]">Projectile Resistance Cap</p><div className={`text-6xl sm:text-7xl md:text-8xl font-black italic tracking-tighter ${totalImmunity >= 100 ? 'text-green-500 drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]' : 'text-white'}`}>{totalImmunity.toFixed(1)}%</div><p className="text-[11px] text-orange-500 font-black uppercase mt-6 tracking-[0.4em]">{totalImmunity >= 100 ? 'SYSTEM IMMUNE' : 'VULNERABILITY DETECTED'}</p></div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">{[{ label: 'Dragon Rings (Max 2)', val: immunitySetup.rings, set: (v: number) => setImmunitySetup(p => ({...p, rings: v})) }, { label: 'Atreus Level 80 (+7%)', check: immunitySetup.atreus120, set: (v: boolean) => setImmunitySetup(p => ({...p, atreus120: v})) }, { label: 'Onir 7-Star Passive (+10%)', check: immunitySetup.onir120, set: (v: boolean) => setImmunitySetup(p => ({...p, onir120: v})) }, { label: 'Bulletproof Locket (+15%)', check: immunitySetup.locket, set: (v: boolean) => setImmunitySetup(p => ({...p, locket: v})) }].map((row, i) => (<div key={i} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] flex items-center justify-between"><span className="text-[11px] font-black text-gray-400 uppercase italic">{row.label}</span>{row.hasOwnProperty('val') ? (<input type="number" max="2" min="0" value={row.val} onChange={e => (row as any).set(Number(e.target.value))} className="bg-white/5 w-12 text-center text-white font-black rounded-lg p-1" />) : (<button onClick={() => (row as any).set(!row.check)} className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${row.check ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10'}`}>{row.check && <CheckCircle2 size={14}/>}</button>)}</div>))}</div></div>
           )}
 
-          {/* HEADER */}
-             <div className="p-8 bg-gradient-to-br from-cyan-900 via-gray-950 to-blue-900 border border-cyan-500/20 rounded-[3rem] text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
-                <Disc className="mx-auto mb-4 text-cyan-400 animate-spin-slow" size={56} />
-                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Jewel Architect</h3>
-                <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] mt-2">Socket Priority Blueprint</p>
-             </div>
 
-             {/* BLUEPRINT CARDS */}
-             <div className="space-y-4">
-                {JEWEL_BUILD_DATA.map((build, idx) => (
-                  <div key={idx} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] relative overflow-hidden">
-                     {/* PRIORITY BADGE */}
-                     <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <span className="text-6xl font-black text-white">{build.priority}</span>
-                     </div>
-                     
-                     <div className="relative z-10">
-                        <h4 className={`text-lg font-black uppercase italic tracking-tighter ${build.color} mb-4 flex items-center gap-2`}>
-                          <Construction size={18} /> {build.slot}
-                        </h4>
-                        
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                           <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-center">
-                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Level 16</span>
-                              <span className="text-sm font-bold text-white">{build.bonus16}</span>
-                           </div>
-                           <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-center">
-                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Level 28</span>
-                              <span className="text-sm font-bold text-yellow-400 animate-pulse">{build.bonus28}</span>
-                           </div>
-                        </div>
-                        
-                        <p className="text-[10px] text-gray-400 font-medium italic text-center">
-                          "{build.desc}"
-                        </p>
-                     </div>
-                  </div>
-                ))}
-             </div>
 
           {activeTab === 'runes' && (
           <div className="space-y-8 animate-in fade-in pb-24">
@@ -3007,6 +2968,26 @@ const App: React.FC = () => {
                   <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Relic Vault</h3>
                   <p className="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] italic">Abyssal Codex Verified</p>
                </div>
+
+               {/* STRATEGY CARDS */}
+             <div className="space-y-4">
+                <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.3em] flex items-center gap-3 px-4">
+                  <Crown size={14} className="text-yellow-500" /> Curator's Priority
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   {RELIC_META_DATA.map((meta) => (
+                     <div key={meta.id} className={`p-6 rounded-[2.5rem] border ${meta.border} ${meta.bg} relative overflow-hidden`}>
+                        <div className="flex justify-between items-start mb-2">
+                           <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded border ${meta.border} bg-black/20 ${meta.color}`}>{meta.type}</span>
+                           <span className="text-2xl font-black text-white/10 italic">{meta.priority}</span>
+                        </div>
+                        <h4 className="text-lg font-black text-white uppercase italic tracking-tighter mb-1">{meta.name}</h4>
+                        <p className={`text-[10px] font-bold ${meta.color} uppercase tracking-widest mb-3`}>{meta.effect}</p>
+                        <p className="text-[10px] text-gray-300 font-medium italic leading-relaxed">"{meta.desc}"</p>
+                     </div>
+                   ))}
+                </div>
+             </div>
   
                {/* RELIC GRID */}
                <div className="space-y-12">
@@ -3060,6 +3041,46 @@ const App: React.FC = () => {
 
           {activeTab === 'jewels' && (
             <div className="space-y-8 animate-in fade-in pb-12">
+                      {/* HEADER */}
+             <div className="p-8 bg-gradient-to-br from-cyan-900 via-gray-950 to-blue-900 border border-cyan-500/20 rounded-[3rem] text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] pointer-events-none"></div>
+                <Disc className="mx-auto mb-4 text-cyan-400 animate-spin-slow" size={56} />
+                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Jewel Architect</h3>
+                <p className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] mt-2">Socket Priority Blueprint</p>
+             </div>
+
+             {/* BLUEPRINT CARDS */}
+             <div className="space-y-4">
+                {JEWEL_BUILD_DATA.map((build, idx) => (
+                  <div key={idx} className="p-6 bg-gray-900/60 border border-white/5 rounded-[2.5rem] relative overflow-hidden">
+                     {/* PRIORITY BADGE */}
+                     <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <span className="text-6xl font-black text-white">{build.priority}</span>
+                     </div>
+                     
+                     <div className="relative z-10">
+                        <h4 className={`text-lg font-black uppercase italic tracking-tighter ${build.color} mb-4 flex items-center gap-2`}>
+                          <Construction size={18} /> {build.slot}
+                        </h4>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                           <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-center">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Level 16</span>
+                              <span className="text-sm font-bold text-white">{build.bonus16}</span>
+                           </div>
+                           <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-center">
+                              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">Level 28</span>
+                              <span className="text-sm font-bold text-yellow-400 animate-pulse">{build.bonus28}</span>
+                           </div>
+                        </div>
+                        
+                        <p className="text-[10px] text-gray-400 font-medium italic text-center">
+                          "{build.desc}"
+                        </p>
+                     </div>
+                  </div>
+                ))}
+             </div>
               <div className="p-8 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] flex flex-col gap-6 shadow-2xl"><div className="flex items-center justify-between"><div className="flex items-center gap-4"><div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400"><Binary size={24}/></div><div><h3 className="text-xl font-black text-white uppercase italic tracking-tight">Jewel Laboratory</h3></div></div><div className="px-4 py-2 bg-black/40 border border-white/5 rounded-xl text-center"><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Slot Total LV</p><p className="text-sm font-black text-blue-400">{jewelSimLevel}</p></div></div><input type="range" min="4" max="48" value={jewelSimLevel} onChange={(e) => setJewelSimLevel(parseInt(e.target.value))} className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-blue-500" /><div className="flex justify-between text-[8px] font-black text-gray-600 uppercase tracking-widest px-1"><span>LV 4</span><span>LV 28</span><span>LV 48</span></div></div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredJewels.map(j => (

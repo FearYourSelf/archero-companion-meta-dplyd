@@ -979,3 +979,25 @@ export const JEWEL_BUILD_DATA = [
     desc: 'Defensive utility. Upgrade only after Weapons are maxed.'
   }
 ];
+
+// --- RELIC META STRATEGY ---
+export const RELIC_META_DATA = [
+  {
+    id: 'attack_prio', name: 'Holy Grail', priority: 'SSS', type: 'Holy Relic',
+    effect: 'Global Attack +%',
+    desc: 'The single most important relic in the game. Prioritize all "Radiant" cores here.',
+    color: 'text-yellow-400', border: 'border-yellow-500/50', bg: 'bg-yellow-950/30'
+  },
+  {
+    id: 'crit_prio', name: 'Radiant Crown', priority: 'SS', type: 'Holy Relic',
+    effect: 'Crit Damage +%',
+    desc: 'Essential for scaling damage in late-game chapters. Upgrade immediately after Grail.',
+    color: 'text-orange-400', border: 'border-orange-500/50', bg: 'bg-orange-950/30'
+  },
+  {
+    id: 'farm_prio', name: 'Precision Slingshot', priority: 'S', type: 'Rare Relic',
+    effect: 'Patrol Gear Drop +%',
+    desc: 'The king of passive income. Max this out to get more free equipment daily.',
+    color: 'text-green-400', border: 'border-green-500/50', bg: 'bg-green-950/30'
+  }
+];
