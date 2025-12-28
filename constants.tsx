@@ -519,6 +519,8 @@ export const GEAR_DATA: BaseItem[] = [
   // A-TIER / ASSIST
   { id: 'swamp_toad', name: 'Swamp Toad', tier: 'A', category: 'Pet', desc: 'Poison Area.', deepLogic: 'Leaves poison puddles that slow enemies. Decent for kiting, but outclassed by Penguin King.' },
   { id: 'crimson_fox', name: 'Crimson Fox', tier: 'A', category: 'Pet', desc: 'Raw Damage.', deepLogic: 'High single-target damage. Good for boss killing if you lack SS pets.' },
+  { id: 'canyon_dog', name: 'Canyon Dog', tier: 'A', category: 'Pet', desc: 'Guard Dog.', deepLogic: 'Bites nearby enemies. Decent single-target damage but low utility.' },
+  { id: 'night_eagle', name: 'Night Eagle', tier: 'S', category: 'Pet', desc: 'Crit Buffer.', deepLogic: 'Passive increases Hero Critical Chance by 5%. Active summons a gust of wind.' },
 
   // --- TOTEMS ---
   { id: 'totem_atk', name: 'Attack Totem', tier: 'SS', category: 'Totem', desc: 'Boosts Attack stats.' },
@@ -566,6 +568,7 @@ export const RELIC_DATA: Relic[] = [
   { id: 'zeus_belt', name: 'Zeus Belt', tier: 'Supreme', effect: 'S-Grade Shard Drop Rate +%', lore: 'The only relic that directly increases the drop rate of S-Tier Hero Shards.', source: 'Supreme Chest', iconType: 'Zap' },
   { id: 'sword_stone', name: 'Sword in Stone', tier: 'Supreme', effect: 'Equip Stats +30%', lore: 'Arthur\'s legacy. Enhances King Arthur\'s Excalibur charge attacks.', source: 'Supreme Chest', iconType: 'Sword' },
   { id: 'angel_judgment', name: 'Angel of Judgment', tier: 'Supreme', effect: 'Resurrection & Frontal Def', lore: 'The ultimate defensive artifact. Grants a second layer of resurrection.', source: 'Supreme Chest', iconType: 'Shield' },
+  { id: 'somersault_cloud', name: 'Somersault Cloud', tier: 'Supreme', effect: 'Move Speed + Wukong Synergy', lore: 'The cloud that carries the Monkey King. Increases Dodge while moving.', source: 'Supreme Chest', iconType: 'Cloud' },
 
   // --- HOLY RELICS (Gold / SS Tier) ---
   { id: 'healing_grail', name: 'Healing Holy Grail', tier: 'Holy', effect: 'Unlocks "Grace" Skill', lore: 'Unlocks the hidden "Grace" skill that boosts healing as HP gets lower.', source: 'Relic Chest', iconType: 'Cup' },
@@ -575,6 +578,9 @@ export const RELIC_DATA: Relic[] = [
   { id: 'primal_fire', name: 'Primal Fire', tier: 'Holy', effect: 'Fire Dmg +25%', lore: 'Essential for Phoren/Lina. Rewards revives with permanent Attack.', source: 'Relic Chest', iconType: 'Flame' },
   { id: 'prophet_quill', name: 'Prophet\'s Quill', tier: 'Holy', effect: 'Resurrection Prob +%', lore: 'Stacks with Angel Locket to cheat death multiple times.', source: 'Relic Chest', iconType: 'Scroll' },
   { id: 'demon_eye', name: 'Demon King\'s Eye', tier: 'Holy', effect: 'Atk % & Boss Dmg %', lore: 'Hybrid offense/defense. Not to be confused with the weapon.', source: 'Relic Chest', iconType: 'Eye' },
+  { id: 'bloody_sword', name: 'Bloody Holy Sword', tier: 'Holy', effect: 'Melee Dmg +10%', lore: 'A cursed blade that hungers for battle. Essential for Demon Blade users.', source: 'Relic Chest', iconType: 'Sword' },
+  { id: 'dragon_jade', name: 'Dragon Jade Pendant', tier: 'Holy', effect: 'Dragon Stat +15%', lore: 'Amplifies the power of equipped Dragon Statues.', source: 'Relic Chest', iconType: 'Gem' },
+  { id: 'golden_bag', name: 'Golden Coin Bag', tier: 'Holy', effect: 'Gold Earnings +10%', lore: 'An endless supply of wealth. Stacks with Jadeon Dragon.', source: 'Relic Chest', iconType: 'Bag' },
 
   // --- RADIANT RELICS (Purple / S Tier) ---
   { id: 'smiling_mask', name: 'Smiling Mask', tier: 'Radiant', effect: 'Dragon Chest Timer -%', lore: 'Economic King. Reduces free Dragon Chest timer. Essential for F2P.', source: 'Chapters', iconType: 'Ghost' },
